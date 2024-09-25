@@ -1,5 +1,5 @@
-import ServerType from "src/utils/server-type";
-import ServerStatus from "src/utils/server-status";
+import ServerType from 'src/abc/server-type';
+import ServerState from 'src/abc/server-state';
 
 import {
   _id,
@@ -28,7 +28,7 @@ export const _users = [...Array(24)].map((_, index) => ({
   createdAt: new Date(),
   numOfOnlinePlayers: 32,
   serverType: ServerType.VANILLA,
-  status: ServerStatus.ONLINE,
+  status: ServerState.RUNNING,
 }));
 
 // ----------------------------------------------------------------------

@@ -1,11 +1,11 @@
-import type ServerType from "src/utils/server-type";
+import type ServerType from 'src/abc/server-type';
 
-import {Link} from "react-router-dom";
+import { Link } from 'react-router-dom';
 import { useState, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Avatar from '@mui/material/Avatar';
-import Button from "@mui/material/Button";
+import Button from '@mui/material/Button';
 import Popover from '@mui/material/Popover';
 import TableRow from '@mui/material/TableRow';
 import Checkbox from '@mui/material/Checkbox';
@@ -14,10 +14,11 @@ import TableCell from '@mui/material/TableCell';
 import IconButton from '@mui/material/IconButton';
 import MenuItem, { menuItemClasses } from '@mui/material/MenuItem';
 
-import ServerStatus from "src/utils/server-status";
+import ServerState from 'src/abc/server-state';
 
 import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
+import type Server from 'src/api/server';
 
 // ----------------------------------------------------------------------
 
@@ -27,11 +28,11 @@ export type UserProps = {
   createdAt: Date;
   numOfOnlinePlayers: number;
   serverType: ServerType;
-  status: ServerStatus;
+  status: ServerState;
 };
 
 type UserTableRowProps = {
-  row: UserProps;
+  row: Server;
   selected: boolean;
   onSelectRow: () => void;
 };
@@ -56,21 +57,29 @@ export function ServerTableRow({ row, selected, onSelectRow }: UserTableRowProps
 
         <TableCell component="th" scope="row">
           <Box gap={2} display="flex" alignItems="center">
-            <Avatar alt={row.serverType.name} src={row.serverType.imagePath} />
+            <Avatar alt={row.type.name} />
             {row.name}
           </Box>
         </TableCell>
 
-        <TableCell>{row.createdAt.toDateString()}</TableCell>
-
-        <TableCell>{row.numOfOnlinePlayers}</TableCell>
+        <TableCell>{row.isLoaded.toString()}</TableCell>
 
         <TableCell>
-          <Label color={(row.status === ServerStatus.OFFLINE && 'error') || (row.status === ServerStatus.BOOTING && 'warning') || 'success'}>{row.status}</Label>
+          <Label
+            color={
+              (row.state === ServerState.STOPPED && 'error') ||
+              (row.state === ServerState.STARTING && 'warning') ||
+              'success'
+            }
+          >
+            {row.state.toString()}
+          </Label>
         </TableCell>
 
         <TableCell>
-          <Button variant="contained" component={Link} to="11/console">管理</Button>
+          <Button variant="contained" component={Link} to={`./${row.id}/console`}>
+            管理
+          </Button>
         </TableCell>
 
         <TableCell align="right">

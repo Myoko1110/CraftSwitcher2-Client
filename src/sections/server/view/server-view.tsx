@@ -1,4 +1,5 @@
-import { useState, useCallback } from 'react';
+import { Link } from 'react-router-dom';
+import { useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -9,6 +10,7 @@ import Typography from '@mui/material/Typography';
 import TableContainer from '@mui/material/TableContainer';
 
 import { _users } from 'src/_mock';
+import Server from 'src/api/server';
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { Iconify } from 'src/components/iconify';
@@ -16,20 +18,35 @@ import { Scrollbar } from 'src/components/scrollbar';
 
 import { emptyRows } from '../utils';
 import { TableNoData } from '../table-no-data';
+import { TableLoading } from '../table-loading';
 import { ServerTableRow } from '../server-table-row';
 import { TableEmptyRows } from '../table-empty-rows';
 import { ServerTableHead } from '../server-table-head';
-
-import type { UserProps } from '../server-table-row';
 
 // ----------------------------------------------------------------------
 
 export function ServerView() {
   const table = useTable();
 
-  const servers: UserProps[] = _users;
+  const [servers, setServers] = useState<Server[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [unableToLoad, setUnableToLoad] = useState(false);
 
   const notFound = !servers.length;
+
+  useEffect(() => {
+    async function getServers() {
+      try {
+        setServers(await Server.all());
+      } catch (e) {
+        setUnableToLoad(true);
+        return;
+      }
+
+      setIsLoading(false);
+    }
+    getServers();
+  }, []);
 
   return (
     <DashboardContent>
@@ -41,6 +58,8 @@ export function ServerView() {
           variant="contained"
           color="inherit"
           startIcon={<Iconify icon="mingcute:add-line" />}
+          component={Link}
+          to="./create"
         >
           新規作成
         </Button>
@@ -53,19 +72,18 @@ export function ServerView() {
               <ServerTableHead
                 order={table.order}
                 orderBy={table.orderBy}
-                rowCount={_users.length}
+                rowCount={servers.length}
                 numSelected={table.selected.length}
                 onSort={table.onSort}
                 onSelectAllRows={(checked) =>
                   table.onSelectAllRows(
                     checked,
-                    _users.map((user) => user.id)
+                    servers.map((s) => s.id)
                   )
                 }
                 headLabel={[
                   { id: 'name', label: '名前' },
                   { id: 'createdAt', label: '作成日時' },
-                  { id: 'numOfOnlinePlayers', label: '参加人数' },
                   { id: 'status', label: 'ステータス' },
                   { id: 'buttons' },
                   { id: '' },
@@ -86,7 +104,8 @@ export function ServerView() {
                   emptyRows={emptyRows(table.page, table.rowsPerPage, _users.length)}
                 />
 
-                {notFound && <TableNoData />}
+                {notFound && !isLoading && <TableNoData />}
+                {isLoading && <TableLoading unableToLoad={unableToLoad} />}
               </TableBody>
             </Table>
           </TableContainer>
