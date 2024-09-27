@@ -1,6 +1,6 @@
 import type { Theme, SxProps, Breakpoint } from '@mui/material/styles';
 
-import { useState } from 'react';
+import { useLayoutEffect, useState } from 'react';
 
 import Box from '@mui/material/Box';
 import Alert from '@mui/material/Alert';
@@ -18,6 +18,7 @@ import { MenuButton } from '../components/menu-button';
 import { LayoutSection } from '../core/layout-section';
 import { HeaderSection } from '../core/header-section';
 import { AccountPopover } from '../components/account-popover';
+import User from '../../api/user';
 
 // ----------------------------------------------------------------------
 

@@ -39,7 +39,24 @@ export default class ServerType {
 
   static VELOCITY = new ServerType('velocity', 'Velocity');
 
-  static all = [ServerType.UNKNOWN, ServerType.CUSTOM, ServerType.VANILLA, ServerType.SPIGOT, ServerType.PAPER, ServerType.PURPUR, ServerType.FOLIA, ServerType.FORGE, ServerType.NEO_FORGE, ServerType.MOHIST, ServerType.YOUER, ServerType.FABRIC, ServerType.BANNER, ServerType.BUNGEECORD, ServerType.WATERFALL, ServerType.VELOCITY, ServerType.VELOCITY];
+  static all = [
+    ServerType.UNKNOWN,
+    ServerType.CUSTOM,
+    ServerType.VANILLA,
+    ServerType.SPIGOT,
+    ServerType.PAPER,
+    ServerType.PURPUR,
+    ServerType.FOLIA,
+    ServerType.FORGE,
+    ServerType.NEO_FORGE,
+    ServerType.MOHIST,
+    ServerType.YOUER,
+    ServerType.FABRIC,
+    ServerType.BANNER,
+    ServerType.BUNGEECORD,
+    ServerType.WATERFALL,
+    ServerType.VELOCITY,
+  ];
 
   private constructor(
     public name: string,
@@ -50,8 +67,8 @@ export default class ServerType {
     return SERVER_TYPE_SPECS[this.name];
   }
 
-  static get(name: string) {
-    return ServerType.all.find(t => t.name === name);
+  static get(name: string): ServerType {
+    return ServerType.all.find((value) => value.name === name) || ServerType.UNKNOWN;
   }
 
   static async availableTypes(): Promise<ServerType[]> {

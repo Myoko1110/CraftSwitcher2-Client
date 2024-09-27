@@ -13,6 +13,16 @@ export default class ServerState {
 
   static BUILD = new ServerState('build');
 
+  static all = [
+    ServerState.UNKNOWN,
+    ServerState.STOPPED,
+    ServerState.STARTED,
+    ServerState.STARTING,
+    ServerState.STOPPING,
+    ServerState.RUNNING,
+    ServerState.BUILD,
+  ];
+
   private constructor(public name: string) {}
 
   get isRunning() {
@@ -21,6 +31,10 @@ export default class ServerState {
 
   compareTo(other: ServerState) {
     return (_SERVER_STATE_VALUE[this.name] || -1) < (_SERVER_STATE_VALUE[other.name] || -1);
+  }
+
+  static get(name: string) {
+    return ServerState.all.find((value) => value.name === name) || ServerState.UNKNOWN;
   }
 }
 

@@ -12,7 +12,7 @@ import { ThemeProvider } from 'src/theme/theme-provider';
 
 export default function App() {
   useScrollToTop();
-  axios.defaults.baseURL = 'http://localhost:8080';
+  axios.defaults.baseURL = import.meta.env.VITE_API_ENDPOINT;
   axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
   axios.defaults.withCredentials = true;
 

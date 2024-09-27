@@ -15,9 +15,6 @@ export default function ServerCreateImport() {
 
   return (
     <>
-      <Typography variant="subtitle1" mb={2}>
-        構築済みサーバーを追加
-      </Typography>
       <Stack direction="row" gap={2} sx={{ alignItems: 'center' }}>
         <TextField
           label="名前"

@@ -1,7 +1,7 @@
-import type ServerType from 'src/abc/server-type';
-import type ServerState from 'src/abc/server-state';
-
 import axios from 'axios';
+
+import ServerType from 'src/abc/server-type';
+import ServerState from 'src/abc/server-state';
 
 export default class Server {
   constructor(
@@ -20,16 +20,22 @@ export default class Server {
   static async all(): Promise<Server[]> {
     const result = await axios.get('/servers');
     return result.data.map(
-      (c: {
-        id: string;
-        name: string;
-        type: ServerType;
-        state: ServerState;
-        directory: string;
-        is_loaded: boolean;
-        build_status: string;
-      }) => new Server(c.id, c.name, c.type, c.state, c.directory, c.is_loaded, c.build_status)
+      (value: ServerResult) =>
+        new Server(
+          value.id,
+          value.name,
+          ServerType.get(value.type),
+          ServerState.get(value.state),
+          value.directory,
+          value.is_loaded,
+          value.build_status
+        )
     );
+  }
+
+  static async get(id: string) {
+    const all = await Server.all();
+    return all.find((value) => value.id === id);
   }
 
   /**
@@ -76,54 +82,71 @@ export default class Server {
    * 構成済みのサーバーを登録します
    */
   async import(directory: string): Promise<boolean> {
-    const result = await axios.post(`/server/${this.id}/import`, { directory });
+    const result = await axios.post(
+      `/server/${this.id}/import`,
+      { directory },
+      {
+        headers: {
+          'content-type': 'application/json',
+        },
+      }
+    );
     return result.data.result;
   }
 
   /**
    * サーバーを作成します
+   * @returns 成功した場合はサーバーID、失敗した場合はfalse
    */
   static async create({
     name,
     directory,
     type,
-    launchOption: {
-      javaExecutable = null,
-      javaOptions = null,
-      jarFile,
-      serverOptions = null,
-      maxHeapMemory = null,
-      minHeapMemory = null,
-      enableFreeMemoryCheck = false,
-      enableReporterAgent = false,
+    launchOption = {
+      javaExecutable: null,
+      javaOptions: null,
+      jarFile: '',
+      serverOptions: null,
+      maxHeapMemory: null,
+      minHeapMemory: null,
+      enableFreeMemoryCheck: true,
+      enableReporterAgent: true,
     },
     enableLaunchCommand = false,
     launchCommand = '',
     stopCommand = null,
     shutdownTimeout = null,
-  }: ServerCreateParams): Promise<boolean> {
+  }: ServerCreateParams): Promise<Server | false> {
     // const id = crypto.randomUUID();
 
-    const result = await axios.post(`/server/09e58a69-25d8-4655-b4a2-3dc7d89035dd`, {
-      name,
-      directory,
-      type: type.name,
-      launch_option: {
-        java_executable: javaExecutable,
-        java_options: javaOptions,
-        jar_file: jarFile,
-        server_options: serverOptions,
-        max_heap_memory: maxHeapMemory,
-        min_heap_memory: minHeapMemory,
-        enable_free_memory_check: enableFreeMemoryCheck,
-        enable_reporter_agent: enableReporterAgent,
+    const result = await axios.post(
+      `/server/09e58a69-25d8-4655-b4a2-3dc7d89035dd`,
+      {
+        name,
+        directory,
+        type: type.name,
+        launch_option: {
+          java_executable: launchOption.javaExecutable,
+          java_options: launchOption.javaOptions,
+          jar_file: launchOption.jarFile,
+          server_options: launchOption.serverOptions,
+          max_heap_memory: launchOption.maxHeapMemory,
+          min_heap_memory: launchOption.minHeapMemory,
+          enable_free_memory_check: launchOption.enableFreeMemoryCheck,
+          enable_reporter_agent: launchOption.enableReporterAgent,
+        },
+        enable_launch_command: enableLaunchCommand,
+        launch_command: launchCommand,
+        stop_command: stopCommand,
+        shutdown_timeout: shutdownTimeout,
       },
-      enable_launch_command: enableLaunchCommand,
-      launch_command: launchCommand,
-      stop_command: stopCommand,
-      shutdown_timeout: shutdownTimeout,
-    });
-    return result.data.result;
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    return result.data.result ? (await Server.get('09e58a69-25d8-4655-b4a2-3dc7d89035dd'))! : false;
   }
 
   /**
@@ -170,22 +193,30 @@ export default class Server {
    * @param config
    */
   async putConfig(config: ServerConfig): Promise<boolean> {
-    const result = await axios.put(`/server/${this.id}/config`, {
-      name: config.name,
-      type: config.type,
-      'launch_option.java_executable': config.launchOption?.javaExecutable,
-      'launch_option.java_options': config.launchOption?.javaOptions,
-      'launch_option.jar_file': config.launchOption?.jarFile,
-      'launch_option.server_options': config.launchOption?.serverOptions,
-      'launch_option.max_heap_memory': config.launchOption?.maxHeapMemory,
-      'launch_option.min_heap_memory': config.launchOption?.minHeapMemory,
-      'launch_option.enable_free_memory_check': config.launchOption?.enableFreeMemoryCheck,
-      'launch_option.enable_reporter_agent': config.launchOption?.enableReporterAgent,
-      enable_launch_command: config.enableLaunchCommand,
-      launch_command: config.launchCommand,
-      stop_command: config.stopCommand,
-      shutdown_timeout: config.shutdownTimeout,
-    });
+    const result = await axios.put(
+      `/server/${this.id}/config`,
+      {
+        name: config.name,
+        type: config.type,
+        'launch_option.java_executable': config.launchOption?.javaExecutable,
+        'launch_option.java_options': config.launchOption?.javaOptions,
+        'launch_option.jar_file': config.launchOption?.jarFile,
+        'launch_option.server_options': config.launchOption?.serverOptions,
+        'launch_option.max_heap_memory': config.launchOption?.maxHeapMemory,
+        'launch_option.min_heap_memory': config.launchOption?.minHeapMemory,
+        'launch_option.enable_free_memory_check': config.launchOption?.enableFreeMemoryCheck,
+        'launch_option.enable_reporter_agent': config.launchOption?.enableReporterAgent,
+        enable_launch_command: config.enableLaunchCommand,
+        launch_command: config.launchCommand,
+        stop_command: config.stopCommand,
+        shutdown_timeout: config.shutdownTimeout,
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
     return result.status === 200;
   }
 
@@ -219,6 +250,16 @@ export default class Server {
   }
 }
 
+type ServerResult = {
+  id: string;
+  name: string;
+  type: string;
+  state: string;
+  directory: string;
+  is_loaded: boolean;
+  build_status: string;
+};
+
 type ServerConfig = {
   name: string;
   type?: ServerType;
@@ -233,23 +274,23 @@ type ServerConfig = {
 };
 
 type LaunchOption = {
-  javaExecutable: string | null;
-  javaOptions: string | null;
+  javaExecutable: string | null | undefined;
+  javaOptions: string | null | undefined;
   jarFile: string;
-  serverOptions: string | null;
-  maxHeapMemory: number | null;
-  minHeapMemory: number | null;
+  serverOptions: string | null | undefined;
+  maxHeapMemory: number | null | undefined;
+  minHeapMemory: number | null | undefined;
   enableFreeMemoryCheck: boolean;
   enableReporterAgent: boolean;
 };
 
 type ServerCreateParams = {
-  name: string | null;
+  name?: string | null | undefined;
   directory: string;
   type: ServerType;
-  launchOption: LaunchOption;
-  stopCommand: string | null;
-  shutdownTimeout: number | null;
-  enableLaunchCommand: boolean;
-  launchCommand: string | null;
+  launchOption?: LaunchOption;
+  stopCommand?: string | null | undefined;
+  shutdownTimeout?: number | null | undefined;
+  enableLaunchCommand?: boolean;
+  launchCommand?: string | null | undefined;
 };

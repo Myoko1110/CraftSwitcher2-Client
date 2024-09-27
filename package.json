@@ -1,8 +1,9 @@
 {
   "name": "craftswticher2",
-  "licence": "MIT",
+  "license": "MIT",
   "version": "1.0.0",
   "private": false,
+  "type": "module",
   "scripts": {
     "dev": "vite",
     "start": "vite preview",

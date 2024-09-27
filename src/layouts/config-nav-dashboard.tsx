@@ -28,4 +28,9 @@ export const navData = [
     path: '/bot',
     icon: icon('ic-robot'),
   },
+  {
+    title: 'ユーザー',
+    path: '/user',
+    icon: icon('ic-user'),
+  },
 ];

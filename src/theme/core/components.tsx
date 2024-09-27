@@ -155,6 +155,14 @@ const MuiRadio: Components<Theme>['MuiRadio'] = {
   },
 };
 
+const MuiFab: Components<Theme>['MuiFab'] = {
+  styleOverrides: {
+    root: {
+      boxShadow: 'none',
+    },
+  },
+};
+
 // ----------------------------------------------------------------------
 
 export const components = {
@@ -170,4 +178,5 @@ export const components = {
   MuiCardHeader,
   MuiOutlinedInput,
   MuiFormControlLabel,
+  MuiFab,
 };

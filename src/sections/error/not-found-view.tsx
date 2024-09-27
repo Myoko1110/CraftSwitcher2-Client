@@ -14,7 +14,7 @@ export function NotFoundView() {
     <SimpleLayout content={{ compact: true }}>
       <Container>
         <Typography variant="h3" sx={{ mb: 2 }}>
-          404 Not Found
+          Not Found
         </Typography>
 
         <Typography sx={{ color: 'text.secondary' }}>
@@ -32,7 +32,7 @@ export function NotFoundView() {
         />
 
         <Button component={RouterLink} href="/" size="large" variant="contained" color="inherit">
-          Go to home
+          ホームへ戻る
         </Button>
       </Container>
     </SimpleLayout>
