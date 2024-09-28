@@ -9,6 +9,7 @@ import Typography from '@mui/material/Typography';
 import Breadcrumbs from '@mui/material/Breadcrumbs';
 
 import { DashboardContent } from 'src/layouts/dashboard';
+import { Iconify } from 'src/components/iconify';
 
 import ServerCreateNew from '../server-create-new';
 import ServerCreateImport from '../server-create-import';
@@ -104,14 +105,26 @@ export function ServerCreateView() {
             }}
           >
             {page === 0 ? (
-              <>
-                <Button color="inherit" variant="outlined" onClick={() => setPage(1)}>
-                  新しく作成
+              <Stack direction="row" gap={1}>
+                <Button
+                  color="inherit"
+                  variant="outlined"
+                  onClick={() => setPage(1)}
+                  sx={{ width: '50%', display: 'block' }}
+                >
+                  <Iconify icon="mingcute:add-circle-line" width="60%" color="grey.600" />
+                  <Typography variant="h5">新しく作成</Typography>
                 </Button>
-                <Button color="inherit" variant="outlined" onClick={() => setPage(2)}>
-                  構築済みサーバーを追加
+                <Button
+                  color="inherit"
+                  variant="outlined"
+                  onClick={() => setPage(2)}
+                  sx={{ width: '50%', display: 'block' }}
+                >
+                  <Iconify icon="mingcute:download-2-line" width="60%" color="grey.600" />
+                  <Typography variant="h5">構築済みサーバーを追加</Typography>
                 </Button>
-              </>
+              </Stack>
             ) : page === 1 ? (
               <>
                 <Stack direction="row" alignItems="center" mb={2}>

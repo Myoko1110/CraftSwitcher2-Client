@@ -1,4 +1,4 @@
-import type File from 'src/api/file';
+import type FileDirectory from 'src/api/file-directory';
 
 import { useState } from 'react';
 
@@ -23,12 +23,20 @@ function FileIcon({ name }: { name: string }) {
 type AnchorPosition = { top: number; left: number } | undefined;
 
 type Props = {
-  file: File;
+  folder: FileDirectory;
+  path: string;
+  onDoubleClick: (path: string) => void;
   onSelectRow: () => void;
   selected?: boolean;
 };
 
-export default function ServerFileTableRow({ file, onSelectRow, selected = false }: Props) {
+export default function ServerFolderTableRow({
+  folder,
+  path,
+  onDoubleClick,
+  onSelectRow,
+  selected = false,
+}: Props) {
   const [open, setOpen] = useState(false);
   const [position, setPosition] = useState<AnchorPosition>(undefined);
 
@@ -49,6 +57,7 @@ export default function ServerFileTableRow({ file, onSelectRow, selected = false
     <TableRow
       onContextMenu={handleContextMenu}
       onClick={onSelectRow}
+      onDoubleClick={() => onDoubleClick(path)}
       sx={{
         backgroundColor: selected ? 'primary.lighter' : null,
         cursor: 'default',
@@ -60,11 +69,11 @@ export default function ServerFileTableRow({ file, onSelectRow, selected = false
       <TableCell sx={{ py: 0.5 }}>
         <Stack direction="row" alignItems="center" gap={1}>
           <FileIcon name="folder" />
-          <Typography>{file.name}</Typography>
+          <Typography>{folder.name}</Typography>
         </Stack>
       </TableCell>
-      <TableCell sx={{ py: 0.5 }}>{file.size}</TableCell>
-      <TableCell sx={{ py: 0.5 }}>{file.modifyTime.toDateString()}</TableCell>
+      <TableCell sx={{ py: 0.5 }} />
+      <TableCell sx={{ py: 0.5 }}>2024/09/30 22:23</TableCell>
       <TableCell sx={{ py: 0.5 }}>フォルダー</TableCell>
       <Menu
         anchorReference="anchorPosition"

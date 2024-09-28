@@ -1,5 +1,5 @@
 import axios from 'axios';
-import * as Path from 'node:path';
+import path from 'path-browserify';
 
 import File from './file';
 
@@ -22,7 +22,7 @@ export default class FileDirectory {
   }
 
   get filePath(): string {
-    return Path.join(this.path, this.name);
+    return path.join(this.path, this.name);
   }
 
   static async tasks(): Promise<TaskResult[]> {
@@ -31,27 +31,35 @@ export default class FileDirectory {
   }
 
   static async get(path: string): Promise<FileDirectory> {
-    const result = await axios.get('/files');
-    return result.data.map(
-      (value: FileResult) =>
-        new FileDirectory(
-          value.name,
-          value.path,
-          value.children.map((c) => {
-            if (c.is_dir) {
-              return new FileDirectory(
-                c.name,
-                c.path,
-                undefined,
-                c.modify_time,
-                c.create_time,
-                c.is_server_dir,
-                c.registered_server_id
-              );
-            }
-            return new File(c.name, c.path, c.size, c.modify_time, c.create_time);
-          })
-        )
+    const result = await axios.get(`/files?path=${path}`);
+    return new FileDirectory(
+      result.data.name,
+      result.data.path,
+      result.data.children.map(
+        (c: {
+          name: string;
+          path: string;
+          is_dir: boolean;
+          size: number;
+          modify_time: number;
+          create_time: number;
+          is_server_dir: boolean;
+          registered_server_id: string | null;
+        }) => {
+          if (c.is_dir) {
+            return new FileDirectory(
+              c.name,
+              c.path,
+              undefined,
+              c.modify_time,
+              c.create_time,
+              c.is_server_dir,
+              c.registered_server_id
+            );
+          }
+          return new File(c.name, c.path, c.size, c.modify_time, c.create_time);
+        }
+      )
     );
   }
 

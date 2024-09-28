@@ -119,10 +119,10 @@ export default class Server {
     stopCommand = null,
     shutdownTimeout = null,
   }: ServerCreateParams): Promise<Server | false> {
-    // const id = crypto.randomUUID();
+    const id = window.crypto.randomUUID();
 
     const result = await axios.post(
-      `/server/09e58a69-25d8-4655-b4a2-3dc7d89035dd`,
+      `/server/${id}`,
       {
         name,
         directory,
@@ -148,7 +148,7 @@ export default class Server {
         },
       }
     );
-    return result.data.result ? (await Server.get('09e58a69-25d8-4655-b4a2-3dc7d89035dd'))! : false;
+    return result.data.result ? (await Server.get(id))! : false;
   }
 
   /**

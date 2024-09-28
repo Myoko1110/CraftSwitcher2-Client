@@ -1,23 +1,64 @@
-import { useState } from 'react';
+import type File from 'src/api/file';
+
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 
+import FileDirectory from 'src/api/file-directory';
+
 import { useTable } from '../server/view';
 import ServerFileToolbar from './server-file-toolbar';
 import ServerFileTableRow from './server-file-table-row';
 import ServerFileTableHead from './server-file-table-head';
+import ServerFolderTableRow from './server-folder-table-row';
 
 export default function ServerFiles() {
   const table = useTable();
 
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [params, setParams] = useSearchParams();
+
+  const [files, setFiles] = useState<(FileDirectory | File)[]>([]);
+  const [directory, setDirectory] = useState<FileDirectory | null>(null);
+
+  useEffect(() => {
+    if (!params.has('path')) {
+      setParams((prev) => {
+        prev.set('path', '/main');
+        return prev;
+      });
+    }
+
+    async function getFiles() {
+      try {
+        const info = await FileDirectory.get(params.get('path')!);
+
+        setDirectory(info);
+        setFiles(await info.children());
+      } catch (e) {
+        console.log(e);
+      }
+    }
+    getFiles();
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params]);
+
+  const handleChangePath = (path: string) => {
+    if (path === directory?.filePath) return;
+
+    setParams((prev) => {
+      prev.set('path', path);
+      return prev;
+    });
+  };
 
   return (
     <Stack flexGrow={1}>
-      <ServerFileToolbar />
+      <ServerFileToolbar directory={directory} handleChangePath={handleChangePath} />
       <Box px={2}>
         <Table
           sx={{
@@ -35,8 +76,29 @@ export default function ServerFiles() {
         >
           <ServerFileTableHead orderBy={table.orderBy} order={table.order} onSort={table.onSort} />
           <TableBody>
-            <ServerFileTableRow menuOpen={menuOpen} setMenuOpen={setMenuOpen} selected />
-            <ServerFileTableRow menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
+            {files.map((file) => {
+              const path = file.filePath;
+              if (file instanceof FileDirectory) {
+                return (
+                  <ServerFolderTableRow
+                    key={path}
+                    folder={file}
+                    path={path}
+                    selected={table.selected.includes(path)}
+                    onDoubleClick={handleChangePath}
+                    onSelectRow={() => table.onSelectRow(path)}
+                  />
+                );
+              }
+              return (
+                <ServerFileTableRow
+                  key={path}
+                  file={file}
+                  selected={table.selected.includes(path)}
+                  onSelectRow={() => table.onSelectRow(path)}
+                />
+              );
+            })}
           </TableBody>
         </Table>
       </Box>

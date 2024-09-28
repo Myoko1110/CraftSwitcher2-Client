@@ -20,13 +20,16 @@ export const ServerProcessButton = ({ server, state, ...other }: ServerProcessBu
     ServerState.RUNNING.name,
     ServerState.STARTING.name,
     ServerState.STOPPING.name,
+    ServerState.UNKNOWN.name,
   ].includes(_state.name);
   const stopDisabled = [
     ServerState.STOPPED.name,
     ServerState.UNKNOWN.name,
     ServerState.STOPPED.name,
+    ServerState.UNKNOWN.name,
   ].includes(_state.name);
 
+  // TODO: エラーハンドリング
   const handleStart = async () => {
     const res = await server?.start();
   };

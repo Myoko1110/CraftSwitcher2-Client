@@ -25,12 +25,8 @@ import ServerConsole from '../server-console';
 
 // ----------------------------------------------------------------------
 
-type RouterParams = {
-  id: string;
-};
-
 export function ServerConsoleView() {
-  const { id } = useParams<RouterParams>();
+  const { id } = useParams<{ id: string }>();
   const theme = useTheme();
   const layoutQuery: Breakpoint = 'lg';
 
@@ -107,8 +103,13 @@ export function ServerConsoleView() {
           sx={{ pr: 0.5, borderColor: 'divider' }}
         >
           <Tab value="summary" label="概要" component={RouterLink} to="../summary" />
-          <Tab value="console" label="コンソール" component={RouterLink} to="../console" />
-          <Tab value="file" label="ファイル" component={RouterLink} to="../file" />
+          <Tab
+            value="console"
+            label="コンソール"
+            component={RouterLink}
+            to={`/server/${id}/console`}
+          />
+          <Tab value="file" label="ファイル" component={RouterLink} to={`/server/${id}/file`} />
         </Tabs>
         <ServerConsole server={server} ws={ws} />
       </Card>

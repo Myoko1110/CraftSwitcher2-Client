@@ -19,9 +19,9 @@
     "noFallthroughCasesInSwitch": true,
     "useUnknownInCatchVariables": false,
     "allowSyntheticDefaultImports": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
   },
-  "include": ["src"],
+  "include": ["src", "@types/index.d.ts"],
   "exclude": ["node_modules"],
   "references": [
     {

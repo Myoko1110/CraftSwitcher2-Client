@@ -1,6 +1,9 @@
 // eslint-disable-next-line max-classes-per-file
+import ServerState from 'src/abc/server-state';
+
 import Server from './server';
-import ServerState from '../abc/server-state';
+
+// ----------------------------------------------------------------------
 
 // TODO: イベント追加
 // TODO: 名前 -> ID

@@ -1,20 +1,33 @@
+import type FileDirectory from 'src/api/file-directory';
+
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Toolbar from '@mui/material/Toolbar';
 import Tooltip from '@mui/material/Tooltip';
 import IconButton from '@mui/material/IconButton';
+import Typography from '@mui/material/Typography';
 import Breadcrumbs from '@mui/material/Breadcrumbs';
 import OutlinedInput from '@mui/material/OutlinedInput';
 import InputAdornment from '@mui/material/InputAdornment';
-import { useTheme, type Breakpoint } from '@mui/material/styles';
+import { type Breakpoint, useTheme } from '@mui/material/styles';
 
-import { Iconify } from '../../components/iconify';
+import { Iconify } from 'src/components/iconify';
+import { ButtonGroup } from '@mui/material';
 
 // ----------------------------------------------------------------------
 
-export default function ServerFileToolbar() {
+type Props = {
+  directory?: FileDirectory | null;
+  handleChangePath: (path: string) => void;
+};
+
+export default function ServerFileToolbar({ directory, handleChangePath }: Props) {
   const theme = useTheme();
   const layoutQuery: Breakpoint = 'lg';
+
+  const path = directory?.filePath || '';
+  const pathSegments = path.split('/');
+  pathSegments.shift();
 
   return (
     <Toolbar
@@ -29,12 +42,34 @@ export default function ServerFileToolbar() {
       }}
     >
       <Stack direction="row">
-        <Breadcrumbs maxItems={2} itemsAfterCollapse={2} itemsBeforeCollapse={0}>
-          <Button sx={{ minWidth: 'unset', px: 0.7, py: 0 }}>lobby</Button>
-          <Button sx={{ minWidth: 'unset', px: 0.7, py: 0 }}>plugins</Button>
-          <Button sx={{ minWidth: 'unset', px: 0.7, py: 0 }}>plugins</Button>
-          <Button sx={{ minWidth: 'unset', px: 0.7, py: 0 }}>plugins</Button>
-          <Button sx={{ minWidth: 'unset', px: 0.7, py: 0 }}>src</Button>
+        <Button sx={{ minWidth: 'unset' }}>
+          <Iconify icon="eva:arrow-upward-outline" />
+        </Button>
+        <Button sx={{ minWidth: 'unset' }}>
+          <Iconify icon="eva:refresh-outline" />
+        </Button>
+        <Breadcrumbs
+          sx={{
+            bgcolor: 'grey.200',
+            display: 'flex',
+            alignItems: 'center',
+            borderRadius: 1,
+            px: 1,
+            ml: 1,
+          }}
+        >
+          {pathSegments.map((name, index) => {
+            const p = `${pathSegments.slice(0, index + 1).join('/')}`;
+            return (
+              <Button
+                key={index}
+                sx={{ minWidth: 'unset', px: 0.7, py: 0 }}
+                onClick={() => handleChangePath(p)}
+              >
+                <Typography variant="h6">{name}</Typography>
+              </Button>
+            );
+          })}
         </Breadcrumbs>
       </Stack>
       <Stack direction="row" gap={1}>
