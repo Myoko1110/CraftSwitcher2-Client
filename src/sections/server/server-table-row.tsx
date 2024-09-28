@@ -1,31 +1,28 @@
 import type Server from 'src/api/server';
 import type ServerType from 'src/abc/server-type';
+import type ServerState from 'src/abc/server-state';
 import type WebSocketClient from 'src/api/ws-client';
 
 import { Link } from 'react-router-dom';
 import { useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
-import Fab from '@mui/material/Fab';
 import Alert from '@mui/material/Alert';
-import Stack from '@mui/material/Stack';
 import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import Popover from '@mui/material/Popover';
-import Tooltip from '@mui/material/Tooltip';
 import TableRow from '@mui/material/TableRow';
 import Checkbox from '@mui/material/Checkbox';
 import MenuList from '@mui/material/MenuList';
 import Snackbar from '@mui/material/Snackbar';
 import TableCell from '@mui/material/TableCell';
 import IconButton from '@mui/material/IconButton';
+import Typography from '@mui/material/Typography';
 import MenuItem, { menuItemClasses } from '@mui/material/MenuItem';
 
-import ServerState from 'src/abc/server-state';
-
-import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
-import Typography from '@mui/material/Typography';
+import { ServerStateLabel } from 'src/components/server-state-label';
+import { ServerProcessButton } from 'src/components/server-process-button';
 
 // ----------------------------------------------------------------------
 
@@ -63,18 +60,6 @@ export function ServerTableRow({ server, ws, selected, onSelectRow }: ServerTabl
     setStartError(false);
   }, []);
 
-  const handleStart = async () => {
-    const res = await server.start();
-  };
-
-  const handleStop = async () => {
-    const res = await server.stop();
-  };
-
-  const handleRestart = async () => {
-    const res = await server.restart();
-  };
-
   useEffect(() => {
     ws.addEventListener('ServerChangeState', (e) => {
       if (e.serverId === server.id) {
@@ -82,36 +67,6 @@ export function ServerTableRow({ server, ws, selected, onSelectRow }: ServerTabl
       }
     });
   });
-
-  const start = (disabled: boolean = false) => (
-    <Tooltip title="起動">
-      <Fab color="success" size="small" onClick={handleStart} disabled={disabled}>
-        <Iconify icon="mingcute:play-fill" />
-      </Fab>
-    </Tooltip>
-  );
-
-  const stop = (disabled: boolean = false) => (
-    <Tooltip title="停止">
-      <Fab color="error" size="small" onClick={handleStop} disabled={disabled}>
-        <Iconify icon="mingcute:square-fill" />
-      </Fab>
-    </Tooltip>
-  );
-
-  const restart = (disabled: boolean = false) => (
-    <Tooltip title="再起動">
-      <Fab
-        color="warning"
-        size="small"
-        onClick={handleRestart}
-        disabled={disabled}
-        sx={{ color: '#ffffff' }}
-      >
-        <Iconify icon="eva:sync-outline" />
-      </Fab>
-    </Tooltip>
-  );
 
   return (
     <>
@@ -130,39 +85,11 @@ export function ServerTableRow({ server, ws, selected, onSelectRow }: ServerTabl
         <TableCell>{server.isLoaded.toString()}</TableCell>
 
         <TableCell>
-          <Label
-            color={
-              state.name === ServerState.STOPPED.name
-                ? 'error'
-                : [ServerState.STARTING.name, ServerState.STOPPING.name].includes(state.name)
-                  ? 'warning'
-                  : 'success'
-            }
-          >
-            {state.name}
-          </Label>
+          <ServerStateLabel state={state} />
         </TableCell>
 
         <TableCell sx={{ display: 'flex', flexDirection: 'row', gap: 0.3 }}>
-          {[ServerState.STARTED.name, ServerState.RUNNING.name].includes(state.name) ? (
-            <Stack direction="row" gap={1}>
-              {start(true)}
-              {stop()}
-              {restart()}
-            </Stack>
-          ) : [ServerState.STARTING.name, ServerState.STOPPING.name].includes(state.name) ? (
-            <Stack direction="row" gap={1}>
-              {start(true)}
-              {stop(true)}
-              {restart(true)}
-            </Stack>
-          ) : state.name === ServerState.STOPPED.name ? (
-            <Stack direction="row" gap={1}>
-              {start()}
-              {stop(true)}
-              {restart(true)}
-            </Stack>
-          ) : null}
+          <ServerProcessButton server={server} state={state} />
         </TableCell>
 
         <TableCell>
