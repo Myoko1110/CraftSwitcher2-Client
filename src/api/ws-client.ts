@@ -2,6 +2,8 @@
 import Server from './server';
 import ServerState from '../abc/server-state';
 
+// TODO: イベント追加
+// TODO: 名前 -> ID
 export default class WebSocketClient {
   private ws: WebSocket;
 
@@ -12,6 +14,17 @@ export default class WebSocketClient {
     this.ws.onmessage = this.onMessage.bind(this);
   }
 
+  public sendLine(serverId: string, data: string): void {
+    // TODO: 送る
+    this.ws.send(
+      JSON.stringify({
+        type: 'server_process_write',
+        server: serverId,
+        data,
+      })
+    );
+  }
+
   private onMessage(e: MessageEvent<string>) {
     const data = JSON.parse(e.data);
 
@@ -20,8 +33,6 @@ export default class WebSocketClient {
         break;
 
       case 'event':
-        console.log(data);
-
         switch (data.event_type) {
           case 'server_process_read': {
             const ev = new ServerProcessReadEvent(data.server, data.data);
@@ -30,7 +41,7 @@ export default class WebSocketClient {
           }
 
           case 'server_change_state': {
-            const ev = new ServerStateChangeEvent(
+            const ev = new ServerChangeStateEvent(
               ServerState.get(data.new_state),
               ServerState.get(data.old_state),
               data.server
@@ -70,7 +81,7 @@ class ServerProcessReadEvent {
   }
 }
 
-class ServerStateChangeEvent {
+class ServerChangeStateEvent {
   constructor(
     public newState: ServerState,
     public oldState: ServerState,
@@ -84,5 +95,5 @@ class ServerStateChangeEvent {
 
 interface EventMap {
   ServerProcessRead: ServerProcessReadEvent;
-  ServerChangeState: ServerStateChangeEvent;
+  ServerChangeState: ServerChangeStateEvent;
 }

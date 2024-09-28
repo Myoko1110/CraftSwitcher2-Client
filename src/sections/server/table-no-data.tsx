@@ -5,7 +5,6 @@ import Typography from '@mui/material/Typography';
 
 // ----------------------------------------------------------------------
 
-
 export function TableNoData({ ...other }) {
   return (
     <TableRow {...other}>
@@ -15,9 +14,7 @@ export function TableNoData({ ...other }) {
             サーバーがありません
           </Typography>
 
-          <Typography variant="body2">
-            右上からサーバーを作成しましょう
-          </Typography>
+          <Typography variant="body2">右上からサーバーを作成しましょう</Typography>
         </Box>
       </TableCell>
     </TableRow>

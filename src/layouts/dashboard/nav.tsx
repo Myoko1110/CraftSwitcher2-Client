@@ -120,18 +120,16 @@ export function NavContent({ data, slots, workspaces, sx }: NavContentProps) {
 
       {slots?.topArea}
 
-      <Scrollbar fillContent sx={{mt: 2}}>
+      <Scrollbar fillContent sx={{ mt: 2 }}>
         <Box component="nav" display="flex" flex="1 1 auto" flexDirection="column" sx={sx}>
           <Box component="ul" gap={0.5} display="flex" flexDirection="column">
             {data.map((item) => {
-
               let isActive: boolean;
               if (item.path === '/') {
                 isActive = pathname === item.path;
               } else {
                 isActive = pathname.startsWith(item.path);
               }
-
 
               return (
                 <ListItem disableGutters disablePadding key={item.title}>

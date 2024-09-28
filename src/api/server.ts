@@ -74,7 +74,9 @@ export default class Server {
    * サーバーにコマンドを送信します
    */
   async sendLine(line: string): Promise<boolean> {
-    const result = await axios.post(`/server/${this.id}/send`, { line });
+    const result = await axios.post(
+      `/server/{server_id/send_line?server_id=${this.id}&line=${line}`
+    );
     return result.data.result;
   }
 

@@ -1,4 +1,3 @@
-
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
@@ -10,32 +9,31 @@ import { Chart, useChart } from 'src/components/chart';
 // ----------------------------------------------------------------------
 
 type Props = {
-  title: string,
-  percent: number,
-  subtitle?: string,
-  total?: number,
-  sx?: object,
-}
+  title: string;
+  percent: number;
+  subtitle?: string;
+  total?: number;
+  sx?: object;
+};
 
 export default function AnalyticsPercent({ title, percent, subtitle, total, sx, ...other }: Props) {
   const theme = useTheme();
-  const colorStops = percent < 80
-    ? [
-      { color: theme.palette.primary.main, offset: 0, opacity: 1 },
-      { color: theme.palette.primary.dark, offset: 100, opacity: 1 },
-    ]
-    : [
-      { color: theme.palette.error.main, offset: 0, opacity: 1 },
-      { color: theme.palette.error.dark, offset: 100, opacity: 1 },
-    ];
+  const colorStops =
+    percent < 80
+      ? [
+          { color: theme.palette.primary.main, offset: 0, opacity: 1 },
+          { color: theme.palette.primary.dark, offset: 100, opacity: 1 },
+        ]
+      : [
+          { color: theme.palette.error.main, offset: 0, opacity: 1 },
+          { color: theme.palette.error.dark, offset: 100, opacity: 1 },
+        ];
 
-  const color = percent < 80
-    ? 'primary.main'
-    : 'error.main';
+  const color = percent < 80 ? 'primary.main' : 'error.main';
 
   if (!total) total = 100;
 
-  const usage = total * percent / 100;
+  const usage = (total * percent) / 100;
 
   const chartOptions = useChart({
     chart: {
@@ -109,7 +107,6 @@ export default function AnalyticsPercent({ title, percent, subtitle, total, sx, 
       }}
       {...other}
     >
-
       <Box sx={{ width: 90, height: 90, mx: 'auto' }}>
         <Chart
           dir="ltr"
@@ -129,15 +126,26 @@ export default function AnalyticsPercent({ title, percent, subtitle, total, sx, 
           </Typography>
         )}
         {total && (
-          <Stack gap={.5}>
+          <Stack gap={0.5}>
             <Stack direction="row" gap={1} alignItems="center">
               <Box sx={{ width: 12, height: 12, bgcolor: color, borderRadius: '4px' }} />
-              <Typography variant="caption" color="text.secondary" sx={{ flexGrow: 1 }}>使用中</Typography>
+              <Typography variant="caption" color="text.secondary" sx={{ flexGrow: 1 }}>
+                使用中
+              </Typography>
               <Typography variant="caption">{usage} GB</Typography>
             </Stack>
             <Stack direction="row" gap={1} alignItems="center">
-              <Box sx={{ width: 12, height: 12, bgcolor: theme.palette.grey[700], borderRadius: '4px' }} />
-              <Typography variant="caption" color="text.secondary" sx={{ flexGrow: 1 }}>利用可能</Typography>
+              <Box
+                sx={{
+                  width: 12,
+                  height: 12,
+                  bgcolor: theme.palette.grey[700],
+                  borderRadius: '4px',
+                }}
+              />
+              <Typography variant="caption" color="text.secondary" sx={{ flexGrow: 1 }}>
+                利用可能
+              </Typography>
               <Typography variant="caption">{total - usage} GB</Typography>
             </Stack>
           </Stack>

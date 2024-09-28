@@ -1,5 +1,5 @@
 import type Server from 'src/api/server';
-import type WebSocketClient from 'src/api/ws';
+import type WebSocketClient from 'src/api/ws-client';
 import type ServerType from 'src/abc/server-type';
 
 import { Link } from 'react-router-dom';
@@ -71,7 +71,7 @@ export function ServerTableRow({ server, ws, selected, onSelectRow }: ServerTabl
   };
 
   const handleRestart = async () => {
-    const res = await server.stop();
+    const res = await server.restart();
   };
 
   useEffect(() => {

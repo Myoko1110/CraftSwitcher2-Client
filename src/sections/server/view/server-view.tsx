@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -11,7 +11,7 @@ import TableContainer from '@mui/material/TableContainer';
 
 import { _users } from 'src/_mock';
 import Server from 'src/api/server';
-import WebSocketClient from 'src/api/ws';
+import WebSocketClient from 'src/api/ws-client';
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { Iconify } from 'src/components/iconify';

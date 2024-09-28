@@ -1,16 +1,25 @@
+import type Server from 'src/api/server';
+import type WebSocketClient from 'src/api/ws-client';
+
 import { Terminal } from '@xterm/xterm';
 import { FitAddon } from '@xterm/addon-fit';
+import { WebglAddon } from '@xterm/addon-webgl';
 import { useRef, useState, useEffect } from 'react';
 
-import WebSocketClient from 'src/api/ws';
-
-export default function ServerConsole() {
+export default function ServerConsole({
+  server,
+  ws,
+}: {
+  server: Server | null;
+  ws: WebSocketClient;
+}) {
   const ref = useRef<HTMLDivElement | null>(null);
-  const [input, setInput] = useState('');
+  const [term] = useState<Terminal>(new Terminal());
+  const [fitAddon] = useState(new FitAddon());
+  const [webglAddon] = useState(new WebglAddon());
 
-  const handleData = (data: string) => {
-    term.write(data);
-    setInput(input + data);
+  const handleSendLine = (data: string) => {
+    ws.sendLine('123456', data);
   };
 
   const observer = new ResizeObserver((entries) => {
@@ -20,24 +29,21 @@ export default function ServerConsole() {
   });
 
   useEffect(() => {
+    term.loadAddon(fitAddon);
+    term.loadAddon(webglAddon);
+    term.onData(handleSendLine);
+
     term.open(ref.current!);
     fitAddon.fit();
     observer.observe(ref.current!);
 
-    const ws = new WebSocketClient();
     ws.addEventListener('ServerProcessRead', (event) => {
-      console.log(event);
-      term.writeln(event.data);
+      console.log(event.data);
+      term!.write(event.data);
     });
 
-    return () => ws.close();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const term = new Terminal();
-  const fitAddon = new FitAddon();
-  term.loadAddon(fitAddon);
-  term.onData(handleData);
 
   return <div style={{ flexGrow: 1 }} ref={ref} />;
 }

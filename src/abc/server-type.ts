@@ -1,6 +1,5 @@
+// eslint-disable-next-line max-classes-per-file
 import ServerInstaller from 'src/api/jardl';
-
-import _ServerType from './_server-type';
 
 export default class ServerType {
   static UNKNOWN = new ServerType('unknown', '不明');
@@ -130,6 +129,17 @@ export default class ServerType {
   }
 }
 
+class _ServerType {
+  constructor(
+    public name: string,
+    public stopCommand: string | null,
+    public isProxy: boolean,
+    public isModded: boolean,
+    public imagePath: string = ''
+  ) {}
+}
+
+// TODO: アイコンを追加
 const SERVER_TYPE_SPECS: { [key: string]: _ServerType } = {
   unknown: new _ServerType('unknown', null, false, false),
   custom: new _ServerType('custom', null, false, false),
