@@ -20,6 +20,7 @@ import ServerState from 'src/abc/server-state';
 import WebSocketClient from 'src/api/ws-client';
 import { DashboardContent } from 'src/layouts/dashboard';
 
+import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
 
 import ServerConsole from '../server-console';
@@ -38,7 +39,7 @@ export function ServerConsoleView() {
   const isMobileSize = useMediaQuery(theme.breakpoints.down(layoutQuery));
 
   const [server, setServer] = useState<Server | null>(null);
-  const [serverState, setServerState] = useState<ServerState | null>(null);
+  const [state, setState] = useState<ServerState>(ServerState.UNKNOWN);
   const [ws] = useState(new WebSocketClient());
 
   useEffect(() => {
@@ -48,7 +49,7 @@ export function ServerConsoleView() {
       try {
         const res = await Server.get(id!);
         setServer(res!);
-        setServerState(res!.state);
+        setState(res!.state);
       } catch (e) {
         // TODO: エラーハンドリング
         console.error(e);
@@ -58,7 +59,7 @@ export function ServerConsoleView() {
 
     ws.addEventListener('ServerChangeState', (event) => {
       if (event.serverId === id) {
-        setServerState(event.newState);
+        setState(event.newState);
       }
     });
 
@@ -113,7 +114,7 @@ export function ServerConsoleView() {
 
   return (
     <DashboardContent maxWidth="xl">
-      <Box display="flex" alignItems="center" pb={5}>
+      <Box display="flex" alignItems="center" pb={4}>
         <Box flexGrow={1}>
           <Link
             key="1"
@@ -125,26 +126,35 @@ export function ServerConsoleView() {
           >
             サーバー
           </Link>
-          <Typography variant="h4">{server?.name}</Typography>
+          <Stack direction="row" alignItems="center" gap={1.5}>
+            <Typography variant="h3">{server?.name}</Typography>
+            <Label
+              color={
+                state.name === ServerState.STOPPED.name
+                  ? 'error'
+                  : [ServerState.STARTING.name, ServerState.STOPPING.name].includes(state.name)
+                    ? 'warning'
+                    : 'success'
+              }
+            >
+              {state.name}
+            </Label>
+          </Stack>
         </Box>
         <Card sx={{ px: 2, py: 1, display: 'flex', gap: 1 }}>
-          {[ServerState.STARTED.name, ServerState.RUNNING.name].includes(
-            serverState?.name || ServerState.UNKNOWN.name
-          ) ? (
+          {[ServerState.STARTED.name, ServerState.RUNNING.name].includes(state.name) ? (
             <Stack direction="row" gap={1}>
               {start(true)}
               {stop()}
               {restart()}
             </Stack>
-          ) : [ServerState.STARTING.name, ServerState.STOPPING.name].includes(
-              serverState?.name || ServerState.UNKNOWN.name
-            ) ? (
+          ) : [ServerState.STARTING.name, ServerState.STOPPING.name].includes(state.name) ? (
             <Stack direction="row" gap={1}>
               {start(true)}
               {stop(true)}
               {restart(true)}
             </Stack>
-          ) : serverState?.name || ServerState.UNKNOWN.name === ServerState.STOPPED.name ? (
+          ) : state.name === ServerState.STOPPED.name ? (
             <Stack direction="row" gap={1}>
               {start()}
               {stop(true)}
