@@ -9,7 +9,6 @@ import TableBody from '@mui/material/TableBody';
 import Typography from '@mui/material/Typography';
 import TableContainer from '@mui/material/TableContainer';
 
-import { _users } from 'src/_mock';
 import Server from 'src/api/server';
 import WebSocketClient from 'src/api/ws-client';
 import { DashboardContent } from 'src/layouts/dashboard';
@@ -111,7 +110,7 @@ export function ServerView() {
 
                 <TableEmptyRows
                   height={68}
-                  emptyRows={emptyRows(table.page, table.rowsPerPage, _users.length)}
+                  emptyRows={emptyRows(table.page, table.rowsPerPage, servers.length)}
                 />
 
                 {notFound && !isLoading && <TableNoData />}

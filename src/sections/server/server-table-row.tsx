@@ -1,6 +1,6 @@
 import type Server from 'src/api/server';
-import type WebSocketClient from 'src/api/ws-client';
 import type ServerType from 'src/abc/server-type';
+import type WebSocketClient from 'src/api/ws-client';
 
 import { Link } from 'react-router-dom';
 import { useState, useEffect, useCallback } from 'react';
@@ -25,6 +25,7 @@ import ServerState from 'src/abc/server-state';
 
 import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
+import Typography from '@mui/material/Typography';
 
 // ----------------------------------------------------------------------
 
@@ -122,7 +123,7 @@ export function ServerTableRow({ server, ws, selected, onSelectRow }: ServerTabl
         <TableCell component="th" scope="row">
           <Box gap={2} display="flex" alignItems="center">
             <Avatar alt={server.type.name} />
-            {server.name}
+            <Typography variant="h6">{server.name}</Typography>
           </Box>
         </TableCell>
 
