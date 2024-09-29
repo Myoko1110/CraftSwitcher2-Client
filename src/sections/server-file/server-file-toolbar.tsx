@@ -25,6 +25,7 @@ export default function ServerFileToolbar({ directory, handleChangePath }: Props
   const layoutQuery: Breakpoint = 'lg';
 
   const path = directory?.path || '';
+  const location = directory?.location || '';
   const pathSegments = path.split('/');
 
   return (
@@ -40,10 +41,10 @@ export default function ServerFileToolbar({ directory, handleChangePath }: Props
       }}
     >
       <Stack direction="row">
-        <Button sx={{ minWidth: 'unset' }}>
+        <Button sx={{ minWidth: 'unset' }} onClick={() => handleChangePath(location)}>
           <Iconify icon="eva:arrow-upward-outline" />
         </Button>
-        <Button sx={{ minWidth: 'unset' }}>
+        <Button sx={{ minWidth: 'unset' }} onClick={() => handleChangePath(path)}>
           <Iconify icon="eva:refresh-outline" />
         </Button>
         <Breadcrumbs
@@ -64,10 +65,7 @@ export default function ServerFileToolbar({ directory, handleChangePath }: Props
               <Button
                 key={index}
                 sx={{ minWidth: 'unset', px: 0.7, py: 0 }}
-                onClick={() => {
-                  console.log(p);
-                  handleChangePath(p);
-                }}
+                onClick={() => handleChangePath(p)}
               >
                 <Typography variant="h6">{name}</Typography>
               </Button>

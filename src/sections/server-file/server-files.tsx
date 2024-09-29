@@ -32,28 +32,29 @@ export default function ServerFiles() {
       });
     }
 
-    async function getFiles() {
-      try {
-        const info = await FileDirectory.get(params.get('path')!);
-
-        setDirectory(info);
-        setFiles(await info.children());
-      } catch (e) {
-        console.log(e);
-      }
-    }
     getFiles();
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params]);
 
   const handleChangePath = (path: string) => {
-    if (path === directory?.path) return;
+    if (path === directory?.path) getFiles();
 
     setParams((prev) => {
       prev.set('path', path);
       return prev;
     });
+  };
+
+  const getFiles = async () => {
+    try {
+      const info = await FileDirectory.get(params.get('path')!);
+
+      setDirectory(info);
+      setFiles(await info.children());
+    } catch (e) {
+      console.log(e);
+    }
   };
 
   return (
