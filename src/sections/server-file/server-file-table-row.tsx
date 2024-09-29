@@ -67,7 +67,7 @@ export default function ServerFileTableRow({ file, onSelectRow, selected = false
         </Stack>
       </TableCell>
       <TableCell sx={{ py: 0.5 }}>{file.size}</TableCell>
-      <TableCell sx={{ py: 0.5 }}>{fDateTime(file.modifyTime)}</TableCell>
+      <TableCell sx={{ py: 0.5 }}>{fDateTime(file.modifyAt)}</TableCell>
       <TableCell sx={{ py: 0.5 }}>{file.type.displayName}</TableCell>
       <Menu
         anchorReference="anchorPosition"

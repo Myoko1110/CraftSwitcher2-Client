@@ -1,5 +1,3 @@
-import type File from 'src/api/file';
-
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
@@ -8,6 +6,7 @@ import Stack from '@mui/material/Stack';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 
+import File from 'src/api/file';
 import FileDirectory from 'src/api/file-directory';
 
 import { useTable } from '../server/view';
@@ -23,6 +22,14 @@ export default function ServerFiles() {
 
   const [files, setFiles] = useState<(FileDirectory | File)[]>([]);
   const [directory, setDirectory] = useState<FileDirectory | null>(null);
+
+  const [filterName, setFilterName] = useState('');
+
+  const filteredFiles = applyFilter({
+    inputData: files,
+    comparator: getComparator(table.order, table.orderBy),
+    filterName,
+  });
 
   useEffect(() => {
     if (!params.has('path')) {
@@ -59,7 +66,12 @@ export default function ServerFiles() {
 
   return (
     <Stack flexGrow={1}>
-      <ServerFileToolbar directory={directory} handleChangePath={handleChangePath} />
+      <ServerFileToolbar
+        directory={directory}
+        handleChangePath={handleChangePath}
+        filterName={filterName}
+        setFilterName={setFilterName}
+      />
       <Box px={2}>
         <Table
           sx={{
@@ -77,7 +89,7 @@ export default function ServerFiles() {
         >
           <ServerFileTableHead orderBy={table.orderBy} order={table.order} onSort={table.onSort} />
           <TableBody>
-            {files.map((file) => {
+            {filteredFiles.map((file) => {
               const _path = file.path;
               if (file instanceof FileDirectory) {
                 return (
@@ -105,4 +117,80 @@ export default function ServerFiles() {
       </Box>
     </Stack>
   );
+}
+
+// ----------------------------------------------------------------------
+
+export function getComparator(
+  order: 'asc' | 'desc',
+  orderBy: string
+): (a: File | FileDirectory, b: File | FileDirectory) => number {
+  switch (orderBy) {
+    case 'name':
+      return order === 'desc' ? (a, b) => nameComparator(a, b) : (a, b) => -nameComparator(a, b);
+    case 'size':
+      return order === 'desc' ? (a, b) => sizeComparator(a, b) : (a, b) => -sizeComparator(a, b);
+    case 'modifyAt':
+      return order === 'desc' ? (a, b) => timeComparator(a, b) : (a, b) => -timeComparator(a, b);
+    default:
+      return order === 'desc' ? (a, b) => nameComparator(a, b) : (a, b) => -nameComparator(a, b);
+  }
+}
+
+function nameComparator(a: File | FileDirectory, b: File | FileDirectory) {
+  const aIsFile = a instanceof File;
+  const bIsFile = b instanceof File;
+
+  if (aIsFile === bIsFile) {
+    if (b.name < a.name) return -1;
+    if (b.name > a.name) return 1;
+    return 0;
+  }
+  if (aIsFile) return -1;
+  return 1;
+}
+
+function sizeComparator(a: File | FileDirectory, b: File | FileDirectory) {
+  if (b.size < a.size) return -1;
+  if (b.size > a.size) return 1;
+  return 0;
+}
+
+function timeComparator(a: File | FileDirectory, b: File | FileDirectory) {
+  const aIsFile = a instanceof File;
+  const bIsFile = b instanceof File;
+
+  if (aIsFile === bIsFile) {
+    if (b.modifyAt! < a.modifyAt!) return -1;
+    if (b.modifyAt! > a.modifyAt!) return 1;
+    return 0;
+  }
+  if (aIsFile) return -1;
+  return 1;
+}
+
+type ApplyFilterProps = {
+  inputData: (File | FileDirectory)[];
+  filterName: string;
+  comparator: (a: any, b: any) => number;
+};
+
+export function applyFilter({ inputData, comparator, filterName }: ApplyFilterProps) {
+  const stabilizedThis = inputData.map((el, index) => [el, index] as const);
+
+  stabilizedThis.sort((a, b) => {
+    const order = comparator(a[0], b[0]);
+    if (order !== 0) return order;
+    return a[1] - b[1];
+  });
+
+  inputData = stabilizedThis.map((el) => el[0]);
+
+  if (filterName) {
+    inputData = inputData.filter(
+      (user) => user.name.toLowerCase().indexOf(filterName.toLowerCase()) !== -1
+    );
+  }
+
+  return inputData;
 }

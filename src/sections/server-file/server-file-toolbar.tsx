@@ -18,9 +18,16 @@ import { Iconify } from 'src/components/iconify';
 type Props = {
   directory?: FileDirectory | null;
   handleChangePath: (path: string) => void;
+  filterName: string;
+  setFilterName: (name: string) => void;
 };
 
-export default function ServerFileToolbar({ directory, handleChangePath }: Props) {
+export default function ServerFileToolbar({
+  directory,
+  handleChangePath,
+  filterName,
+  setFilterName,
+}: Props) {
   const theme = useTheme();
   const layoutQuery: Breakpoint = 'lg';
 
@@ -67,7 +74,7 @@ export default function ServerFileToolbar({ directory, handleChangePath }: Props
           }}
         >
           {pathSegments.map((name, index) => {
-            if (name === '') return <span />;
+            if (name === '') return <span key={index} />;
             const p = `${pathSegments.slice(0, index + 1).join('/')}`;
 
             return (
@@ -106,7 +113,8 @@ export default function ServerFileToolbar({ directory, handleChangePath }: Props
         </Tooltip>
         <OutlinedInput
           fullWidth
-          value=""
+          value={filterName}
+          onChange={(e) => setFilterName(e.target.value)}
           placeholder="検索"
           startAdornment={
             <InputAdornment position="start">

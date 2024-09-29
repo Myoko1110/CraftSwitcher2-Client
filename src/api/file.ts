@@ -3,9 +3,9 @@ import path from 'path-browserify';
 import { FileType } from 'src/abc/file-type';
 
 export default class File {
-  public modifyTime: Date;
+  public modifyAt: Date;
 
-  public createTime: Date;
+  public createAt: Date;
 
   public type: FileType;
 
@@ -13,11 +13,11 @@ export default class File {
     public name: string,
     public location: string,
     public size: number,
-    modifyTime: number,
-    createTime: number
+    modifyAt: number,
+    createAt: number
   ) {
-    this.modifyTime = new Date(modifyTime * 1000);
-    this.createTime = new Date(createTime * 1000);
+    this.modifyAt = new Date(modifyAt * 1000);
+    this.createAt = new Date(createAt * 1000);
     this.type = FileType.get(path.extname(name));
   }
 

@@ -15,7 +15,8 @@ export default class FileDirectory {
     modifyAt: number | undefined = undefined,
     createAt: number | undefined = undefined,
     public isServerDir: boolean | undefined = undefined,
-    public registeredServerId: string | null | undefined = undefined
+    public registeredServerId: string | null | undefined = undefined,
+    public size = -1
   ) {
     this.modifyAt = modifyAt ? new Date(modifyAt * 1000) : undefined;
     this.createAt = createAt ? new Date(createAt * 1000) : undefined;

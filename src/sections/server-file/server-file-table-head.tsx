@@ -9,7 +9,7 @@ import { visuallyHidden } from '../server/utils';
 const headLabel = [
   { id: 'name', label: '名前' },
   { id: 'size', label: 'サイズ' },
-  { id: 'updatedAt', label: '更新日時' },
+  { id: 'modifyAt', label: '更新日時' },
   { id: 'type', label: '種類' },
 ];
 
