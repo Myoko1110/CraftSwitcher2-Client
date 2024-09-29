@@ -12,6 +12,8 @@ import Typography from '@mui/material/Typography';
 import ListItemText from '@mui/material/ListItemText';
 import ListItemIcon from '@mui/material/ListItemIcon';
 
+import { fDateTime } from 'src/utils/format-time';
+
 import { Iconify } from 'src/components/iconify';
 
 // ----------------------------------------------------------------------
@@ -60,6 +62,7 @@ export default function ServerFolderTableRow({
       onDoubleClick={() => onDoubleClick(path)}
       sx={{
         backgroundColor: selected ? 'primary.lighter' : null,
+        userSelect: 'none',
         cursor: 'default',
         '&:hover': {
           backgroundColor: !selected ? 'grey.200' : null,
@@ -73,7 +76,7 @@ export default function ServerFolderTableRow({
         </Stack>
       </TableCell>
       <TableCell sx={{ py: 0.5 }} />
-      <TableCell sx={{ py: 0.5 }}>2024/09/30 22:23</TableCell>
+      <TableCell sx={{ py: 0.5 }}>{fDateTime(folder.modifyAt)}</TableCell>
       <TableCell sx={{ py: 0.5 }}>フォルダー</TableCell>
       <Menu
         anchorReference="anchorPosition"

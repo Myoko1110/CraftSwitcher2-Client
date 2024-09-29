@@ -12,6 +12,8 @@ import Typography from '@mui/material/Typography';
 import ListItemText from '@mui/material/ListItemText';
 import ListItemIcon from '@mui/material/ListItemIcon';
 
+import { fDateTime } from 'src/utils/format-time';
+
 import { Iconify } from 'src/components/iconify';
 
 // ----------------------------------------------------------------------
@@ -51,6 +53,7 @@ export default function ServerFileTableRow({ file, onSelectRow, selected = false
       onClick={onSelectRow}
       sx={{
         backgroundColor: selected ? 'primary.lighter' : null,
+        userSelect: 'none',
         cursor: 'default',
         '&:hover': {
           backgroundColor: !selected ? 'grey.200' : null,
@@ -59,13 +62,13 @@ export default function ServerFileTableRow({ file, onSelectRow, selected = false
     >
       <TableCell sx={{ py: 0.5 }}>
         <Stack direction="row" alignItems="center" gap={1}>
-          <FileIcon name="folder" />
+          <FileIcon name={file.type.name} />
           <Typography>{file.name}</Typography>
         </Stack>
       </TableCell>
       <TableCell sx={{ py: 0.5 }}>{file.size}</TableCell>
-      <TableCell sx={{ py: 0.5 }}>{file.modifyTime.toDateString()}</TableCell>
-      <TableCell sx={{ py: 0.5 }}>フォルダー</TableCell>
+      <TableCell sx={{ py: 0.5 }}>{fDateTime(file.modifyTime)}</TableCell>
+      <TableCell sx={{ py: 0.5 }}>{file.type.displayName}</TableCell>
       <Menu
         anchorReference="anchorPosition"
         open={open}

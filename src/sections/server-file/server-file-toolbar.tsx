@@ -9,10 +9,9 @@ import Typography from '@mui/material/Typography';
 import Breadcrumbs from '@mui/material/Breadcrumbs';
 import OutlinedInput from '@mui/material/OutlinedInput';
 import InputAdornment from '@mui/material/InputAdornment';
-import { type Breakpoint, useTheme } from '@mui/material/styles';
+import { useTheme, type Breakpoint } from '@mui/material/styles';
 
 import { Iconify } from 'src/components/iconify';
-import { ButtonGroup } from '@mui/material';
 
 // ----------------------------------------------------------------------
 
@@ -25,9 +24,8 @@ export default function ServerFileToolbar({ directory, handleChangePath }: Props
   const theme = useTheme();
   const layoutQuery: Breakpoint = 'lg';
 
-  const path = directory?.filePath || '';
+  const path = directory?.path || '';
   const pathSegments = path.split('/');
-  pathSegments.shift();
 
   return (
     <Toolbar
@@ -59,12 +57,17 @@ export default function ServerFileToolbar({ directory, handleChangePath }: Props
           }}
         >
           {pathSegments.map((name, index) => {
+            if (name === '') return <span />;
             const p = `${pathSegments.slice(0, index + 1).join('/')}`;
+
             return (
               <Button
                 key={index}
                 sx={{ minWidth: 'unset', px: 0.7, py: 0 }}
-                onClick={() => handleChangePath(p)}
+                onClick={() => {
+                  console.log(p);
+                  handleChangePath(p);
+                }}
               >
                 <Typography variant="h6">{name}</Typography>
               </Button>

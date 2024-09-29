@@ -4,25 +4,32 @@ import path from 'path-browserify';
 import File from './file';
 
 export default class FileDirectory {
+  public modifyAt: Date | undefined;
+
+  public createAt: Date | undefined;
+
   constructor(
     public name: string,
-    public path: string,
+    public location: string,
     private _children: (FileDirectory | File)[] | undefined = undefined,
-    public modifyAt: number | undefined = undefined,
-    public createAt: number | undefined = undefined,
+    modifyAt: number | undefined = undefined,
+    createAt: number | undefined = undefined,
     public isServerDir: boolean | undefined = undefined,
     public registeredServerId: string | null | undefined = undefined
-  ) {}
+  ) {
+    this.modifyAt = modifyAt ? new Date(modifyAt * 1000) : undefined;
+    this.createAt = createAt ? new Date(createAt * 1000) : undefined;
+  }
 
   async children(): Promise<(FileDirectory | File)[]> {
     if (!this._children) {
-      this._children = (await FileDirectory.get(this.filePath))._children!;
+      this._children = (await FileDirectory.get(this.path))._children!;
     }
     return this._children;
   }
 
-  get filePath(): string {
-    return path.join(this.path, this.name);
+  get path(): string {
+    return path.join(this.location, this.name);
   }
 
   static async tasks(): Promise<TaskResult[]> {
@@ -30,8 +37,8 @@ export default class FileDirectory {
     return result.data;
   }
 
-  static async get(path: string): Promise<FileDirectory> {
-    const result = await axios.get(`/files?path=${path}`);
+  static async get(_path: string): Promise<FileDirectory> {
+    const result = await axios.get(`/files?path=${_path}`);
     return new FileDirectory(
       result.data.name,
       result.data.path,
@@ -63,8 +70,8 @@ export default class FileDirectory {
     );
   }
 
-  static async getServer(serverId: string, path: string = '/'): Promise<FileDirectory> {
-    const result = await axios.get(`/server/${serverId}/files?path=${path}`);
+  static async getServer(serverId: string, _path: string = '/'): Promise<FileDirectory> {
+    const result = await axios.get(`/server/${serverId}/files?path=${_path}`);
     return result.data.map(
       (value: FileResult) =>
         new FileDirectory(

@@ -48,7 +48,7 @@ export default function ServerFiles() {
   }, [params]);
 
   const handleChangePath = (path: string) => {
-    if (path === directory?.filePath) return;
+    if (path === directory?.path) return;
 
     setParams((prev) => {
       prev.set('path', path);
@@ -77,25 +77,25 @@ export default function ServerFiles() {
           <ServerFileTableHead orderBy={table.orderBy} order={table.order} onSort={table.onSort} />
           <TableBody>
             {files.map((file) => {
-              const path = file.filePath;
+              const _path = file.path;
               if (file instanceof FileDirectory) {
                 return (
                   <ServerFolderTableRow
-                    key={path}
+                    key={_path}
                     folder={file}
-                    path={path}
-                    selected={table.selected.includes(path)}
+                    path={_path}
+                    selected={table.selected.includes(_path)}
                     onDoubleClick={handleChangePath}
-                    onSelectRow={() => table.onSelectRow(path)}
+                    onSelectRow={() => table.onSelectRow(_path)}
                   />
                 );
               }
               return (
                 <ServerFileTableRow
-                  key={path}
+                  key={_path}
                   file={file}
-                  selected={table.selected.includes(path)}
-                  onSelectRow={() => table.onSelectRow(path)}
+                  selected={table.selected.includes(_path)}
+                  onSelectRow={() => table.onSelectRow(_path)}
                 />
               );
             })}

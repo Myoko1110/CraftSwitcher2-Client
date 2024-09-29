@@ -1,21 +1,5 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg width="100%" height="100%" viewBox="0 0 32 32" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
-    <g transform="matrix(2,0,0,2,2,4)">
-        <path d="M0,2C0,0.895 0.895,0 2,0L12,0C13.105,0 14,0.895 14,2L14,10C14,11.105 13.105,12 12,12L2,12C0.895,12 0,11.105 0,10L0,2Z" style="fill:rgb(67,69,74);fill-rule:nonzero;"/>
-    </g>
-    <g transform="matrix(2,0,0,2,2,4)">
-        <clipPath id="_clip1">
-            <path d="M0,2C0,0.895 0.895,0 2,0L12,0C13.105,0 14,0.895 14,2L14,10C14,11.105 13.105,12 12,12L2,12C0.895,12 0,11.105 0,10L0,2Z"/>
-        </clipPath>
-        <g clip-path="url(#_clip1)">
-            <path d="M2,1L12,1L12,-1L2,-1L2,1ZM13,2L13,10L15,10L15,2L13,2ZM12,11L2,11L2,13L12,13L12,11ZM1,10L1,2L-1,2L-1,10L1,10ZM2,11C1.448,11 1,10.552 1,10L-1,10C-1,11.657 0.343,13 2,13L2,11ZM13,10C13,10.552 12.552,11 12,11L12,13C13.657,13 15,11.657 15,10L13,10ZM12,1C12.552,1 13,1.448 13,2L15,2C15,0.343 13.657,-1 12,-1L12,1ZM2,-1C0.343,-1 -1,0.343 -1,2L1,2C1,1.448 1.448,1 2,1L2,-1Z" style="fill:rgb(206,208,214);fill-rule:nonzero;"/>
-        </g>
-    </g>
-    <g transform="matrix(2,0,0,2,8,9.80481)">
-        <path d="M0.354,0.744C0.158,0.549 -0.158,0.549 -0.354,0.744C-0.549,0.939 -0.549,1.256 -0.354,1.451L0.354,0.744ZM2,3.098L2.354,3.451L2.707,3.098L2.354,2.744L2,3.098ZM-0.354,4.744C-0.549,4.939 -0.549,5.256 -0.354,5.451C-0.158,5.646 0.158,5.646 0.354,5.451L-0.354,4.744ZM-0.354,1.451L1.646,3.451L2.354,2.744L0.354,0.744L-0.354,1.451ZM1.646,2.744L-0.354,4.744L0.354,5.451L2.354,3.451L1.646,2.744Z" style="fill:rgb(206,208,214);fill-rule:nonzero;"/>
-    </g>
-    <g transform="matrix(2,0,0,2,15,19)">
-        <path d="M0,0.5C-0.276,0.5 -0.5,0.724 -0.5,1C-0.5,1.276 -0.276,1.5 0,1.5L0,0.5ZM4,1.5C4.276,1.5 4.5,1.276 4.5,1C4.5,0.724 4.276,0.5 4,0.5L4,1.5ZM0,1.5L4,1.5L4,0.5L0,0.5L0,1.5Z" style="fill:rgb(206,208,214);fill-rule:nonzero;"/>
-    </g>
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect x="1.5" y="2.5" width="13" height="11" rx="1.5" fill="#EBECF0" stroke="#6C707E"/>
+<path d="M4 6L6 8L4 10" stroke="#6C707E" stroke-linecap="round"/>
+<path d="M7.5 10.5H11.5" stroke="#6C707E" stroke-linecap="round"/>
 </svg>
