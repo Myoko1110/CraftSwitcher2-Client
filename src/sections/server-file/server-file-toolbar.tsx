@@ -41,12 +41,21 @@ export default function ServerFileToolbar({ directory, handleChangePath }: Props
       }}
     >
       <Stack direction="row">
-        <Button sx={{ minWidth: 'unset' }} onClick={() => handleChangePath(location)}>
-          <Iconify icon="eva:arrow-upward-outline" />
-        </Button>
-        <Button sx={{ minWidth: 'unset' }} onClick={() => handleChangePath(path)}>
-          <Iconify icon="eva:refresh-outline" />
-        </Button>
+        <Tooltip title="親ディレクトリへ">
+          <Button
+            sx={{ minWidth: 'unset' }}
+            onClick={() => handleChangePath(location)}
+            disabled={path === '/'}
+          >
+            <Iconify icon="eva:arrow-upward-outline" />
+          </Button>
+        </Tooltip>
+        <Tooltip title="最新の情報に更新">
+          <Button sx={{ minWidth: 'unset' }} onClick={() => handleChangePath(path)}>
+            <Iconify icon="eva:refresh-outline" />
+          </Button>
+        </Tooltip>
+
         <Breadcrumbs
           sx={{
             bgcolor: 'grey.200',
@@ -73,6 +82,7 @@ export default function ServerFileToolbar({ directory, handleChangePath }: Props
           })}
         </Breadcrumbs>
       </Stack>
+
       <Stack direction="row" gap={1}>
         <Tooltip title="コピー">
           <IconButton color="primary">
