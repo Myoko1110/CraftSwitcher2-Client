@@ -1,4 +1,4 @@
-import type FileDirectory from 'src/api/file-directory';
+import type { Directory } from 'src/api/file-manager';
 
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
@@ -16,10 +16,11 @@ import { Iconify } from 'src/components/iconify';
 // ----------------------------------------------------------------------
 
 type Props = {
-  directory?: FileDirectory | null;
+  directory?: Directory | null;
   handleChangePath: (path: string) => void;
   filterName: string;
   setFilterName: (name: string) => void;
+  selected: string[];
 };
 
 export default function ServerFileToolbar({
@@ -27,6 +28,7 @@ export default function ServerFileToolbar({
   handleChangePath,
   filterName,
   setFilterName,
+  selected,
 }: Props) {
   const theme = useTheme();
   const layoutQuery: Breakpoint = 'lg';
@@ -34,6 +36,7 @@ export default function ServerFileToolbar({
   const path = directory?.path || '';
   const location = directory?.location || '';
   const pathSegments = path.split('/');
+  pathSegments.shift();
 
   return (
     <Toolbar
@@ -73,6 +76,9 @@ export default function ServerFileToolbar({
             ml: 1,
           }}
         >
+          <Button sx={{ minWidth: 'unset', px: 0.7, py: 0 }} onClick={() => handleChangePath('/')}>
+            <Iconify icon="eva:home-outline" />
+          </Button>
           {pathSegments.map((name, index) => {
             if (name === '') return <span key={index} />;
             const p = `${pathSegments.slice(0, index + 1).join('/')}`;
@@ -92,7 +98,7 @@ export default function ServerFileToolbar({
 
       <Stack direction="row" gap={1}>
         <Tooltip title="コピー">
-          <IconButton color="primary">
+          <IconButton color="primary" disabled={!selected.length}>
             <Iconify icon="solar:copy-bold" />
           </IconButton>
         </Tooltip>

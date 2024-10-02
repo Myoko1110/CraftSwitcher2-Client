@@ -6,11 +6,11 @@ import TableSortLabel from '@mui/material/TableSortLabel';
 
 import { visuallyHidden } from '../server/utils';
 
-const headLabel = [
+const headLabel: Record<string, any>[] = [
   { id: 'name', label: '名前' },
-  { id: 'size', label: 'サイズ' },
   { id: 'modifyAt', label: '更新日時' },
   { id: 'type', label: '種類' },
+  { id: 'size', label: 'サイズ' },
 ];
 
 type Props = {
@@ -33,7 +33,7 @@ export default function ServerFileTableHead({ orderBy, order, onSort }: Props) {
         {headLabel.map((headCell) => (
           <TableCell
             key={headCell.id}
-            align="left"
+            align={headCell.align || 'left'}
             sortDirection={orderBy === headCell.id ? order : false}
           >
             <TableSortLabel

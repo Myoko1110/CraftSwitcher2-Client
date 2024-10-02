@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
@@ -6,10 +6,12 @@ import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import LoadingButton from '@mui/lab/LoadingButton';
 import InputAdornment from '@mui/material/InputAdornment';
+import LinearProgress, { linearProgressClasses } from '@mui/material/LinearProgress';
 
 import { useRouter } from 'src/routes/hooks';
 
 import User from 'src/api/user';
+import { varAlpha } from 'src/theme/styles';
 
 import { Iconify } from 'src/components/iconify';
 
@@ -17,6 +19,8 @@ import { Iconify } from 'src/components/iconify';
 
 export function LoginView() {
   const router = useRouter();
+
+  const [isChecked, setIsChecked] = useState(false);
 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -28,8 +32,19 @@ export function LoginView() {
 
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleSignIn = () => {
-    async function login() {
+  useEffect(() => {
+    (async () => {
+      const isValid = await User.isValidSession();
+      if (isValid) {
+        router.push('/');
+      }
+      setIsChecked(true);
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleLogin = () => {
+    (async () => {
       setUsernameError(false);
       setPasswordError(false);
       setInCorrectError(false);
@@ -51,9 +66,7 @@ export function LoginView() {
       } catch (e) {
         setUnknownError(true);
       }
-    }
-
-    login();
+    })();
   };
 
   const renderForm = (
@@ -61,7 +74,7 @@ export function LoginView() {
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          handleSignIn();
+          handleLogin();
         }}
       >
         <TextField
@@ -114,7 +127,7 @@ export function LoginView() {
           type="submit"
           color="inherit"
           variant="contained"
-          onClick={handleSignIn}
+          onClick={handleLogin}
         >
           ログイン
         </LoadingButton>
@@ -124,11 +137,25 @@ export function LoginView() {
 
   return (
     <>
-      <Box gap={1.5} display="flex" flexDirection="column" alignItems="start" sx={{ mb: 3 }}>
-        <Typography variant="h4">CraftSwitcher2</Typography>
-      </Box>
-
-      {renderForm}
+      {isChecked ? (
+        <>
+          <Box gap={1.5} display="flex" flexDirection="column" alignItems="start" sx={{ mb: 3 }}>
+            <Typography variant="h4">CraftSwitcher2</Typography>
+          </Box>
+          {renderForm}
+        </>
+      ) : (
+        <Box display="flex" alignItems="center" justifyContent="center" flex="1 1 auto">
+          <LinearProgress
+            sx={{
+              width: 1,
+              maxWidth: 320,
+              bgcolor: (theme) => varAlpha(theme.vars.palette.text.primaryChannel, 0.16),
+              [`& .${linearProgressClasses.bar}`]: { bgcolor: 'text.primary' },
+            }}
+          />
+        </Box>
+      )}
     </>
   );
 }

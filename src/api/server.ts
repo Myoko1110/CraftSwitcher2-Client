@@ -3,6 +3,10 @@ import axios from 'axios';
 import ServerType from 'src/abc/server-type';
 import ServerState from 'src/abc/server-state';
 
+import { FileManager } from './file-manager';
+
+import type { Directory } from './file-manager';
+
 export default class Server {
   constructor(
     public id: string,
@@ -120,6 +124,7 @@ export default class Server {
     shutdownTimeout = null,
   }: ServerCreateParams): Promise<Server | false> {
     const id = window.crypto.randomUUID();
+    console.log(id);
 
     const result = await axios.post(
       `/server/${id}`,
@@ -249,6 +254,10 @@ export default class Server {
   async removeBuild(): Promise<boolean> {
     const result = await axios.delete(`/server/${this.id}/build`);
     return result.data.result;
+  }
+
+  async getDirectory(path: string): Promise<Directory> {
+    return FileManager.get(this.id, path);
   }
 }
 

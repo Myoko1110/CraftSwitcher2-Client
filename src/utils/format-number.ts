@@ -91,7 +91,7 @@ export function fData(inputValue: InputNumberValue) {
   const number = processInput(inputValue);
   if (number === null || number === 0) return '0 bytes';
 
-  const units = ['bytes', 'Kb', 'Mb', 'Gb', 'Tb', 'Pb', 'Eb', 'Zb', 'Yb'];
+  const units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
   const decimal = 2;
   const baseValue = 1024;
 

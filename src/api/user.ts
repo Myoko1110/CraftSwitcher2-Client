@@ -25,6 +25,15 @@ export default class User {
     }
   }
 
+  static async isValidSession(): Promise<boolean> {
+    try {
+      const result = await axios.get('/login');
+      return result.data.result;
+    } catch (e) {
+      return false;
+    }
+  }
+
   static async all(): Promise<User[]> {
     const result = await axios.get('/users');
     return result.data.map(

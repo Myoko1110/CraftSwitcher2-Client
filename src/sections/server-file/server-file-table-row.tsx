@@ -1,4 +1,4 @@
-import type File from 'src/api/file';
+import type { File } from 'src/api/file-manager';
 
 import { useState } from 'react';
 
@@ -13,6 +13,7 @@ import ListItemText from '@mui/material/ListItemText';
 import ListItemIcon from '@mui/material/ListItemIcon';
 
 import { fDateTime } from 'src/utils/format-time';
+import { fNumber } from 'src/utils/format-number';
 
 import { Iconify } from 'src/components/iconify';
 
@@ -66,9 +67,11 @@ export default function ServerFileTableRow({ file, onSelectRow, selected = false
           <Typography>{file.name}</Typography>
         </Stack>
       </TableCell>
-      <TableCell sx={{ py: 0.5 }}>{file.size}</TableCell>
       <TableCell sx={{ py: 0.5 }}>{fDateTime(file.modifyAt)}</TableCell>
       <TableCell sx={{ py: 0.5 }}>{file.type.displayName}</TableCell>
+      <TableCell sx={{ py: 0.5 }} align="right">
+        {fNumber(Math.ceil(file.size / 1024))} KB
+      </TableCell>
       <Menu
         anchorReference="anchorPosition"
         open={open}

@@ -177,6 +177,10 @@ export function useTable() {
     [onResetPage]
   );
 
+  const resetSelected = useCallback(() => {
+    setSelected([]);
+  }, []);
+
   return {
     page,
     order,
@@ -189,5 +193,6 @@ export function useTable() {
     onChangePage,
     onSelectAllRows,
     onChangeRowsPerPage,
+    resetSelected,
   };
 }

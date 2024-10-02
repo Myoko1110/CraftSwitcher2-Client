@@ -1,3 +1,6 @@
+import type Server from 'src/api/server';
+import type { FileManager } from 'src/api/file-manager';
+
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
@@ -6,24 +9,31 @@ import Stack from '@mui/material/Stack';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 
-import File from 'src/api/file';
-import FileDirectory from 'src/api/file-directory';
+import { File, Directory } from 'src/api/file-manager';
 
 import { useTable } from '../server/view';
 import ServerFileToolbar from './server-file-toolbar';
+import { TableInvalidPath } from './table-invalid-path';
 import ServerFileTableRow from './server-file-table-row';
 import ServerFileTableHead from './server-file-table-head';
 import ServerFolderTableRow from './server-folder-table-row';
 
-export default function ServerFiles() {
+type Props = {
+  server: Server | null;
+};
+
+export default function ServerFiles({ server }: Props) {
   const table = useTable();
+  const [copyFiles, setCopyFiles] = useState<FileManager[]>([]);
 
   const [params, setParams] = useSearchParams();
 
-  const [files, setFiles] = useState<(FileDirectory | File)[]>([]);
-  const [directory, setDirectory] = useState<FileDirectory | null>(null);
+  const [files, setFiles] = useState<FileManager[]>([]);
+  const [directory, setDirectory] = useState<Directory | null>(null);
 
   const [filterName, setFilterName] = useState('');
+
+  const [isInvalidPath, setIsInValidPath] = useState(false);
 
   const filteredFiles = applyFilter({
     inputData: files,
@@ -34,7 +44,7 @@ export default function ServerFiles() {
   useEffect(() => {
     if (!params.has('path')) {
       setParams((prev) => {
-        prev.set('path', '/main');
+        prev.set('path', '/');
         return prev;
       });
     }
@@ -42,11 +52,12 @@ export default function ServerFiles() {
     getFiles();
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [params]);
+  }, [params, server]);
 
   const handleChangePath = (path: string) => {
     if (path === directory?.path) getFiles();
 
+    table.resetSelected();
     setParams((prev) => {
       prev.set('path', path);
       return prev;
@@ -54,13 +65,20 @@ export default function ServerFiles() {
   };
 
   const getFiles = async () => {
+    setIsInValidPath(false);
     try {
-      const info = await FileDirectory.get(params.get('path')!);
+      if (!server) return;
+
+      const info = await server.getDirectory(params.get('path')!);
 
       setDirectory(info);
       setFiles(await info.children());
     } catch (e) {
-      console.log(e);
+      if (e.status === 404) {
+        setIsInValidPath(true);
+        return;
+      }
+      console.error(e);
     }
   };
 
@@ -71,6 +89,7 @@ export default function ServerFiles() {
         handleChangePath={handleChangePath}
         filterName={filterName}
         setFilterName={setFilterName}
+        selected={table.selected}
       />
       <Box px={2}>
         <Table
@@ -90,28 +109,34 @@ export default function ServerFiles() {
           <ServerFileTableHead orderBy={table.orderBy} order={table.order} onSort={table.onSort} />
           <TableBody>
             {filteredFiles.map((file) => {
-              const _path = file.path;
-              if (file instanceof FileDirectory) {
+              const { path } = file;
+              if (file instanceof Directory) {
                 return (
                   <ServerFolderTableRow
-                    key={_path}
+                    key={path}
                     folder={file}
-                    path={_path}
-                    selected={table.selected.includes(_path)}
+                    path={path}
+                    selected={table.selected.includes(path)}
                     onDoubleClick={handleChangePath}
-                    onSelectRow={() => table.onSelectRow(_path)}
+                    onSelectRow={() => table.onSelectRow(path)}
                   />
                 );
               }
-              return (
-                <ServerFileTableRow
-                  key={_path}
-                  file={file}
-                  selected={table.selected.includes(_path)}
-                  onSelectRow={() => table.onSelectRow(_path)}
-                />
-              );
+              if (file instanceof File) {
+                return (
+                  <ServerFileTableRow
+                    key={path}
+                    file={file}
+                    selected={table.selected.includes(path)}
+                    onSelectRow={() => table.onSelectRow(path)}
+                  />
+                );
+              }
+              return null;
             })}
+            {isInvalidPath && (
+              <TableInvalidPath handleChangePath={handleChangePath} path={params.get('path')!} />
+            )}
           </TableBody>
         </Table>
       </Box>
@@ -124,7 +149,7 @@ export default function ServerFiles() {
 export function getComparator(
   order: 'asc' | 'desc',
   orderBy: string
-): (a: File | FileDirectory, b: File | FileDirectory) => number {
+): (a: File | Directory, b: File | Directory) => number {
   switch (orderBy) {
     case 'name':
       return order === 'desc' ? (a, b) => nameComparator(a, b) : (a, b) => -nameComparator(a, b);
@@ -137,7 +162,7 @@ export function getComparator(
   }
 }
 
-function nameComparator(a: File | FileDirectory, b: File | FileDirectory) {
+function nameComparator(a: File | Directory, b: File | Directory) {
   const aIsFile = a instanceof File;
   const bIsFile = b instanceof File;
 
@@ -150,13 +175,13 @@ function nameComparator(a: File | FileDirectory, b: File | FileDirectory) {
   return 1;
 }
 
-function sizeComparator(a: File | FileDirectory, b: File | FileDirectory) {
+function sizeComparator(a: File | Directory, b: File | Directory) {
   if (b.size < a.size) return -1;
   if (b.size > a.size) return 1;
   return 0;
 }
 
-function timeComparator(a: File | FileDirectory, b: File | FileDirectory) {
+function timeComparator(a: File | Directory, b: File | Directory) {
   const aIsFile = a instanceof File;
   const bIsFile = b instanceof File;
 
@@ -170,12 +195,12 @@ function timeComparator(a: File | FileDirectory, b: File | FileDirectory) {
 }
 
 type ApplyFilterProps = {
-  inputData: (File | FileDirectory)[];
+  inputData: FileManager[];
   filterName: string;
   comparator: (a: any, b: any) => number;
 };
 
-export function applyFilter({ inputData, comparator, filterName }: ApplyFilterProps) {
+function applyFilter({ inputData, comparator, filterName }: ApplyFilterProps) {
   const stabilizedThis = inputData.map((el, index) => [el, index] as const);
 
   stabilizedThis.sort((a, b) => {

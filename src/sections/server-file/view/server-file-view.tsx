@@ -120,7 +120,7 @@ export function ServerFileView() {
           />
           <Tab value="file" label="ファイル" component={RouterLink} to={`/server/${id}/file`} />
         </Tabs>
-        <ServerFiles />
+        <ServerFiles server={server} />
       </Card>
     </DashboardContent>
   );

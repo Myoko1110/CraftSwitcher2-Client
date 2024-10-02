@@ -1,4 +1,4 @@
-export class FileType {
+export default class FileType {
   public static readonly DIRECTORY = new FileType('folder', 'フォルダー', []);
 
   public static readonly ARCHIVE = new FileType('archive', '圧縮フォルダー', [

@@ -1,4 +1,4 @@
-import type FileDirectory from 'src/api/file-directory';
+import type { Directory } from 'src/api/file-manager';
 
 import { useState } from 'react';
 
@@ -25,7 +25,7 @@ function FileIcon({ name }: { name: string }) {
 type AnchorPosition = { top: number; left: number } | undefined;
 
 type Props = {
-  folder: FileDirectory;
+  folder: Directory;
   path: string;
   onDoubleClick: (path: string) => void;
   onSelectRow: () => void;
@@ -75,9 +75,9 @@ export default function ServerFolderTableRow({
           <Typography>{folder.name}</Typography>
         </Stack>
       </TableCell>
-      <TableCell sx={{ py: 0.5 }} />
       <TableCell sx={{ py: 0.5 }}>{fDateTime(folder.modifyAt)}</TableCell>
       <TableCell sx={{ py: 0.5 }}>フォルダー</TableCell>
+      <TableCell sx={{ py: 0.5 }} align="right" />
       <Menu
         anchorReference="anchorPosition"
         open={open}

@@ -103,22 +103,13 @@ export default function ServerCreateNew() {
         name,
         directory,
         type: _type,
-        launchOption: {
-          javaExecutable,
-          javaOptions,
-          jarFile: '',
-          serverOptions,
-          maxHeapMemory,
-          minHeapMemory,
-          enableFreeMemoryCheck,
-          enableReporterAgent,
-        },
       });
       if (!res) {
         setBuildError(true);
         return;
       }
     } catch (e) {
+      console.log(e);
       setServerError(true);
       return;
     }
@@ -175,7 +166,13 @@ export default function ServerCreateNew() {
       <Stack direction="row" gap={2}>
         <FormControl sx={{ width: 160 }}>
           <InputLabel id="type-label">種類</InputLabel>
-          <Select labelId="type-label" label="種類" value={type} onChange={handleChangeType}>
+          <Select
+            labelId="type-label"
+            label="種類"
+            value={type}
+            onChange={handleChangeType}
+            variant="outlined"
+          >
             {availableTypes.map((t) => (
               <MenuItem value={t.name} key={t.name}>
                 {t.displayName}
@@ -187,7 +184,13 @@ export default function ServerCreateNew() {
         {type && type !== ServerType.CUSTOM.name && (
           <FormControl sx={{ width: 160 }}>
             <InputLabel id="type-label">バージョン</InputLabel>
-            <Select labelId="type-label" label="バージョン">
+            <Select
+              labelId="type-label"
+              label="バージョン"
+              value={version}
+              onChange={(e) => setVersion(e.target.value)}
+              variant="outlined"
+            >
               {availableVersions.map((v) => (
                 <MenuItem value={v.version} key={v.version}>
                   {v.version}
@@ -262,7 +265,7 @@ export default function ServerCreateNew() {
                   defaultChecked
                 />
               }
-              label="起動時に空きメモリを確認"
+              label="起動時に空きメモリを確認する"
             />
             <FormControlLabel
               control={

@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 export function useRouter() {
   const navigate = useNavigate();
 
-  const router = useMemo(
+  return useMemo(
     () => ({
       back: () => navigate(-1),
       forward: () => navigate(1),
@@ -16,6 +16,4 @@ export function useRouter() {
     }),
     [navigate]
   );
-
-  return router;
 }
