@@ -24,7 +24,7 @@ export class FileManager {
 
   static async get(serverId: string, _path: string): Promise<Directory> {
     const result = await axios.get(`/server/${serverId}/files?path=${_path}`);
-    const directory: FileResult = result.data;
+    const directory: FilesResult = result.data;
 
     return new Directory(
       serverId,
@@ -55,6 +55,32 @@ export class FileManager {
           c.size
         );
       })
+    );
+  }
+
+  static async getInfo(serverId: string, _path: string): Promise<File | Directory> {
+    const result = await axios.get(`/server/${serverId}/file/info?path=${_path}`);
+    const file: FileInfoResult = result.data;
+
+    if (file.isDir) {
+      return new Directory(
+        serverId,
+        file.name,
+        file.path,
+        new Date(file.modifyTime * 1000),
+        new Date(file.createTime * 1000),
+        file.isServerDir,
+        file.registeredServerId
+      );
+    }
+
+    return new File(
+      serverId,
+      file.name,
+      file.path,
+      new Date(file.modifyTime * 1000),
+      new Date(file.createTime * 1000),
+      file.size
     );
   }
 
@@ -105,6 +131,13 @@ export class File extends FileManager {
     super(name, location, modifyAt, createdAt, size, serverId);
     this.type = FileType.get(path.extname(name));
   }
+
+  async getData(): Promise<Blob> {
+    const result = await axios.get(`/server/${this.serverId}/file?path=${this.path}`, {
+      responseType: 'blob',
+    });
+    return result.data;
+  }
 }
 
 type TaskResult = {
@@ -117,7 +150,7 @@ type TaskResult = {
   server: string;
 };
 
-type FileResult = {
+type FilesResult = {
   name: string;
   path: string;
   children: {
@@ -130,4 +163,15 @@ type FileResult = {
     is_server_dir: boolean;
     registered_server_id: string | null;
   }[];
+};
+
+type FileInfoResult = {
+  name: string;
+  path: string;
+  isDir: boolean;
+  size: number;
+  modifyTime: number;
+  createTime: number;
+  isServerDir: boolean;
+  registeredServerId: string | null;
 };

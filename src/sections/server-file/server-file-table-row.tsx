@@ -16,6 +16,7 @@ import { fDateTime } from 'src/utils/format-time';
 import { fNumber } from 'src/utils/format-number';
 
 import { Iconify } from 'src/components/iconify';
+import { useRouter } from '../../routes/hooks';
 
 // ----------------------------------------------------------------------
 
@@ -34,6 +35,7 @@ type Props = {
 export default function ServerFileTableRow({ file, onSelectRow, selected = false }: Props) {
   const [open, setOpen] = useState(false);
   const [position, setPosition] = useState<AnchorPosition>(undefined);
+  const router = useRouter();
 
   const handleContextMenu = (event: React.MouseEvent<HTMLTableRowElement>) => {
     event.preventDefault();
@@ -48,10 +50,15 @@ export default function ServerFileTableRow({ file, onSelectRow, selected = false
     setOpen(false);
   };
 
+  const handleDoubleClick = async () => {
+    router.push(`edit?path=${file.path}`);
+  };
+
   return (
     <TableRow
       onContextMenu={handleContextMenu}
       onClick={onSelectRow}
+      onDoubleClick={handleDoubleClick}
       sx={{
         backgroundColor: selected ? 'primary.lighter' : null,
         userSelect: 'none',

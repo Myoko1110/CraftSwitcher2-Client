@@ -29,6 +29,7 @@
     "@fontsource-variable/dm-sans": "^5.0.7",
     "@fontsource/barlow": "^5.0.14",
     "@iconify/react": "^5.0.2",
+    "@monaco-editor/react": "^4.6.0",
     "@mui/lab": "^5.0.0-alpha.173",
     "@mui/material": "^5.16.7",
     "@xterm/addon-fit": "^0.10.0",

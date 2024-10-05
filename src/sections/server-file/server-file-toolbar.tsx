@@ -36,7 +36,6 @@ export default function ServerFileToolbar({
   const path = directory?.path || '';
   const location = directory?.location || '';
   const pathSegments = path.split('/');
-  pathSegments.shift();
 
   return (
     <Toolbar
@@ -80,7 +79,7 @@ export default function ServerFileToolbar({
             <Iconify icon="eva:home-outline" />
           </Button>
           {pathSegments.map((name, index) => {
-            if (name === '') return <span key={index} />;
+            if (name === '') return null;
             const p = `${pathSegments.slice(0, index + 1).join('/')}`;
 
             return (
