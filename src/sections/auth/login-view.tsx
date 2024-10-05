@@ -20,7 +20,7 @@ import { Iconify } from 'src/components/iconify';
 export function LoginView() {
   const router = useRouter();
 
-  const [isChecked, setIsChecked] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -38,13 +38,14 @@ export function LoginView() {
       if (isValid) {
         router.push('/');
       }
-      setIsChecked(true);
+      setIsLoading(true);
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleLogin = () => {
     (async () => {
+      setIsLoading(false);
       setUsernameError(false);
       setPasswordError(false);
       setInCorrectError(false);
@@ -66,6 +67,7 @@ export function LoginView() {
       } catch (e) {
         setUnknownError(true);
       }
+      setIsLoading(true);
     })();
   };
 
@@ -137,15 +139,25 @@ export function LoginView() {
 
   return (
     <>
-      {isChecked ? (
-        <>
-          <Box gap={1.5} display="flex" flexDirection="column" alignItems="start" sx={{ mb: 3 }}>
-            <Typography variant="h4">CraftSwitcher2</Typography>
-          </Box>
-          {renderForm}
-        </>
-      ) : (
-        <Box display="flex" alignItems="center" justifyContent="center" flex="1 1 auto">
+      <Box gap={1.5} display="flex" flexDirection="column" alignItems="start" sx={{ mb: 3 }}>
+        <Typography variant="h4">CraftSwitcher2</Typography>
+      </Box>
+      {renderForm}
+      {!isLoading && (
+        <Box
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+          flex="1 1 auto"
+          position="absolute"
+          width="100%"
+          height="100%"
+          top={0}
+          left={0}
+          bgcolor="rgba(255, 255, 255, 0.8)"
+          zIndex={1}
+          borderRadius={2}
+        >
           <LinearProgress
             sx={{
               width: 1,

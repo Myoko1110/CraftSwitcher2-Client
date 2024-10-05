@@ -26,6 +26,8 @@ export function Main({ sx, children, layoutQuery, ...other }: MainProps) {
         flexDirection: 'column',
         bgcolor: 'background.default',
         maxWidth: 'var(--layout-auth-content-width)',
+        position: 'relative',
+        zIndex: 10,
       }}
     >
       {children}
