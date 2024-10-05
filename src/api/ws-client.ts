@@ -6,7 +6,6 @@ import Server from './server';
 // ----------------------------------------------------------------------
 
 // TODO: イベント追加
-// TODO: 名前 -> ID
 export default class WebSocketClient {
   private ws: WebSocket;
 

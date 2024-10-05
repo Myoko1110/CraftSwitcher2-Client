@@ -29,6 +29,8 @@ export default class ServerType {
   // fabric
   static FABRIC = new ServerType('fabric', 'Fabric');
 
+  static QUILT = new ServerType('quilt', 'Quilt');
+
   static BANNER = new ServerType('banner', 'Banner');
 
   // proxy
@@ -51,6 +53,7 @@ export default class ServerType {
     ServerType.MOHIST,
     ServerType.YOUER,
     ServerType.FABRIC,
+    ServerType.QUILT,
     ServerType.BANNER,
     ServerType.BUNGEECORD,
     ServerType.WATERFALL,
@@ -153,6 +156,7 @@ const SERVER_TYPE_SPECS: { [key: string]: _ServerType } = {
   mohist: new _ServerType('mohist', 'stop', false, true),
   youer: new _ServerType('youer', 'stop', false, true),
   fabric: new _ServerType('fabric', 'stop', false, true),
+  quilt: new _ServerType('quilt', 'stop', false, true),
   banner: new _ServerType('banner', 'stop', false, true),
   bungeecord: new _ServerType('bungeecord', 'end', true, false),
   waterfall: new _ServerType('waterfall', 'end', true, false),

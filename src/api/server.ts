@@ -7,6 +7,8 @@ import { FileManager } from './file-manager';
 
 import type { Directory } from './file-manager';
 
+// ----------------------------------------------------------------------
+
 export default class Server {
   constructor(
     public id: string,

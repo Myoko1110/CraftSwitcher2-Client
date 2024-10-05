@@ -4,6 +4,8 @@ import path from 'path-browserify';
 
 import FileType from 'src/abc/file-type';
 
+// ----------------------------------------------------------------------
+
 export class FileManager {
   public _path: string;
 
@@ -62,15 +64,15 @@ export class FileManager {
     const result = await axios.get(`/server/${serverId}/file/info?path=${_path}`);
     const file: FileInfoResult = result.data;
 
-    if (file.isDir) {
+    if (file.is_dir) {
       return new Directory(
         serverId,
         file.name,
         file.path,
-        new Date(file.modifyTime * 1000),
-        new Date(file.createTime * 1000),
-        file.isServerDir,
-        file.registeredServerId
+        new Date(file.modify_time * 1000),
+        new Date(file.create_time * 1000),
+        file.is_server_dir,
+        file.registered_server_id
       );
     }
 
@@ -78,8 +80,8 @@ export class FileManager {
       serverId,
       file.name,
       file.path,
-      new Date(file.modifyTime * 1000),
-      new Date(file.createTime * 1000),
+      new Date(file.modify_time * 1000),
+      new Date(file.create_time * 1000),
       file.size
     );
   }
@@ -168,10 +170,10 @@ type FilesResult = {
 type FileInfoResult = {
   name: string;
   path: string;
-  isDir: boolean;
+  is_dir: boolean;
   size: number;
-  modifyTime: number;
-  createTime: number;
-  isServerDir: boolean;
-  registeredServerId: string | null;
+  modify_time: number;
+  create_time: number;
+  is_server_dir: boolean;
+  registered_server_id: string | null;
 };
