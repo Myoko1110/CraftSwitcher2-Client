@@ -70,6 +70,7 @@ export default function ServerFileEditView() {
   };
 
   const handleCtrlS = (e: KeyboardEvent) => {
+    if (e.repeat) return;
     if (e.ctrlKey && e.key === 's') {
       e.preventDefault();
       handleSave().then();

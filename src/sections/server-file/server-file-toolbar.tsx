@@ -1,4 +1,6 @@
-import type { Directory } from 'src/api/file-manager';
+import type { Directory, FileManager } from 'src/api/file-manager';
+
+import { useState, useEffect, useCallback } from 'react';
 
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
@@ -20,7 +22,8 @@ type Props = {
   handleChangePath: (path: string) => void;
   filterName: string;
   setFilterName: (name: string) => void;
-  selected: string[];
+  selected: FileManager[];
+  resetSelected: () => void;
 };
 
 export default function ServerFileToolbar({
@@ -29,6 +32,7 @@ export default function ServerFileToolbar({
   filterName,
   setFilterName,
   selected,
+  resetSelected,
 }: Props) {
   const theme = useTheme();
   const layoutQuery: Breakpoint = 'lg';
@@ -36,6 +40,72 @@ export default function ServerFileToolbar({
   const path = directory?.path || '';
   const location = directory?.location || '';
   const pathSegments = path.split('/');
+
+  const [copyFiles, setCopyFiles] = useState<FileManager[]>([]);
+  const [cutFiles, setCutFiles] = useState<FileManager[]>([]);
+
+  const handleSetCopyFiles = useCallback(() => {
+    if (!selected.length) return;
+
+    setCopyFiles(selected);
+    setCutFiles([]);
+  }, [selected]);
+
+  const handleSetCutFiles = useCallback(() => {
+    if (!selected.length) return;
+
+    setCutFiles(selected);
+    setCopyFiles([]);
+  }, [selected]);
+
+  const handlePaste = useCallback(() => {
+    if (copyFiles.length) {
+      copyFiles.forEach((file) => {
+        file.copy(path);
+      });
+      handleChangePath(path);
+    }
+    if (cutFiles.length) {
+      cutFiles.forEach((file) => {
+        file.move(path);
+      });
+      handleChangePath(path);
+    }
+  }, [copyFiles, cutFiles, handleChangePath, path]);
+
+  const handleRemove = useCallback(() => {
+    if (!selected.length) return;
+
+    selected.forEach((file) => {
+      file.remove();
+    });
+    resetSelected();
+  }, [resetSelected, selected]);
+
+  const onKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (e.repeat) return;
+
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        handleRemove();
+      }
+      if (e.key === 'c' && e.ctrlKey) {
+        handleSetCopyFiles();
+      }
+      if (e.key === 'x' && e.ctrlKey) {
+        handleSetCutFiles();
+      }
+      if (e.key === 'v' && e.ctrlKey) {
+        handlePaste();
+      }
+    },
+    [handlePaste, handleRemove, handleSetCopyFiles, handleSetCutFiles]
+  );
+
+  useEffect(() => {
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [handlePaste, handleRemove, handleSetCopyFiles, handleSetCutFiles, onKeyDown]);
 
   return (
     <Toolbar
@@ -97,22 +167,26 @@ export default function ServerFileToolbar({
 
       <Stack direction="row" gap={1}>
         <Tooltip title="コピー">
-          <IconButton color="primary" disabled={!selected.length}>
+          <IconButton color="primary" disabled={!selected.length} onClick={handleSetCopyFiles}>
             <Iconify icon="solar:copy-bold" />
           </IconButton>
         </Tooltip>
         <Tooltip title="カット">
-          <IconButton color="primary">
+          <IconButton color="primary" disabled={!selected.length} onClick={handleSetCutFiles}>
             <Iconify icon="solar:scissors-bold" />
           </IconButton>
         </Tooltip>
         <Tooltip title="ペースト">
-          <IconButton color="primary">
+          <IconButton
+            color="primary"
+            disabled={!(copyFiles.length || cutFiles.length)}
+            onClick={handlePaste}
+          >
             <Iconify icon="solar:clipboard-bold" />
           </IconButton>
         </Tooltip>
         <Tooltip title="削除">
-          <IconButton color="primary">
+          <IconButton color="primary" disabled={!selected.length} onClick={handleRemove}>
             <Iconify icon="solar:trash-bin-trash-bold" />
           </IconButton>
         </Tooltip>

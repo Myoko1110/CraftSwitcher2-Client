@@ -24,6 +24,35 @@ export class FileManager {
     return this._path;
   }
 
+  async copy(to: string) {
+    const dstPath = path.join(to, this.name);
+
+    const result = await axios.put(
+      `/server/${this.serverId}/file/copy?path=${this.path}&dst_path=${dstPath}`
+    );
+
+    return result.status === 200;
+  }
+
+  async move(to: string) {
+    const dstPath = path.join(to, this.name);
+
+    const result = await axios.put(
+      `/server/${this.serverId}/file/move?path=${this.path}&dst_path=${dstPath}`
+    );
+
+    return result.status === 200;
+  }
+
+  async rename(newName: string) {
+    return this.move(path.join(this.location, newName));
+  }
+
+  async remove() {
+    const result = await axios.delete(`/server/${this.serverId}/file?path=${this.path}`);
+    return result.status === 200;
+  }
+
   static async get(serverId: string, _path: string): Promise<Directory> {
     const result = await axios.get(`/server/${serverId}/files?path=${_path}`);
     const directory: FilesResult = result.data;
@@ -114,6 +143,13 @@ export class Directory extends FileManager {
       this._children = (await FileManager.get(super.serverId, this.path))._children!;
     }
     return this._children;
+  }
+
+  async mkdir(name: string) {
+    const result = await axios.post(
+      `/server/${this.serverId}/file/mkdir?path=${path.join(this.path, name)}`
+    );
+    return result.status === 200;
   }
 }
 

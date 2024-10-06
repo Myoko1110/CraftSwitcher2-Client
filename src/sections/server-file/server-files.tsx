@@ -1,8 +1,8 @@
 import type Server from 'src/api/server';
 import type { FileManager } from 'src/api/file-manager';
 
-import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
@@ -11,7 +11,6 @@ import TableBody from '@mui/material/TableBody';
 
 import { File, Directory } from 'src/api/file-manager';
 
-import { useTable } from '../server/view';
 import ServerFileToolbar from './server-file-toolbar';
 import { TableInvalidPath } from './table-invalid-path';
 import ServerFileTableRow from './server-file-table-row';
@@ -24,7 +23,6 @@ type Props = {
 
 export default function ServerFiles({ server }: Props) {
   const table = useTable();
-  const [copyFiles, setCopyFiles] = useState<FileManager[]>([]);
 
   const [params, setParams] = useSearchParams();
 
@@ -90,6 +88,7 @@ export default function ServerFiles({ server }: Props) {
         filterName={filterName}
         setFilterName={setFilterName}
         selected={table.selected}
+        resetSelected={table.resetSelected}
       />
       <Box px={2}>
         <Table
@@ -116,9 +115,9 @@ export default function ServerFiles({ server }: Props) {
                     key={path}
                     folder={file}
                     path={path}
-                    selected={table.selected.includes(path)}
+                    selected={table.selected.includes(file)}
                     onDoubleClick={handleChangePath}
-                    onSelectRow={() => table.onSelectRow(path)}
+                    onSelectRow={() => table.onSelectRow(file)}
                   />
                 );
               }
@@ -127,8 +126,8 @@ export default function ServerFiles({ server }: Props) {
                   <ServerFileTableRow
                     key={path}
                     file={file}
-                    selected={table.selected.includes(path)}
-                    onSelectRow={() => table.onSelectRow(path)}
+                    selected={table.selected.includes(file)}
+                    onSelectRow={() => table.onSelectRow(file)}
                   />
                 );
               }
@@ -218,4 +217,77 @@ function applyFilter({ inputData, comparator, filterName }: ApplyFilterProps) {
   }
 
   return inputData;
+}
+
+// ----------------------------------------------------------------------
+
+export function useTable() {
+  const [page, setPage] = useState(0);
+  const [orderBy, setOrderBy] = useState('name');
+  const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [selected, setSelected] = useState<FileManager[]>([]);
+  const [order, setOrder] = useState<'asc' | 'desc'>('asc');
+
+  const onSort = useCallback(
+    (id: string) => {
+      const isAsc = orderBy === id && order === 'asc';
+      setOrder(isAsc ? 'desc' : 'asc');
+      setOrderBy(id);
+    },
+    [order, orderBy]
+  );
+
+  const onSelectAllRows = useCallback((checked: boolean, newSelecteds: FileManager[]) => {
+    if (checked) {
+      setSelected(newSelecteds);
+      return;
+    }
+    setSelected([]);
+  }, []);
+
+  const onSelectRow = useCallback(
+    (inputValue: FileManager) => {
+      const newSelected = selected.includes(inputValue)
+        ? selected.filter((value) => value !== inputValue)
+        : [...selected, inputValue];
+
+      setSelected(newSelected);
+    },
+    [selected]
+  );
+
+  const onResetPage = useCallback(() => {
+    setPage(0);
+  }, []);
+
+  const onChangePage = useCallback((event: unknown, newPage: number) => {
+    setPage(newPage);
+  }, []);
+
+  const onChangeRowsPerPage = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      setRowsPerPage(parseInt(event.target.value, 10));
+      onResetPage();
+    },
+    [onResetPage]
+  );
+
+  const resetSelected = useCallback(() => {
+    setSelected([]);
+  }, []);
+
+  return {
+    page,
+    order,
+    onSort,
+    orderBy,
+    selected,
+    rowsPerPage,
+    onSelectRow,
+    onResetPage,
+    onChangePage,
+    onSelectAllRows,
+    onChangeRowsPerPage,
+    resetSelected,
+  };
 }
