@@ -93,7 +93,7 @@ export default class Server {
       { directory },
       {
         headers: {
-          'content-type': 'application/json',
+          'Content-Type': 'application/json',
         },
       }
     );

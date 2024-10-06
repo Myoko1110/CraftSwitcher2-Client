@@ -140,6 +140,13 @@ export class File extends FileManager {
     });
     return result.data;
   }
+
+  async saveData(data: Blob): Promise<void> {
+    const formData = new FormData();
+    formData.append('file', data);
+
+    await axios.post(`/server/${this.serverId}/file?path=${this.path}`, formData);
+  }
 }
 
 type TaskResult = {
