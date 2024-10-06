@@ -24,7 +24,32 @@ export class FileManager {
     return this._path;
   }
 
-  async copy(to: string) {
+  async copy(to: string): Promise<boolean> {
+    if (to === this.location) {
+      const ext = path.extname(this.name);
+      let dstPath = path.join(to, `${path.basename(this.name, ext)} - コピー${ext}`);
+      let count = 1;
+
+      // eslint-disable-next-line no-constant-condition
+      while (true) {
+        try {
+          // eslint-disable-next-line no-await-in-loop
+          const result = await axios.put(
+            `/server/${this.serverId}/file/copy?path=${this.path}&dst_path=${dstPath}`
+          );
+
+          return result.status === 200;
+        } catch (e) {
+          if (e.response.data?.error_code === 301) {
+            count += 1;
+            dstPath = path.join(to, `${path.basename(this.name, ext)} - コピー (${count})${ext}`);
+          } else {
+            throw e;
+          }
+        }
+      }
+    }
+
     const dstPath = path.join(to, this.name);
 
     const result = await axios.put(
@@ -34,23 +59,23 @@ export class FileManager {
     return result.status === 200;
   }
 
-  async move(to: string) {
+  async move(to: string): Promise<number | false> {
     const dstPath = path.join(to, this.name);
 
     const result = await axios.put(
       `/server/${this.serverId}/file/move?path=${this.path}&dst_path=${dstPath}`
     );
 
-    return result.status === 200;
+    return result.status === 200 ? result.data.task_id : false;
   }
 
-  async rename(newName: string) {
+  async rename(newName: string): Promise<number | false> {
     return this.move(path.join(this.location, newName));
   }
 
-  async remove() {
+  async remove(): Promise<number | false> {
     const result = await axios.delete(`/server/${this.serverId}/file?path=${this.path}`);
-    return result.status === 200;
+    return result.status === 200 ? result.data.task_id : false;
   }
 
   static async get(serverId: string, _path: string): Promise<Directory> {
@@ -145,11 +170,11 @@ export class Directory extends FileManager {
     return this._children;
   }
 
-  async mkdir(name: string) {
+  async mkdir(name: string): Promise<number | false> {
     const result = await axios.post(
       `/server/${this.serverId}/file/mkdir?path=${path.join(this.path, name)}`
     );
-    return result.status === 200;
+    return result.status === 200 ? result.data.task_id : false;
   }
 }
 
