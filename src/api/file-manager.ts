@@ -15,6 +15,7 @@ export class FileManager {
     public modifyAt: Date | undefined,
     public createAt: Date | undefined,
     public size: number,
+    public type: FileType,
     public serverId: string
   ) {
     this._path = path.join(location, name);
@@ -70,7 +71,8 @@ export class FileManager {
   }
 
   async rename(newName: string): Promise<number | false> {
-    return this.move(path.join(this.location, newName));
+    const newPath = path.join(this.location, newName);
+    return this.move(newPath);
   }
 
   async remove(): Promise<number | false> {
@@ -160,7 +162,7 @@ export class Directory extends FileManager {
 
     private _children: FileManager[] | undefined = undefined
   ) {
-    super(name, location, modifyAt, createdAt, -1, serverId);
+    super(name, location, modifyAt, createdAt, -1, FileType.DIRECTORY, serverId);
   }
 
   async children(): Promise<FileManager[]> {
@@ -181,8 +183,6 @@ export class Directory extends FileManager {
 // --------------------------------------------
 
 export class File extends FileManager {
-  public type: FileType;
-
   constructor(
     serverId: string,
     name: string,
@@ -191,8 +191,7 @@ export class File extends FileManager {
     createdAt: Date | undefined = undefined,
     size = -1
   ) {
-    super(name, location, modifyAt, createdAt, size, serverId);
-    this.type = FileType.get(path.extname(name));
+    super(name, location, modifyAt, createdAt, size, FileType.get(path.extname(name)), serverId);
   }
 
   async getData(): Promise<Blob> {

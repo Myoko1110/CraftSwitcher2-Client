@@ -51,6 +51,37 @@ export default class WebSocketClient {
             this.events.get('ServerChangeState')?.map((cb) => cb(ev));
             break;
           }
+
+          case 'file_task_start': {
+            const { task } = data;
+            const ev = new FileTaskEvent(
+              task.dst,
+              task.id,
+              task.progress,
+              task.result,
+              task.server,
+              task.src,
+              task.type
+            );
+            this.events.get('FileTaskStart')?.map((cb) => cb(ev));
+            break;
+          }
+
+          case 'file_task_end': {
+            const { task } = data;
+            const ev = new FileTaskEvent(
+              task.dst,
+              task.id,
+              task.progress,
+              task.result,
+              task.server,
+              task.src,
+              task.type
+            );
+            this.events.get('FileTaskEnd')?.map((cb) => cb(ev));
+            break;
+          }
+
           default:
             break;
         }
@@ -95,7 +126,25 @@ class ServerChangeStateEvent {
   }
 }
 
+class FileTaskEvent {
+  constructor(
+    public dst: string,
+    public taskId: number,
+    public progress: number,
+    public result: string,
+    public serverId: string,
+    public src: string,
+    public type: string
+  ) {}
+
+  async getServer(): Promise<Server> {
+    return (await Server.get(this.serverId))!;
+  }
+}
+
 interface EventMap {
   ServerProcessRead: ServerProcessReadEvent;
   ServerChangeState: ServerChangeStateEvent;
+  FileTaskStart: FileTaskEvent;
+  FileTaskEnd: FileTaskEvent;
 }

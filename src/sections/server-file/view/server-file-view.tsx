@@ -33,6 +33,7 @@ export function ServerFileView() {
   const { id } = useParams<{ id: string }>();
   const [server, setServer] = useState<Server | null>(null);
   const [state, setState] = useState<ServerState>(ServerState.UNKNOWN);
+  const [ws, setWs] = useState<WebSocketClient | null>(null);
 
   useEffect(() => {
     if (!id) return undefined;
@@ -49,16 +50,17 @@ export function ServerFileView() {
     }
     getServer();
 
-    const ws = new WebSocketClient();
+    const _ws = new WebSocketClient();
+    setWs(_ws);
 
-    ws.addEventListener('ServerChangeState', (event) => {
+    _ws.addEventListener('ServerChangeState', (event) => {
       if (event.serverId === id) {
         setState(event.newState);
       }
     });
 
     return () => {
-      ws.close();
+      _ws.close();
     };
 
     // eslint-disable-next-line
@@ -120,7 +122,7 @@ export function ServerFileView() {
           />
           <Tab value="file" label="ファイル" component={RouterLink} to={`/server/${id}/file`} />
         </Tabs>
-        <ServerFiles server={server} />
+        <ServerFiles server={server} ws={ws} />
       </Card>
     </DashboardContent>
   );

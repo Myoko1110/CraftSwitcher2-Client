@@ -89,9 +89,9 @@ export function fShortenNumber(inputValue: InputNumberValue, options?: Options) 
 
 export function fData(inputValue: InputNumberValue) {
   const number = processInput(inputValue);
-  if (number === null || number === 0) return '0 bytes';
+  if (number === null || number === 0) return '0 バイト';
 
-  const units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+  const units = ['バイト', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
   const decimal = 2;
   const baseValue = 1024;
 

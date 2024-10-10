@@ -1,22 +1,16 @@
-import type { File } from 'src/api/file-manager';
+import type { File, FileManager } from 'src/api/file-manager';
 
-import { useState } from 'react';
+import React from 'react';
 
-import Menu from '@mui/material/Menu';
 import Stack from '@mui/material/Stack';
 import TableRow from '@mui/material/TableRow';
-import MenuItem from '@mui/material/MenuItem';
-import MenuList from '@mui/material/MenuList';
 import TableCell from '@mui/material/TableCell';
 import Typography from '@mui/material/Typography';
-import ListItemText from '@mui/material/ListItemText';
-import ListItemIcon from '@mui/material/ListItemIcon';
+
+import { useRouter } from 'src/routes/hooks';
 
 import { fDateTime } from 'src/utils/format-time';
 import { fNumber } from 'src/utils/format-number';
-
-import { Iconify } from 'src/components/iconify';
-import { useRouter } from '../../routes/hooks';
 
 // ----------------------------------------------------------------------
 
@@ -24,31 +18,15 @@ function FileIcon({ name }: { name: string }) {
   return <img width="18px" height="18px" src={`/assets/file/${name}.svg`} alt={name} />;
 }
 
-type AnchorPosition = { top: number; left: number } | undefined;
-
 type Props = {
   file: File;
   onSelectRow: () => void;
+  onContextMenu: (event: React.MouseEvent<HTMLTableRowElement>, file?: FileManager) => void;
   selected?: boolean;
 };
 
-export default function ServerFileTableRow({ file, onSelectRow, selected = false }: Props) {
-  const [open, setOpen] = useState(false);
-  const [position, setPosition] = useState<AnchorPosition>(undefined);
+export default function ServerFileTableRow({ file, onSelectRow, onContextMenu, selected }: Props) {
   const router = useRouter();
-
-  const handleContextMenu = (event: React.MouseEvent<HTMLTableRowElement>) => {
-    event.preventDefault();
-
-    const [clientX, clientY] = [event.clientX, event.clientY];
-    setPosition({ top: clientY, left: clientX });
-
-    setOpen(true);
-  };
-
-  const handleCloseMenu = () => {
-    setOpen(false);
-  };
 
   const handleDoubleClick = async () => {
     router.push(`edit?path=${file.path}`);
@@ -56,7 +34,7 @@ export default function ServerFileTableRow({ file, onSelectRow, selected = false
 
   return (
     <TableRow
-      onContextMenu={handleContextMenu}
+      onContextMenu={(e) => onContextMenu(e, file)}
       onClick={onSelectRow}
       onDoubleClick={handleDoubleClick}
       sx={{
@@ -79,28 +57,6 @@ export default function ServerFileTableRow({ file, onSelectRow, selected = false
       <TableCell sx={{ py: 0.5 }} align="right">
         {fNumber(Math.ceil(file.size / 1024))} KB
       </TableCell>
-      <Menu
-        anchorReference="anchorPosition"
-        open={open}
-        onClose={handleCloseMenu}
-        anchorPosition={position}
-        anchorOrigin={{
-          vertical: 'top',
-          horizontal: 'left',
-        }}
-      >
-        <MenuList dense sx={{ outline: 'none' }}>
-          <MenuItem>
-            <ListItemIcon>
-              <Iconify icon="solar:copy-bold" />
-            </ListItemIcon>
-            <ListItemText>コピー</ListItemText>
-          </MenuItem>
-          <MenuItem>
-            <ListItemText>切り取り</ListItemText>
-          </MenuItem>
-        </MenuList>
-      </Menu>
     </TableRow>
   );
 }

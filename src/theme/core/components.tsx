@@ -30,6 +30,9 @@ const MuiButton: Components<Theme>['MuiButton'] = {
         backgroundColor: theme.vars.palette.grey[800],
       },
     }),
+    colorInherit: ({ theme }) => ({
+      borderColor: theme.vars.palette.grey[300],
+    }),
     sizeLarge: {
       minHeight: 48,
     },
@@ -63,6 +66,7 @@ const MuiOutlinedInput: Components<Theme>['MuiOutlinedInput'] = {
   styleOverrides: {
     notchedOutline: ({ theme }) => ({
       borderColor: varAlpha(theme.vars.palette.grey['500Channel'], 0.2),
+      transition: 'border .1s ease',
     }),
   },
 };
@@ -163,6 +167,22 @@ const MuiFab: Components<Theme>['MuiFab'] = {
   },
 };
 
+const MuiDialogTitle: Components<Theme>['MuiDialogTitle'] = {
+  styleOverrides: {
+    root: {
+      padding: 24,
+    },
+  },
+};
+
+const MuiDialogActions: Components<Theme>['MuiDialogActions'] = {
+  styleOverrides: {
+    root: {
+      padding: 24,
+    },
+  },
+};
+
 // ----------------------------------------------------------------------
 
 export const components = {
@@ -179,4 +199,6 @@ export const components = {
   MuiOutlinedInput,
   MuiFormControlLabel,
   MuiFab,
+  MuiDialogTitle,
+  MuiDialogActions,
 };

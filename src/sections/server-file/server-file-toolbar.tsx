@@ -1,6 +1,7 @@
+import type WebSocketClient from 'src/api/ws-client';
 import type { Directory, FileManager } from 'src/api/file-manager';
 
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
@@ -23,7 +24,9 @@ type Props = {
   filterName: string;
   setFilterName: (name: string) => void;
   selected: FileManager[];
-  resetSelected: () => void;
+  ws: WebSocketClient | null;
+  setRenameOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setRemoveOpen: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 export default function ServerFileToolbar({
@@ -32,7 +35,9 @@ export default function ServerFileToolbar({
   filterName,
   setFilterName,
   selected,
-  resetSelected,
+  ws,
+  setRenameOpen,
+  setRemoveOpen,
 }: Props) {
   const theme = useTheme();
   const layoutQuery: Breakpoint = 'lg';
@@ -60,34 +65,44 @@ export default function ServerFileToolbar({
 
   const handlePaste = useCallback(() => {
     if (copyFiles.length) {
+      // TODO: 重複のときの置き換え確認
+      // TODO: エラーハンドリング
       copyFiles.forEach((file) => {
-        file.copy(path);
+        try {
+          file.copy(path);
+        } catch (e) {
+          console.log(e);
+        }
+
+        ws?.addEventListener('FileTaskEnd', (e) => {
+          if (e.src === file.path) {
+            handleChangePath(path);
+          }
+        });
       });
-      handleChangePath(path);
     }
     if (cutFiles.length) {
       cutFiles.forEach((file) => {
-        file.move(path);
+        try {
+          file.move(path);
+        } catch (e) {
+          console.log(e);
+        }
+        ws?.addEventListener('FileTaskEnd', (e) => {
+          if (e.src === file.path) {
+            handleChangePath(path);
+          }
+        });
       });
-      handleChangePath(path);
     }
-  }, [copyFiles, cutFiles, handleChangePath, path]);
-
-  const handleRemove = useCallback(() => {
-    if (!selected.length) return;
-
-    selected.forEach((file) => {
-      file.remove();
-    });
-    resetSelected();
-  }, [resetSelected, selected]);
+  }, [copyFiles, cutFiles, handleChangePath, path, ws]);
 
   const onKeyDown = useCallback(
     (e: KeyboardEvent) => {
       if (e.repeat) return;
 
       if (e.key === 'Delete' || e.key === 'Backspace') {
-        handleRemove();
+        setRemoveOpen(true);
       }
       if (e.key === 'c' && e.ctrlKey) {
         handleSetCopyFiles();
@@ -99,13 +114,13 @@ export default function ServerFileToolbar({
         handlePaste();
       }
     },
-    [handlePaste, handleRemove, handleSetCopyFiles, handleSetCutFiles]
+    [handlePaste, handleSetCopyFiles, handleSetCutFiles, setRemoveOpen]
   );
 
   useEffect(() => {
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [handlePaste, handleRemove, handleSetCopyFiles, handleSetCutFiles, onKeyDown]);
+  }, [handlePaste, handleSetCopyFiles, handleSetCutFiles, onKeyDown]);
 
   return (
     <Toolbar
@@ -185,8 +200,21 @@ export default function ServerFileToolbar({
             <Iconify icon="solar:clipboard-bold" />
           </IconButton>
         </Tooltip>
+        <Tooltip title="名前を変更">
+          <IconButton
+            color="primary"
+            disabled={!(selected.length === 1)}
+            onClick={() => setRenameOpen(true)}
+          >
+            <Iconify icon="fluent:rename-16-filled" />
+          </IconButton>
+        </Tooltip>
         <Tooltip title="削除">
-          <IconButton color="primary" disabled={!selected.length} onClick={handleRemove}>
+          <IconButton
+            color="primary"
+            disabled={!selected.length}
+            onClick={() => setRemoveOpen(true)}
+          >
             <Iconify icon="solar:trash-bin-trash-bold" />
           </IconButton>
         </Tooltip>

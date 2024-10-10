@@ -1,16 +1,25 @@
 import type Server from 'src/api/server';
+import type WebSocketClient from 'src/api/ws-client';
 import type { FileManager } from 'src/api/file-manager';
 
 import { useSearchParams } from 'react-router-dom';
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
+import Menu from '@mui/material/Menu';
 import Stack from '@mui/material/Stack';
 import Table from '@mui/material/Table';
+import MenuList from '@mui/material/MenuList';
+import MenuItem from '@mui/material/MenuItem';
 import TableBody from '@mui/material/TableBody';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
 
 import { File, Directory } from 'src/api/file-manager';
 
+import { Iconify } from 'src/components/iconify';
+
+import FileDialogs from './file-dialogs';
 import ServerFileToolbar from './server-file-toolbar';
 import { TableInvalidPath } from './table-invalid-path';
 import ServerFileTableRow from './server-file-table-row';
@@ -19,9 +28,12 @@ import ServerFolderTableRow from './server-folder-table-row';
 
 type Props = {
   server: Server | null;
+  ws: WebSocketClient | null;
 };
 
-export default function ServerFiles({ server }: Props) {
+type AnchorPosition = { top: number; left: number } | undefined;
+
+export default function ServerFiles({ server, ws }: Props) {
   const table = useTable();
 
   const [params, setParams] = useSearchParams();
@@ -32,6 +44,13 @@ export default function ServerFiles({ server }: Props) {
   const [filterName, setFilterName] = useState('');
 
   const [isInvalidPath, setIsInValidPath] = useState(false);
+
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [renameOpen, setRenameOpen] = useState(false);
+  const [renameValue, setRenameValue] = useState('');
+  const [removeOpen, setRemoveOpen] = useState(false);
+
+  const [position, setPosition] = useState<AnchorPosition>(undefined);
 
   const filteredFiles = applyFilter({
     inputData: files,
@@ -80,66 +99,153 @@ export default function ServerFiles({ server }: Props) {
     }
   };
 
+  const onContextMenu = (
+    event: React.MouseEvent<HTMLTableRowElement | HTMLTableSectionElement>,
+    file?: FileManager
+  ) => {
+    event.preventDefault();
+
+    console.log('aa');
+
+    if (file && !table.selected.includes(file)) table.onSelectRow(file);
+
+    const [clientX, clientY] = [event.clientX, event.clientY];
+    setPosition({ top: clientY, left: clientX });
+
+    setMenuOpen(true);
+  };
+
+  const handleCloseMenu = () => {
+    setMenuOpen(false);
+  };
+
+  const handleRenameDialogOpen = () => {
+    setRenameValue(table.selected[0].name);
+    setRenameOpen(true);
+  };
+
   return (
-    <Stack flexGrow={1}>
-      <ServerFileToolbar
-        directory={directory}
-        handleChangePath={handleChangePath}
-        filterName={filterName}
-        setFilterName={setFilterName}
+    <>
+      <Stack flexGrow={1}>
+        <ServerFileToolbar
+          directory={directory}
+          handleChangePath={handleChangePath}
+          filterName={filterName}
+          setFilterName={setFilterName}
+          selected={table.selected}
+          ws={ws}
+          setRenameOpen={setRenameOpen}
+          setRemoveOpen={setRemoveOpen}
+        />
+        <Box px={2} flexGrow={1}>
+          <Table
+            sx={{
+              borderCollapse: 'separate',
+              borderSpacing: '0 3px',
+              '& .MuiTableCell-head': {
+                '&:first-of-type': { borderBottomLeftRadius: 12, borderTopLeftRadius: 12 },
+                '&:last-of-type': { borderBottomRightRadius: 12, borderTopRightRadius: 12 },
+              },
+              '& .MuiTableCell-body': {
+                '&:first-of-type': { borderBottomLeftRadius: 8, borderTopLeftRadius: 8 },
+                '&:last-of-type': { borderBottomRightRadius: 8, borderTopRightRadius: 8 },
+              },
+            }}
+          >
+            <ServerFileTableHead
+              orderBy={table.orderBy}
+              order={table.order}
+              onSort={table.onSort}
+            />
+            <TableBody>
+              {filteredFiles.map((file) => {
+                const { path } = file;
+                if (file instanceof Directory) {
+                  return (
+                    <ServerFolderTableRow
+                      key={path}
+                      folder={file}
+                      path={path}
+                      selected={table.selected.includes(file)}
+                      onDoubleClick={handleChangePath}
+                      onSelectRow={() => table.onSelectRow(file)}
+                      onContextMenu={onContextMenu}
+                    />
+                  );
+                }
+                if (file instanceof File) {
+                  return (
+                    <ServerFileTableRow
+                      key={path}
+                      file={file}
+                      selected={table.selected.includes(file)}
+                      onSelectRow={() => table.onSelectRow(file)}
+                      onContextMenu={onContextMenu}
+                    />
+                  );
+                }
+                return null;
+              })}
+              {isInvalidPath && (
+                <TableInvalidPath handleChangePath={handleChangePath} path={params.get('path')!} />
+              )}
+            </TableBody>
+          </Table>
+        </Box>
+      </Stack>
+
+      <Menu
+        anchorReference="anchorPosition"
+        open={menuOpen}
+        onClose={handleCloseMenu}
+        anchorPosition={position}
+        anchorOrigin={{
+          vertical: 'top',
+          horizontal: 'left',
+        }}
+      >
+        <MenuList dense sx={{ outline: 'none' }}>
+          <MenuItem>
+            <ListItemIcon>
+              <Iconify icon="solar:copy-bold" />
+            </ListItemIcon>
+            <ListItemText>コピー</ListItemText>
+          </MenuItem>
+          <MenuItem>
+            <ListItemIcon>
+              <Iconify icon="solar:scissors-bold" />
+            </ListItemIcon>
+            <ListItemText>切り取り</ListItemText>
+          </MenuItem>
+          <MenuItem onClick={handleRenameDialogOpen}>
+            <ListItemIcon>
+              <Iconify icon="fluent:rename-16-filled" />
+            </ListItemIcon>
+            <ListItemText>名前の変更</ListItemText>
+          </MenuItem>
+          <MenuItem onClick={() => setRemoveOpen(true)}>
+            <ListItemIcon>
+              <Iconify icon="solar:trash-bin-trash-bold" />
+            </ListItemIcon>
+            <ListItemText>削除</ListItemText>
+          </MenuItem>
+        </MenuList>
+      </Menu>
+
+      <FileDialogs
         selected={table.selected}
+        ws={ws}
+        handleChangePath={handleChangePath}
         resetSelected={table.resetSelected}
+        directory={directory}
+        renameOpen={renameOpen}
+        setRenameOpen={setRenameOpen}
+        renameValue={renameValue}
+        setRenameValue={setRenameValue}
+        removeOpen={removeOpen}
+        setRemoveOpen={setRemoveOpen}
       />
-      <Box px={2}>
-        <Table
-          sx={{
-            borderCollapse: 'separate',
-            borderSpacing: '0 3px',
-            '& .MuiTableCell-head': {
-              '&:first-of-type': { borderBottomLeftRadius: 12, borderTopLeftRadius: 12 },
-              '&:last-of-type': { borderBottomRightRadius: 12, borderTopRightRadius: 12 },
-            },
-            '& .MuiTableCell-body': {
-              '&:first-of-type': { borderBottomLeftRadius: 8, borderTopLeftRadius: 8 },
-              '&:last-of-type': { borderBottomRightRadius: 8, borderTopRightRadius: 8 },
-            },
-          }}
-        >
-          <ServerFileTableHead orderBy={table.orderBy} order={table.order} onSort={table.onSort} />
-          <TableBody>
-            {filteredFiles.map((file) => {
-              const { path } = file;
-              if (file instanceof Directory) {
-                return (
-                  <ServerFolderTableRow
-                    key={path}
-                    folder={file}
-                    path={path}
-                    selected={table.selected.includes(file)}
-                    onDoubleClick={handleChangePath}
-                    onSelectRow={() => table.onSelectRow(file)}
-                  />
-                );
-              }
-              if (file instanceof File) {
-                return (
-                  <ServerFileTableRow
-                    key={path}
-                    file={file}
-                    selected={table.selected.includes(file)}
-                    onSelectRow={() => table.onSelectRow(file)}
-                  />
-                );
-              }
-              return null;
-            })}
-            {isInvalidPath && (
-              <TableInvalidPath handleChangePath={handleChangePath} path={params.get('path')!} />
-            )}
-          </TableBody>
-        </Table>
-      </Box>
-    </Stack>
+    </>
   );
 }
 

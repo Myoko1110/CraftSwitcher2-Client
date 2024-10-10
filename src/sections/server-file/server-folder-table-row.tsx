@@ -1,20 +1,13 @@
-import type { Directory } from 'src/api/file-manager';
+import type { Directory, FileManager } from 'src/api/file-manager';
 
-import { useState } from 'react';
+import React from 'react';
 
-import Menu from '@mui/material/Menu';
 import Stack from '@mui/material/Stack';
 import TableRow from '@mui/material/TableRow';
-import MenuItem from '@mui/material/MenuItem';
-import MenuList from '@mui/material/MenuList';
 import TableCell from '@mui/material/TableCell';
 import Typography from '@mui/material/Typography';
-import ListItemText from '@mui/material/ListItemText';
-import ListItemIcon from '@mui/material/ListItemIcon';
 
 import { fDateTime } from 'src/utils/format-time';
-
-import { Iconify } from 'src/components/iconify';
 
 // ----------------------------------------------------------------------
 
@@ -22,13 +15,12 @@ function FileIcon({ name }: { name: string }) {
   return <img width="18px" height="18px" src={`/assets/file/${name}.svg`} alt={name} />;
 }
 
-type AnchorPosition = { top: number; left: number } | undefined;
-
 type Props = {
   folder: Directory;
   path: string;
   onDoubleClick: (path: string) => void;
   onSelectRow: () => void;
+  onContextMenu: (event: React.MouseEvent<HTMLTableRowElement>, file?: FileManager) => void;
   selected?: boolean;
 };
 
@@ -38,26 +30,11 @@ export default function ServerFolderTableRow({
   onDoubleClick,
   onSelectRow,
   selected = false,
+  onContextMenu,
 }: Props) {
-  const [open, setOpen] = useState(false);
-  const [position, setPosition] = useState<AnchorPosition>(undefined);
-
-  const handleContextMenu = (event: React.MouseEvent<HTMLTableRowElement>) => {
-    event.preventDefault();
-
-    const [clientX, clientY] = [event.clientX, event.clientY];
-    setPosition({ top: clientY, left: clientX });
-
-    setOpen(true);
-  };
-
-  const handleCloseMenu = () => {
-    setOpen(false);
-  };
-
   return (
     <TableRow
-      onContextMenu={handleContextMenu}
+      onContextMenu={(e) => onContextMenu(e, folder)}
       onClick={onSelectRow}
       onDoubleClick={() => onDoubleClick(path)}
       sx={{
@@ -78,28 +55,6 @@ export default function ServerFolderTableRow({
       <TableCell sx={{ py: 0.5 }}>{fDateTime(folder.modifyAt)}</TableCell>
       <TableCell sx={{ py: 0.5 }}>フォルダー</TableCell>
       <TableCell sx={{ py: 0.5 }} align="right" />
-      <Menu
-        anchorReference="anchorPosition"
-        open={open}
-        onClose={handleCloseMenu}
-        anchorPosition={position}
-        anchorOrigin={{
-          vertical: 'top',
-          horizontal: 'left',
-        }}
-      >
-        <MenuList dense sx={{ outline: 'none' }}>
-          <MenuItem>
-            <ListItemIcon>
-              <Iconify icon="solar:copy-bold" />
-            </ListItemIcon>
-            <ListItemText>コピー</ListItemText>
-          </MenuItem>
-          <MenuItem>
-            <ListItemText>切り取り</ListItemText>
-          </MenuItem>
-        </MenuList>
-      </Menu>
     </TableRow>
   );
 }
