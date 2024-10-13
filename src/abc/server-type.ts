@@ -6,39 +6,104 @@ export default class ServerType {
 
   static CUSTOM = new ServerType('custom', 'カスタム');
 
-  static VANILLA = new ServerType('vanilla', 'Vanilla');
+  static VANILLA = new ServerType(
+    'vanilla',
+    'Vanilla',
+    '/assets/icons/server/vanilla.svg',
+    'Minecraft公式のサーバー'
+  );
 
   // bukkit
-  static SPIGOT = new ServerType('spigot', 'Spigot');
+  static SPIGOT = new ServerType(
+    'spigot',
+    'Spigot',
+    '/assets/icons/server/spigot.svg',
+    '定番のプラグインサーバー'
+  );
 
-  static PAPER = new ServerType('paper', 'Paper');
+  static PAPER = new ServerType(
+    'paper',
+    'Paper',
+    '/assets/icons/server/paper.svg',
+    'Spigotの軽量化サーバー'
+  );
 
-  static PURPUR = new ServerType('purpur', 'Purpur');
+  static PURPUR = new ServerType(
+    'purpur',
+    'Purpur',
+    '/assets/icons/server/purpur.svg',
+    'Paperの改良版サーバー'
+  );
 
-  static FOLIA = new ServerType('folia', 'Folia');
+  static FOLIA = new ServerType(
+    'folia',
+    'Folia',
+    '/assets/icons/server/folia.svg',
+    'Paperのマルチスレッド処理版'
+  );
 
   // forge
-  static FORGE = new ServerType('forge', 'Forge');
+  static FORGE = new ServerType(
+    'forge',
+    'Forge',
+    '/assets/icons/server/forge.svg',
+    '定番のMODサーバー'
+  );
 
-  static NEO_FORGE = new ServerType('neo_forge', 'NeoForge');
+  static NEO_FORGE = new ServerType(
+    'neo_forge',
+    'NeoForge',
+    '/assets/icons/server/neo_forge.svg',
+    'Forgeの派生'
+  );
 
-  static MOHIST = new ServerType('mohist', 'Mohist');
+  static MOHIST = new ServerType(
+    'mohist',
+    'Mohist',
+    '/assets/icons/server/mohist.svg',
+    'ForgeのMODとプラグイン両方に対応したサーバー'
+  );
 
-  static YOUER = new ServerType('youer', 'Youer');
+  static YOUER = new ServerType(
+    'youer',
+    'Youer',
+    '/assets/icons/server/mohist.svg',
+    'NeoForgeのMODとプラグイン両方に対応したサーバー'
+  );
 
   // fabric
-  static FABRIC = new ServerType('fabric', 'Fabric');
+  static FABRIC = new ServerType('fabric', 'Fabric', '/assets/icons/server/fabric.svg', '');
 
-  static QUILT = new ServerType('quilt', 'Quilt');
+  static QUILT = new ServerType('quilt', 'Quilt', '/assets/icons/server/quilt.svg', 'Fabricの派生');
 
-  static BANNER = new ServerType('banner', 'Banner');
+  static BANNER = new ServerType(
+    'banner',
+    'Banner',
+    '/assets/icons/server/mohist.svg',
+    'MODとプラグインのサーバーに対応したプロキシサーバー'
+  );
 
   // proxy
-  static BUNGEECORD = new ServerType('bungeecord', 'BungeeCord');
+  static BUNGEECORD = new ServerType(
+    'bungeecord',
+    'BungeeCord',
+    '/assets/icons/server/spigot.svg',
+    '複数のサーバーをつなぐプロキシサーバー'
+  );
 
-  static WATERFALL = new ServerType('waterfall', 'Waterfall');
+  static WATERFALL = new ServerType(
+    'waterfall',
+    'Waterfall',
+    '/assets/icons/server/waterfall.svg',
+    'BungeeCordを改良したもの'
+  );
 
-  static VELOCITY = new ServerType('velocity', 'Velocity');
+  static VELOCITY = new ServerType(
+    'velocity',
+    'Velocity',
+    '/assets/icons/server/velocity.svg',
+    'Waterfallの改良版'
+  );
 
   static all = [
     ServerType.UNKNOWN,
@@ -62,7 +127,9 @@ export default class ServerType {
 
   private constructor(
     public name: string,
-    public displayName: string
+    public displayName: string,
+    public imagePath: string = '',
+    public description: string = ''
   ) {}
 
   get spec() {
@@ -137,9 +204,7 @@ class _ServerType {
     public name: string,
     public stopCommand: string | null,
     public isProxy: boolean,
-    public isModded: boolean,
-    public imagePath: string = '',
-    public description: string = ''
+    public isModded: boolean
   ) {}
 }
 
@@ -147,117 +212,19 @@ class _ServerType {
 const SERVER_TYPE_SPECS: { [key: string]: _ServerType } = {
   unknown: new _ServerType('unknown', null, false, false),
   custom: new _ServerType('custom', null, false, false),
-  vanilla: new _ServerType(
-    'vanilla',
-    'stop',
-    false,
-    false,
-    '/assets/icons/server/vanilla.svg',
-    'Minecraft公式のサーバー'
-  ),
-  spigot: new _ServerType(
-    'spigot',
-    'stop',
-    false,
-    false,
-    '/assets/icons/server/spigot.svg',
-    '定番のプラグインサーバー'
-  ),
-  paper: new _ServerType(
-    'paper',
-    'stop',
-    false,
-    false,
-    '/assets/icons/server/paper.svg',
-    'Spigotの軽量化サーバー'
-  ),
-  purpur: new _ServerType(
-    'purpur',
-    'stop',
-    false,
-    false,
-    '/assets/icons/server/purpur.svg',
-    'Paperの改良版サーバー'
-  ),
-  folia: new _ServerType(
-    'folia',
-    'stop',
-    false,
-    false,
-    '/assets/icons/server/folia.svg',
-    'Paperのマルチスレッド処理版'
-  ),
-  forge: new _ServerType(
-    'forge',
-    'stop',
-    false,
-    true,
-    '/assets/icons/server/forge.svg',
-    '定番のMODサーバー'
-  ),
-  neo_forge: new _ServerType(
-    'neo_forge',
-    'stop',
-    false,
-    true,
-    '/assets/icons/server/neo_forge.svg',
-    'Forgeの派生'
-  ),
-  mohist: new _ServerType(
-    'mohist',
-    'stop',
-    false,
-    true,
-    '/assets/icons/server/mohist.svg',
-    'ForgeのMODとプラグイン両方に対応したサーバー'
-  ),
-  youer: new _ServerType(
-    'youer',
-    'stop',
-    false,
-    true,
-    '/assets/icons/server/mohist.svg',
-    'NeoForgeのMODとプラグイン両方に対応したサーバー'
-  ),
-  fabric: new _ServerType('fabric', 'stop', false, true, '/assets/icons/server/fabric.svg', ''),
-  quilt: new _ServerType(
-    'quilt',
-    'stop',
-    false,
-    true,
-    '/assets/icons/server/quilt.svg',
-    'Fabricの派生'
-  ),
-  banner: new _ServerType(
-    'banner',
-    'stop',
-    false,
-    true,
-    '/assets/icons/server/mohist.svg',
-    'MODとプラグインのサーバーに対応したプロキシサーバー'
-  ),
-  bungeecord: new _ServerType(
-    'bungeecord',
-    'end',
-    true,
-    false,
-    '/assets/icons/server/spigot.svg',
-    '複数のサーバーをつなぐプロキシサーバー'
-  ),
-  waterfall: new _ServerType(
-    'waterfall',
-    'end',
-    true,
-    false,
-    '/assets/icons/server/waterfall.svg',
-    'BungeeCordを改良したもの'
-  ),
-  velocity: new _ServerType(
-    'velocity',
-    'end',
-    true,
-    false,
-    '/assets/icons/server/velocity.svg',
-    'Waterfallの改良版'
-  ),
+  vanilla: new _ServerType('vanilla', 'stop', false, false),
+  spigot: new _ServerType('spigot', 'stop', false, false),
+  paper: new _ServerType('paper', 'stop', false, false),
+  purpur: new _ServerType('purpur', 'stop', false, false),
+  folia: new _ServerType('folia', 'stop', false, false),
+  forge: new _ServerType('forge', 'stop', false, true),
+  neo_forge: new _ServerType('neo_forge', 'stop', false, true),
+  mohist: new _ServerType('mohist', 'stop', false, true),
+  youer: new _ServerType('youer', 'stop', false, true),
+  fabric: new _ServerType('fabric', 'stop', false, true),
+  quilt: new _ServerType('quilt', 'stop', false, true),
+  banner: new _ServerType('banner', 'stop', false, true),
+  bungeecord: new _ServerType('bungeecord', 'end', true, false),
+  waterfall: new _ServerType('waterfall', 'end', true, false),
+  velocity: new _ServerType('velocity', 'end', true, false),
 };

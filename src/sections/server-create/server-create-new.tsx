@@ -202,14 +202,14 @@ export default function ServerCreateNew({ setPage }: { setPage: (page: number) =
                         flexShrink: 0,
                       }}
                     >
-                      <SvgColor src={t.spec.imagePath} color="#fff" />
+                      <SvgColor src={t.imagePath} color="#fff" />
                     </Box>
                     <Box>
                       <Typography variant="h6" textAlign="left">
                         {t.displayName}
                       </Typography>
                       <Typography variant="caption" textAlign="left">
-                        {t.spec.description}
+                        {t.description}
                       </Typography>
                     </Box>
                   </Button>
