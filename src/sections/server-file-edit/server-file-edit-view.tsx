@@ -18,7 +18,7 @@ import { Iconify } from 'src/components/iconify';
 // ----------------------------------------------------------------------
 
 // TODO: 未保存時のブラウザバック阻止
-export default function ServerFileEditView() {
+export function ServerFileEditView() {
   const { id } = useParams<{ id: string }>();
   const [params] = useSearchParams();
 

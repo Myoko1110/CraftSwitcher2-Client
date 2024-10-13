@@ -138,7 +138,8 @@ class _ServerType {
     public stopCommand: string | null,
     public isProxy: boolean,
     public isModded: boolean,
-    public imagePath: string = ''
+    public imagePath: string = '',
+    public description: string = ''
   ) {}
 }
 
@@ -146,19 +147,117 @@ class _ServerType {
 const SERVER_TYPE_SPECS: { [key: string]: _ServerType } = {
   unknown: new _ServerType('unknown', null, false, false),
   custom: new _ServerType('custom', null, false, false),
-  vanilla: new _ServerType('vanilla', 'stop', false, false),
-  spigot: new _ServerType('spigot', 'stop', false, false),
-  paper: new _ServerType('paper', 'stop', false, false),
-  purpur: new _ServerType('purpur', 'stop', false, false),
-  folia: new _ServerType('folia', 'stop', false, false),
-  forge: new _ServerType('forge', 'stop', false, true),
-  neo_forge: new _ServerType('neo_forge', 'stop', false, true),
-  mohist: new _ServerType('mohist', 'stop', false, true),
-  youer: new _ServerType('youer', 'stop', false, true),
-  fabric: new _ServerType('fabric', 'stop', false, true),
-  quilt: new _ServerType('quilt', 'stop', false, true),
-  banner: new _ServerType('banner', 'stop', false, true),
-  bungeecord: new _ServerType('bungeecord', 'end', true, false),
-  waterfall: new _ServerType('waterfall', 'end', true, false),
-  velocity: new _ServerType('velocity', 'end', true, false),
+  vanilla: new _ServerType(
+    'vanilla',
+    'stop',
+    false,
+    false,
+    '/assets/icons/server/vanilla.svg',
+    'Minecraft公式のサーバー'
+  ),
+  spigot: new _ServerType(
+    'spigot',
+    'stop',
+    false,
+    false,
+    '/assets/icons/server/spigot.svg',
+    '定番のプラグインサーバー'
+  ),
+  paper: new _ServerType(
+    'paper',
+    'stop',
+    false,
+    false,
+    '/assets/icons/server/paper.svg',
+    'Spigotの軽量化サーバー'
+  ),
+  purpur: new _ServerType(
+    'purpur',
+    'stop',
+    false,
+    false,
+    '/assets/icons/server/purpur.svg',
+    'Paperの改良版サーバー'
+  ),
+  folia: new _ServerType(
+    'folia',
+    'stop',
+    false,
+    false,
+    '/assets/icons/server/folia.svg',
+    'Paperのマルチスレッド処理版'
+  ),
+  forge: new _ServerType(
+    'forge',
+    'stop',
+    false,
+    true,
+    '/assets/icons/server/forge.svg',
+    '定番のMODサーバー'
+  ),
+  neo_forge: new _ServerType(
+    'neo_forge',
+    'stop',
+    false,
+    true,
+    '/assets/icons/server/neo_forge.svg',
+    'Forgeの派生'
+  ),
+  mohist: new _ServerType(
+    'mohist',
+    'stop',
+    false,
+    true,
+    '/assets/icons/server/mohist.svg',
+    'ForgeのMODとプラグイン両方に対応したサーバー'
+  ),
+  youer: new _ServerType(
+    'youer',
+    'stop',
+    false,
+    true,
+    '/assets/icons/server/mohist.svg',
+    'NeoForgeのMODとプラグイン両方に対応したサーバー'
+  ),
+  fabric: new _ServerType('fabric', 'stop', false, true, '/assets/icons/server/fabric.svg', ''),
+  quilt: new _ServerType(
+    'quilt',
+    'stop',
+    false,
+    true,
+    '/assets/icons/server/quilt.svg',
+    'Fabricの派生'
+  ),
+  banner: new _ServerType(
+    'banner',
+    'stop',
+    false,
+    true,
+    '/assets/icons/server/mohist.svg',
+    'MODとプラグインのサーバーに対応したプロキシサーバー'
+  ),
+  bungeecord: new _ServerType(
+    'bungeecord',
+    'end',
+    true,
+    false,
+    '/assets/icons/server/spigot.svg',
+    '複数のサーバーをつなぐプロキシサーバー'
+  ),
+  waterfall: new _ServerType(
+    'waterfall',
+    'end',
+    true,
+    false,
+    '/assets/icons/server/waterfall.svg',
+    'BungeeCordを改良したもの'
+  ),
+  velocity: new _ServerType(
+    'velocity',
+    'end',
+    true,
+    false,
+    '/assets/icons/server/velocity.svg',
+    'Waterfallの改良版'
+  ),
 };

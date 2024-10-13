@@ -102,14 +102,9 @@ export function ServerConsoleView() {
           value="console"
           sx={{ pr: 0.5, borderColor: 'divider' }}
         >
-          <Tab value="summary" label="概要" component={RouterLink} to="../summary" />
-          <Tab
-            value="console"
-            label="コンソール"
-            component={RouterLink}
-            to={`/server/${id}/console`}
-          />
-          <Tab value="file" label="ファイル" component={RouterLink} to={`/server/${id}/file`} />
+          <Tab value="summary" label="概要" component={RouterLink} to="../" />
+          <Tab value="console" label="コンソール" component={RouterLink} to="./" />
+          <Tab value="file" label="ファイル" component={RouterLink} to="../file" />
         </Tabs>
         <ServerConsole server={server} ws={ws} />
       </Card>

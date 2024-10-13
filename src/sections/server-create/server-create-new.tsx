@@ -1,45 +1,53 @@
-import type { SelectChangeEvent } from '@mui/material/Select/SelectInput';
-
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 
+import Box from '@mui/material/Box';
+import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
-import Select from '@mui/material/Select';
 import Tooltip from '@mui/material/Tooltip';
-import MenuItem from '@mui/material/MenuItem';
 import Checkbox from '@mui/material/Checkbox';
 import Snackbar from '@mui/material/Snackbar';
+import Grid from '@mui/material/Unstable_Grid2';
 import TextField from '@mui/material/TextField';
+import { useTheme } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
-import InputLabel from '@mui/material/InputLabel';
-import FormControl from '@mui/material/FormControl';
 import InputAdornment from '@mui/material/InputAdornment';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import { Accordion, AccordionDetails, AccordionSummary } from '@mui/material';
 
+import { RouterLink } from 'src/routes/components';
+
 import Server from 'src/api/server';
 import ServerType from 'src/abc/server-type';
+import { ServerGlobalConfig } from 'src/api/config';
 
 import { Iconify } from 'src/components/iconify';
+import { SvgColor } from 'src/components/svg-color';
 
 // ----------------------------------------------------------------------
 
-export default function ServerCreateNew() {
+export default function ServerCreateNew({ setPage }: { setPage: (page: number) => void }) {
+  const [activeStep, setActiveStep] = useState(0);
+
+  const [version, setVersion] = useState('');
+  const [type, setType] = useState<ServerType | null>(null);
   const [name, setName] = useState('');
   const [directory, setDirectory] = useState('');
-  const [type, setType] = useState('');
-  const [version, setVersion] = useState('');
+  const [port, setPort] = useState(25565);
+  const [maxHeapMemory, setMaxHeapMemory] = useState<number>(2024);
 
   // advanced options
-  const [javaExecutable, setJavaExecutable] = useState<string | undefined>(undefined);
-  const [javaOptions, setJavaOptions] = useState<string | undefined>(undefined);
-  const [serverOptions, setServerOptions] = useState<string | undefined>(undefined);
-  const [maxHeapMemory, setMaxHeapMemory] = useState<number>(NaN);
-  const [minHeapMemory, setMinHeapMemory] = useState<number>(NaN);
+  const [javaExecutable, setJavaExecutable] = useState('');
+  const [javaOptions, setJavaOptions] = useState('');
+  const [serverOptions, setServerOptions] = useState('');
+  const [minHeapMemory, setMinHeapMemory] = useState<number>(2024);
+  const [shutdownTimeout, setShutdownTimeout] = useState<number>(30);
   const [enableFreeMemoryCheck, setEnableFreeMemoryCheck] = useState(true);
   const [enableReporterAgent, setEnableReporterAgent] = useState(true);
+
+  const [agreeToEula, setAgreeToEula] = useState(false);
 
   // jardl
   const [availableTypes, setAvailableTypes] = useState<ServerType[]>([]);
@@ -55,22 +63,37 @@ export default function ServerCreateNew() {
   const [buildError, setBuildError] = useState(false);
   const [serverError, setServerError] = useState(false);
 
+  const theme = useTheme();
+
   useState(() => {
-    async function getTypes() {
+    (async () => {
       const res = await ServerType.availableTypes();
       setAvailableTypes(res.reverse());
-    }
-    getTypes();
+    })();
   });
 
-  const handleChangeType = async (e: SelectChangeEvent) => {
-    if (e.target.value === type) return;
+  const handleSetType = async (t: ServerType) => {
+    setType(t);
 
-    setVersion('');
-    setType(e.target.value);
-    const t = ServerType.get(e.target.value)!;
     const res = await t.getVersions();
     setAvailableVersions(res.reverse());
+
+    setActiveStep(1);
+  };
+
+  const handleSetVersion = async (v: string) => {
+    setVersion(v);
+
+    const res = await ServerGlobalConfig.get();
+    setJavaExecutable(res.javaExecutable);
+    setJavaOptions(res.javaOptions);
+    setServerOptions(res.serverOptions);
+    setMaxHeapMemory(res.maxHeapMemory);
+    setMinHeapMemory(res.minHeapMemory);
+    setEnableFreeMemoryCheck(res.enableFreeMemoryCheck);
+    setEnableReporterAgent(res.enableReporterAgent);
+
+    setActiveStep(2);
   };
 
   const handleCreate = async () => {
@@ -94,17 +117,27 @@ export default function ServerCreateNew() {
       return;
     }
 
-    const _type = ServerType.get(type)!;
-
     // サーバー作成
-    let res: Server | false;
+    let server: Server | false;
+
     try {
-      res = await Server.create({
+      server = await Server.create({
         name,
         directory,
-        type: _type,
+        type: type!,
+        launchOption: {
+          javaExecutable,
+          javaOptions,
+          jarFile: '',
+          serverOptions,
+          maxHeapMemory,
+          minHeapMemory,
+          enableFreeMemoryCheck,
+          enableReporterAgent,
+        },
+        shutdownTimeout,
       });
-      if (!res) {
+      if (!server) {
         setBuildError(true);
         return;
       }
@@ -115,194 +148,330 @@ export default function ServerCreateNew() {
     }
 
     try {
-      const latestBuild = (await _type.getBuilds(version))[-1];
-
-      await res.install(_type, version, latestBuild.build);
+      const latestBuild = (await type!.getBuilds(version))[-1];
+      await server.install(type!, version, latestBuild.build);
     } catch (e) {
       /* empty */
     }
 
+    console.log(agreeToEula);
+    try {
+      await server.setEula(agreeToEula);
+    } catch (e) {
+      /* empty */
+    }
+
+    setActiveStep(3);
+
     // TODO: エラーハンドリング
-    // TODO: EULAファイルのアップロード
   };
 
   return (
     <>
-      <TextField
-        label="名前"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        InputLabelProps={{ shrink: true }}
-        InputProps={{
-          endAdornment: (
-            <InputAdornment position="end">
-              <Tooltip title="表示される名前です" placement="right">
-                <Iconify icon="eva:question-mark-circle-outline" />
-              </Tooltip>
-            </InputAdornment>
-          ),
-        }}
-        error={nameEmptyError}
-        helperText={nameEmptyError ? '必須項目です' : ''}
-      />
-
-      <TextField
-        label="ディレクトリ名"
-        value={directory}
-        onChange={(e) => setDirectory(e.target.value)}
-        InputLabelProps={{ shrink: true }}
-        InputProps={{
-          endAdornment: (
-            <InputAdornment position="end">
-              <Tooltip title="サーバーファイルが保存されるディレクトリ名です" placement="right">
-                <Iconify icon="eva:question-mark-circle-outline" />
-              </Tooltip>
-            </InputAdornment>
-          ),
-        }}
-        error={directoryEmptyError}
-        helperText={directoryEmptyError ? '必須項目です' : ''}
-      />
-      <Stack direction="row" gap={2}>
-        <FormControl sx={{ width: 160 }}>
-          <InputLabel id="type-label">種類</InputLabel>
-          <Select
-            labelId="type-label"
-            label="種類"
-            value={type}
-            onChange={handleChangeType}
-            variant="outlined"
-          >
-            {availableTypes.map((t) => (
-              <MenuItem value={t.name} key={t.name}>
-                {t.displayName}
-              </MenuItem>
-            ))}
-            <MenuItem value={ServerType.CUSTOM.name}>{ServerType.CUSTOM.displayName}</MenuItem>
-          </Select>
-        </FormControl>
-        {type && type !== ServerType.CUSTOM.name && (
-          <FormControl sx={{ width: 160 }}>
-            <InputLabel id="type-label">バージョン</InputLabel>
-            <Select
-              labelId="type-label"
-              label="バージョン"
-              value={version}
-              onChange={(e) => setVersion(e.target.value)}
-              variant="outlined"
+      {activeStep === 0 ? (
+        <>
+          <Stack flexDirection="row" alignItems="center" gap={2} mb={2}>
+            <Button
+              onClick={() => setPage(0)}
+              color="inherit"
+              startIcon={<Iconify icon="eva:arrow-ios-back-outline" />}
             >
-              {availableVersions.map((v) => (
-                <MenuItem value={v.version} key={v.version}>
-                  {v.version}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        )}
-      </Stack>
-      <Accordion>
-        <AccordionSummary expandIcon={<Iconify icon="eva:arrow-ios-downward-outline" />}>
-          高度な設定
-        </AccordionSummary>
-        <AccordionDetails>
-          <Stack gap={2}>
-            <Alert severity="warning">
-              自動で設定されるため、手動での設定は不要です。この設定は後から変更できます。
-            </Alert>
-            <TextField
-              label="Java Excutable"
-              placeholder="java"
-              value={javaExecutable}
-              onChange={(e) => setJavaExecutable(e.target.value)}
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <Tooltip title="Javaコマンド、もしくはパス" placement="right">
-                      <Iconify icon="eva:question-mark-circle-outline" />
-                    </Tooltip>
-                  </InputAdornment>
-                ),
-              }}
-            />
-            <TextField
-              label="Java オプション"
-              value={javaOptions}
-              onChange={(e) => setJavaOptions(e.target.value)}
-              placeholder="-Dfile.encoding=UTF-8"
-              defaultValue="-Dfile.encoding=UTF-8"
-            />
-            <TextField
-              label="サーバーオプション"
-              value={serverOptions}
-              onChange={(e) => setServerOptions(e.target.value)}
-              placeholder="nogui"
-            />
-            <TextField
-              label="メモリ最大割り当て量 (MB)"
-              value={maxHeapMemory}
-              onChange={(e) => setMaxHeapMemory(Number(e.target.value))}
-              type="number"
-              InputProps={{ inputProps: { min: 1 } }}
-              placeholder="2048"
-              error={maxHeapMemoryError}
-              helperText={maxHeapMemoryError ? '数値は1以上でなければなりません' : ''}
-            />
-            <TextField
-              label="メモリ最小割り当て量 (MB)"
-              value={minHeapMemory}
-              onChange={(e) => setMinHeapMemory(Number(e.target.value))}
-              type="number"
-              InputProps={{ inputProps: { min: 1 } }}
-              placeholder="2048"
-              error={minHeapMemoryError}
-              helperText={minHeapMemoryError ? '数値は1以上でなければなりません' : ''}
-            />
-            <FormControlLabel
-              control={
-                <Checkbox
-                  value={enableFreeMemoryCheck}
-                  onChange={(e) => setEnableFreeMemoryCheck(e.target.checked)}
-                  defaultChecked
-                />
-              }
-              label="起動時に空きメモリを確認する"
-            />
-            <FormControlLabel
-              control={
-                <Checkbox
-                  value={enableReporterAgent}
-                  onChange={(e) => setEnableReporterAgent(e.target.checked)}
-                  defaultChecked
-                />
-              }
-              label="サーバーと連携するエージェントを使う"
-            />
+              戻る
+            </Button>
+            <Typography variant="h5">サーバーの種類を選択</Typography>
           </Stack>
-        </AccordionDetails>
-      </Accordion>
+          <Grid container spacing={2}>
+            {availableTypes.map((t, i) => (
+              <Grid xs={4} key={i}>
+                <Card>
+                  <Button
+                    onClick={() => handleSetType(t)}
+                    sx={{ display: 'flex', p: 2, gap: 1.5, justifyContent: 'left' }}
+                    color="inherit"
+                    fullWidth
+                  >
+                    <Box
+                      bgcolor={theme.palette.grey[800]}
+                      height={48}
+                      width={48}
+                      borderRadius={1}
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <SvgColor src={t.spec.imagePath} color="#fff" />
+                    </Box>
+                    <Box>
+                      <Typography variant="h6" textAlign="left">
+                        {t.displayName}
+                      </Typography>
+                      <Typography variant="caption" textAlign="left">
+                        {t.spec.description}
+                      </Typography>
+                    </Box>
+                  </Button>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+        </>
+      ) : activeStep === 1 ? (
+        <>
+          <Stack flexDirection="row" alignItems="center" gap={2} mb={2}>
+            <Button
+              onClick={() => setActiveStep(0)}
+              color="inherit"
+              startIcon={<Iconify icon="eva:arrow-ios-back-outline" />}
+            >
+              戻る
+            </Button>
+            <Typography variant="h5">バージョンを選択</Typography>
+          </Stack>
+          <Grid container spacing={2}>
+            {availableVersions.map((v, i) => (
+              <Grid xs={3} key={i}>
+                <Card>
+                  <Button
+                    onClick={() => handleSetVersion(v.version)}
+                    sx={{ display: 'flex', px: 2, py: 1, gap: 1.5 }}
+                    color="inherit"
+                    fullWidth
+                  >
+                    <Typography variant="h6" fontFamily={theme.typography.h1.fontFamily}>
+                      {v.version}
+                    </Typography>
+                  </Button>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+        </>
+      ) : activeStep === 2 ? (
+        <>
+          <Stack flexDirection="row" alignItems="center" gap={2} mb={2}>
+            <Button
+              onClick={() => setActiveStep(1)}
+              color="inherit"
+              startIcon={<Iconify icon="eva:arrow-ios-back-outline" />}
+            >
+              戻る
+            </Button>
+            <Typography variant="h5">詳細</Typography>
+          </Stack>
+          <Grid container spacing={2}>
+            <Grid xs={8}>
+              <TextField
+                fullWidth
+                label="名前"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                error={nameEmptyError}
+                helperText={nameEmptyError ? '必須項目です' : ''}
+              />
+            </Grid>
+            <Grid xs={4}>
+              <TextField
+                fullWidth
+                label="メモリ割り当て量"
+                value={maxHeapMemory}
+                onChange={(e) => setMaxHeapMemory(Number(e.target.value))}
+                type="number"
+                placeholder={maxHeapMemory.toString()}
+                error={maxHeapMemoryError}
+                helperText={maxHeapMemoryError ? '数値は1以上でなければなりません' : ''}
+                InputProps={{
+                  endAdornment: <InputAdornment position="end">MB</InputAdornment>,
+                  inputProps: { min: 1 },
+                }}
+              />
+            </Grid>
+            <Grid xs={8}>
+              <TextField
+                fullWidth
+                label="ディレクトリ名"
+                value={directory}
+                onChange={(e) => setDirectory(e.target.value)}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <Tooltip
+                        title="サーバーファイルが保存されるディレクトリ名です"
+                        placement="right"
+                      >
+                        <Iconify icon="eva:question-mark-circle-outline" />
+                      </Tooltip>
+                    </InputAdornment>
+                  ),
+                }}
+                error={directoryEmptyError}
+                helperText={directoryEmptyError ? '必須項目です' : ''}
+              />
+            </Grid>
+            <Grid xs={4}>
+              <TextField
+                fullWidth
+                label="ポート"
+                value={port}
+                onChange={(e) => setPort(Number(e.target.value))}
+                type="number"
+                error={maxHeapMemoryError}
+                helperText={maxHeapMemoryError ? '数値は1以上でなければなりません' : ''}
+                InputProps={{
+                  inputProps: { min: 1 },
+                }}
+              />
+            </Grid>
+          </Grid>
+          <Accordion>
+            <AccordionSummary expandIcon={<Iconify icon="eva:arrow-ios-downward-outline" />}>
+              高度な設定
+            </AccordionSummary>
+            <AccordionDetails>
+              <Stack gap={2}>
+                <Grid container spacing={2}>
+                  <Grid xs={12}>
+                    <Alert severity="warning">
+                      自動で設定されるため、手動での設定は不要です。この設定は後から変更できます。
+                    </Alert>
+                  </Grid>
 
-      <Stack direction="row" gap={2}>
-        <FormControlLabel
-          control={<Checkbox />}
-          label={
-            <Typography variant="body2">
-              <Link to="https://aka.ms/MinecraftEULA" target="_blank">
-                Minecraft EULA
-              </Link>{' '}
-              に同意します
-            </Typography>
-          }
-        />
-      </Stack>
+                  <Grid xs={6}>
+                    <TextField
+                      fullWidth
+                      label="Java Excutable"
+                      placeholder="java"
+                      value={javaExecutable}
+                      onChange={(e) => setJavaExecutable(e.target.value)}
+                      InputProps={{
+                        endAdornment: (
+                          <InputAdornment position="end">
+                            <Tooltip title="Javaコマンド、もしくはパス" placement="right">
+                              <Iconify icon="eva:question-mark-circle-outline" />
+                            </Tooltip>
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                  </Grid>
+                  <Grid xs={6}>
+                    <TextField
+                      fullWidth
+                      label="Java オプション"
+                      value={javaOptions}
+                      onChange={(e) => setJavaOptions(e.target.value)}
+                      placeholder="-Dfile.encoding=UTF-8"
+                    />
+                  </Grid>
+                  <Grid xs={6}>
+                    <TextField
+                      fullWidth
+                      label="サーバーオプション"
+                      value={serverOptions}
+                      onChange={(e) => setServerOptions(e.target.value)}
+                      placeholder="nogui"
+                    />
+                  </Grid>
 
-      <Button
-        onClick={handleCreate}
-        color="inherit"
-        variant="contained"
-        sx={{ width: 'fit-content' }}
-      >
-        構築
-      </Button>
+                  <Grid xs={3}>
+                    <TextField
+                      fullWidth
+                      label="メモリ最小割り当て量"
+                      value={minHeapMemory}
+                      onChange={(e) => setMinHeapMemory(Number(e.target.value))}
+                      type="number"
+                      InputProps={{
+                        endAdornment: <InputAdornment position="end">MB</InputAdornment>,
+                        inputProps: { min: 1 },
+                      }}
+                      placeholder="2048"
+                      error={minHeapMemoryError}
+                      helperText={minHeapMemoryError ? '数値は1以上でなければなりません' : ''}
+                    />
+                  </Grid>
+                  <Grid xs={3}>
+                    <TextField
+                      fullWidth
+                      label="停止タイムアウト"
+                      value={shutdownTimeout}
+                      onChange={(e) => setShutdownTimeout(Number(e.target.value))}
+                      type="number"
+                      InputProps={{
+                        endAdornment: <InputAdornment position="end">秒</InputAdornment>,
+                        inputProps: { min: 1 },
+                      }}
+                      placeholder="2048"
+                      error={minHeapMemoryError}
+                      helperText={minHeapMemoryError ? '数値は1以上でなければなりません' : ''}
+                    />
+                  </Grid>
+                  <Grid xs={12}>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          value={enableFreeMemoryCheck}
+                          onChange={(e) => setEnableFreeMemoryCheck(e.target.checked)}
+                          defaultChecked
+                        />
+                      }
+                      label="起動時に空きメモリを確認する"
+                    />
+                  </Grid>
+                  <Grid xs={12}>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          value={enableReporterAgent}
+                          onChange={(e) => setEnableReporterAgent(e.target.checked)}
+                          defaultChecked
+                        />
+                      }
+                      label="サーバーと連携するエージェントを使う"
+                    />
+                  </Grid>
+                </Grid>
+              </Stack>
+            </AccordionDetails>
+          </Accordion>
+          <FormControlLabel
+            control={
+              <Checkbox checked={agreeToEula} onChange={(e) => setAgreeToEula(e.target.checked)} />
+            }
+            label={
+              <Typography variant="body2">
+                <Link to="https://aka.ms/MinecraftEULA" target="_blank">
+                  Minecraft EULA
+                </Link>{' '}
+                に同意します
+              </Typography>
+            }
+          />
+          <Button
+            onClick={handleCreate}
+            color="inherit"
+            variant="contained"
+            sx={{ width: 'fit-content' }}
+          >
+            作成
+          </Button>
+        </>
+      ) : (
+        <Stack alignItems="center" my={4} gap={2}>
+          <Iconify
+            icon="eva:checkmark-circle-2-fill"
+            color={theme.palette.success.dark}
+            maxWidth={120}
+            maxHeight={120}
+            sx={{ width: '100%', height: '100%' }}
+          />
+          <Typography variant="h4">サーバーを作成しました</Typography>
+          <Button color="inherit" variant="contained" component={RouterLink} href="../">
+            サーバ一覧へ
+          </Button>
+        </Stack>
+      )}
 
       <Snackbar
         open={buildError}

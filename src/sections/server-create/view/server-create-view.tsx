@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Link as RouterLink } from 'react-router-dom';
 
 import Card from '@mui/material/Card';
 import Link from '@mui/material/Link';
@@ -8,7 +7,10 @@ import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import Breadcrumbs from '@mui/material/Breadcrumbs';
 
+import { RouterLink } from 'src/routes/components';
+
 import { DashboardContent } from 'src/layouts/dashboard';
+
 import { Iconify } from 'src/components/iconify';
 
 import ServerCreateNew from '../server-create-new';
@@ -27,12 +29,11 @@ export function ServerCreateView() {
         {page === 0 ? (
           <Breadcrumbs sx={{ mb: 5 }}>
             <Link
-              key="1"
               color="inherit"
               fontSize="small"
-              component={RouterLink}
-              to="/server"
               sx={{ width: 'fit-content' }}
+              component={RouterLink}
+              href="../"
             >
               サーバー
             </Link>
@@ -43,17 +44,15 @@ export function ServerCreateView() {
         ) : page === 1 ? (
           <Breadcrumbs sx={{ mb: 5 }}>
             <Link
-              key="1"
               color="inherit"
               fontSize="small"
-              component={RouterLink}
-              to="/server"
               sx={{ width: 'fit-content' }}
+              component={RouterLink}
+              href="../"
             >
               サーバー
             </Link>
             <Link
-              key="1"
               color="inherit"
               fontSize="small"
               onClick={() => setPage(0)}
@@ -68,17 +67,15 @@ export function ServerCreateView() {
         ) : (
           <Breadcrumbs sx={{ mb: 5 }}>
             <Link
-              key="1"
               color="inherit"
               fontSize="small"
-              component={RouterLink}
-              to="/server"
               sx={{ width: 'fit-content' }}
+              component={RouterLink}
+              href="../"
             >
               サーバー
             </Link>
             <Link
-              key="1"
               color="inherit"
               fontSize="small"
               onClick={() => setPage(0)}
@@ -126,15 +123,7 @@ export function ServerCreateView() {
                 </Button>
               </Stack>
             ) : page === 1 ? (
-              <>
-                <Stack direction="row" alignItems="center" mb={2}>
-                  <Typography variant="h5" ml={1}>
-                    新しく作成
-                  </Typography>
-                </Stack>
-
-                <ServerCreateNew />
-              </>
+              <ServerCreateNew setPage={setPage} />
             ) : (
               <>
                 <Stack direction="row" alignItems="center" mb={2}>

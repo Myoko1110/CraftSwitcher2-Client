@@ -2,7 +2,7 @@ import { Helmet } from 'react-helmet-async';
 
 import { CONFIG } from 'src/config-global';
 
-import { ServerFileEditView } from 'src/sections/server-file-edit/';
+import { ServerSummaryView } from 'src/sections/server-summary/view';
 
 // ----------------------------------------------------------------------
 
@@ -13,7 +13,7 @@ export default function Page() {
         <title> {`Server - ${CONFIG.appName}`}</title>
       </Helmet>
 
-      <ServerFileEditView />
+      <ServerSummaryView />
     </>
   );
 }

@@ -32,6 +32,16 @@ export default class WebSocketClient {
 
     switch (data.type) {
       case 'progress':
+        switch (data.progress_type) {
+          case 'performance': {
+            const ev = new PerformanceProgress(data.servers, data.system, data.timestamp);
+            this.events.get('PerformanceProgress')?.map((cb) => cb(ev));
+            break;
+          }
+
+          default:
+            break;
+        }
         break;
 
       case 'event':
@@ -98,12 +108,50 @@ export default class WebSocketClient {
     this.events.set(event, events);
   }
 
+  removeEventListener<K extends keyof EventMap>(event: K, callback: (e: EventMap[K]) => void) {
+    const events = this.events.get(event) || [];
+    const newEvents = events.filter((cb) => cb !== callback);
+
+    this.events.set(event, newEvents);
+  }
+
   close() {
     this.ws.close();
   }
 }
 
-class ServerProcessReadEvent {
+export class PerformanceProgress {
+  public servers: {
+    game: { ticks: number };
+    id: string;
+    jvm: { cpuUsage: number; memTotal: number; memUsed: number };
+  }[];
+
+  constructor(
+    servers: {
+      game: { ticks: number };
+      id: string;
+      jvm: { cpu_usage: number; mem_total: number; mem_used: number };
+    }[],
+    public system: {
+      cpu: { usage: number; count: number };
+      memory: { available: number; swap_available: number; swap_total: number; total: number };
+    },
+    public _timestamp: number
+  ) {
+    this.servers = servers.map((s) => ({
+      game: { ticks: s.game.ticks },
+      id: s.id,
+      jvm: { cpuUsage: s.jvm.cpu_usage, memTotal: s.jvm.mem_total, memUsed: s.jvm.mem_used },
+    }));
+  }
+
+  get timestamp(): Date {
+    return new Date(this._timestamp * 1000);
+  }
+}
+
+export class ServerProcessReadEvent {
   constructor(
     public serverId: string,
     public data: string
@@ -114,7 +162,7 @@ class ServerProcessReadEvent {
   }
 }
 
-class ServerChangeStateEvent {
+export class ServerChangeStateEvent {
   constructor(
     public newState: ServerState,
     public oldState: ServerState,
@@ -126,7 +174,7 @@ class ServerChangeStateEvent {
   }
 }
 
-class FileTaskEvent {
+export class FileTaskEvent {
   constructor(
     public dst: string,
     public taskId: number,
@@ -143,6 +191,7 @@ class FileTaskEvent {
 }
 
 interface EventMap {
+  PerformanceProgress: PerformanceProgress;
   ServerProcessRead: ServerProcessReadEvent;
   ServerChangeState: ServerChangeStateEvent;
   FileTaskStart: FileTaskEvent;

@@ -45,6 +45,61 @@ export default class Server {
   }
 
   /**
+   * サーバーを作成します
+   * @returns 成功した場合はサーバーID、失敗した場合はfalse
+   */
+  static async create({
+    name,
+    directory,
+    type,
+    launchOption = {
+      javaExecutable: null,
+      javaOptions: null,
+      jarFile: '',
+      serverOptions: null,
+      maxHeapMemory: null,
+      minHeapMemory: null,
+      enableFreeMemoryCheck: true,
+      enableReporterAgent: true,
+    },
+    enableLaunchCommand = false,
+    launchCommand = '',
+    stopCommand = null,
+    shutdownTimeout = null,
+  }: ServerCreateParams): Promise<Server | false> {
+    const id = window.crypto.randomUUID();
+
+    const result = await axios.post(
+      `/server/${id}`,
+      {
+        name,
+        directory,
+        type: type.name,
+        launch_option: {
+          java_executable: launchOption.javaExecutable,
+          java_options: launchOption.javaOptions,
+          jar_file: launchOption.jarFile,
+          server_options: launchOption.serverOptions,
+          max_heap_memory: launchOption.maxHeapMemory,
+          min_heap_memory: launchOption.minHeapMemory,
+          enable_free_memory_check: launchOption.enableFreeMemoryCheck,
+          enable_reporter_agent: launchOption.enableReporterAgent,
+        },
+        enable_launch_command: enableLaunchCommand,
+        launch_command: launchCommand,
+        stop_command: stopCommand,
+        shutdown_timeout: shutdownTimeout,
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    return result.data.result ? (await Server.get(id))! : false;
+  }
+
+  /**
    * サーバーを起動します
    */
   async start(): Promise<boolean> {
@@ -98,62 +153,6 @@ export default class Server {
       }
     );
     return result.data.result;
-  }
-
-  /**
-   * サーバーを作成します
-   * @returns 成功した場合はサーバーID、失敗した場合はfalse
-   */
-  static async create({
-    name,
-    directory,
-    type,
-    launchOption = {
-      javaExecutable: null,
-      javaOptions: null,
-      jarFile: '',
-      serverOptions: null,
-      maxHeapMemory: null,
-      minHeapMemory: null,
-      enableFreeMemoryCheck: true,
-      enableReporterAgent: true,
-    },
-    enableLaunchCommand = false,
-    launchCommand = '',
-    stopCommand = null,
-    shutdownTimeout = null,
-  }: ServerCreateParams): Promise<Server | false> {
-    const id = window.crypto.randomUUID();
-    console.log(id);
-
-    const result = await axios.post(
-      `/server/${id}`,
-      {
-        name,
-        directory,
-        type: type.name,
-        launch_option: {
-          java_executable: launchOption.javaExecutable,
-          java_options: launchOption.javaOptions,
-          jar_file: launchOption.jarFile,
-          server_options: launchOption.serverOptions,
-          max_heap_memory: launchOption.maxHeapMemory,
-          min_heap_memory: launchOption.minHeapMemory,
-          enable_free_memory_check: launchOption.enableFreeMemoryCheck,
-          enable_reporter_agent: launchOption.enableReporterAgent,
-        },
-        enable_launch_command: enableLaunchCommand,
-        launch_command: launchCommand,
-        stop_command: stopCommand,
-        shutdown_timeout: shutdownTimeout,
-      },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
-    );
-    return result.data.result ? (await Server.get(id))! : false;
   }
 
   /**
@@ -258,6 +257,17 @@ export default class Server {
 
   async getDirectory(path: string): Promise<Directory> {
     return FileManager.get(this.id, path);
+  }
+
+  async getEula(): Promise<string> {
+    const result = await axios.get(`/server/${this.id}/eula`);
+    console.log(result);
+    return result.data.eula;
+  }
+
+  async setEula(accept: boolean): Promise<boolean> {
+    const result = await axios.post(`/server/${this.id}/eula?accept=${accept}`);
+    return result.status === 200;
   }
 }
 
