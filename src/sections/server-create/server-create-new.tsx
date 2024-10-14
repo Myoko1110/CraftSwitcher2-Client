@@ -435,19 +435,26 @@ export default function ServerCreateNew({ setPage }: { setPage: (page: number) =
               </Stack>
             </AccordionDetails>
           </Accordion>
-          <FormControlLabel
-            control={
-              <Checkbox checked={agreeToEula} onChange={(e) => setAgreeToEula(e.target.checked)} />
-            }
-            label={
-              <Typography variant="body2">
-                <Link to="https://aka.ms/MinecraftEULA" target="_blank">
-                  Minecraft EULA
-                </Link>{' '}
-                に同意します
-              </Typography>
-            }
-          />
+
+          {type && !type.spec.isProxy && (
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={agreeToEula}
+                  onChange={(e) => setAgreeToEula(e.target.checked)}
+                />
+              }
+              label={
+                <Typography variant="body2">
+                  <Link to="https://aka.ms/MinecraftEULA" target="_blank">
+                    Minecraft EULA
+                  </Link>{' '}
+                  に同意します
+                </Typography>
+              }
+            />
+          )}
+
           <Button
             onClick={handleCreate}
             color="inherit"
