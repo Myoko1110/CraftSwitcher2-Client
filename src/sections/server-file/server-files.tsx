@@ -183,6 +183,18 @@ export default function ServerFiles({ server, ws }: Props) {
     }
   }, [copyFiles, cutFiles, directory, handleChangePath, ws]);
 
+  const handleDownload = useCallback(async () => {
+    handleCloseMenu();
+    const file = table.selected[0] as ServerFile;
+    const fileData = await file.getData();
+
+    const url = window.URL.createObjectURL(fileData);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = file.name;
+    link.click();
+  }, [table.selected]);
+
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       console.log(renameOpen, removeOpen);
@@ -232,6 +244,7 @@ export default function ServerFiles({ server, ws }: Props) {
           handlePaste={handlePaste}
           copyFiles={copyFiles}
           cutFiles={cutFiles}
+          handleDownload={handleDownload}
         />
         <Scrollbar>
           <TableContainer sx={{ overflow: 'unset', px: 2, flexGrow: 1 }}>
@@ -326,6 +339,15 @@ export default function ServerFiles({ server, ws }: Props) {
                 <Iconify icon="fluent:rename-16-filled" />
               </ListItemIcon>
               <ListItemText>名前の変更</ListItemText>
+            </MenuItem>
+          )}
+
+          {table.selected.length === 1 && table.selected[0] instanceof ServerFile && (
+            <MenuItem onClick={handleDownload}>
+              <ListItemIcon>
+                <Iconify icon="solar:download-bold" />
+              </ListItemIcon>
+              <ListItemText>ダウンロード</ListItemText>
             </MenuItem>
           )}
 

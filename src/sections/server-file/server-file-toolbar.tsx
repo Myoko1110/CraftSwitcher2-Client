@@ -14,6 +14,8 @@ import OutlinedInput from '@mui/material/OutlinedInput';
 import InputAdornment from '@mui/material/InputAdornment';
 import { useTheme, type Breakpoint } from '@mui/material/styles';
 
+import { ServerFile } from 'src/api/file-manager';
+
 import { Iconify } from 'src/components/iconify';
 
 // ----------------------------------------------------------------------
@@ -31,6 +33,7 @@ type Props = {
   handlePaste: () => void;
   copyFiles: FileManager[];
   cutFiles: FileManager[];
+  handleDownload: () => void;
 };
 
 export default function ServerFileToolbar({
@@ -46,6 +49,7 @@ export default function ServerFileToolbar({
   handlePaste,
   copyFiles,
   cutFiles,
+  handleDownload,
 }: Props) {
   const theme = useTheme();
   const layoutQuery: Breakpoint = 'lg';
@@ -149,6 +153,15 @@ export default function ServerFileToolbar({
               onClick={handleRenameDialogOpen}
             >
               <Iconify icon="fluent:rename-16-filled" />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="ダウンロード">
+            <IconButton
+              color="primary"
+              disabled={!(selected.length === 1 && selected[0] instanceof ServerFile)}
+              onClick={handleDownload}
+            >
+              <Iconify icon="solar:download-bold" />
             </IconButton>
           </Tooltip>
           <Tooltip title="削除">

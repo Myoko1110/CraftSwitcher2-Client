@@ -29,7 +29,17 @@ export default function ServerFileTableRow({ file, onSelectRow, onContextMenu, s
   const router = useRouter();
 
   const handleDoubleClick = async () => {
-    router.push(`edit?path=${file.path}`);
+    if (file.type.isEditable) {
+      router.push(`edit?path=${file.path}`);
+    } else {
+      const fileData = await file.getData();
+
+      const url = window.URL.createObjectURL(fileData);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = file.name;
+      link.click();
+    }
   };
 
   return (
