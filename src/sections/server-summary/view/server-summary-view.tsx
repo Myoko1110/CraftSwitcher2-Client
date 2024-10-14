@@ -128,6 +128,7 @@ export function ServerSummaryView() {
           value="summary"
           sx={{
             pr: 0.5,
+            flexShrink: 0,
             [theme.breakpoints.down(layoutQuery)]: {
               borderBottom: 1,
               borderColor: 'grey.300',

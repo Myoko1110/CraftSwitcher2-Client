@@ -211,7 +211,7 @@ export default function ServerFiles({ server, ws }: Props) {
 
   return (
     <>
-      <Stack flexGrow={1}>
+      <Stack flexGrow={1} minWidth="0">
         <ServerFileToolbar
           directory={directory}
           handleChangePath={handleChangePath}

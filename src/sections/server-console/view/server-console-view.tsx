@@ -107,7 +107,18 @@ export function ServerConsoleView() {
         <Tabs
           orientation={isMobileSize ? 'horizontal' : 'vertical'}
           value="console"
-          sx={{ pr: 0.5, borderColor: 'divider' }}
+          sx={{
+            pr: 0.5,
+            flexShrink: 0,
+            [theme.breakpoints.down(layoutQuery)]: {
+              borderBottom: 1,
+              borderColor: 'grey.300',
+            },
+            [theme.breakpoints.up(layoutQuery)]: {
+              borderRight: 1,
+              borderColor: 'grey.300',
+            },
+          }}
         >
           <Tab value="summary" label="概要" component={RouterLink} href="../" />
           <Tab value="console" label="コンソール" component={RouterLink} href="./" />
