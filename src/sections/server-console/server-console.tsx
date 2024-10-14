@@ -38,8 +38,9 @@ export default function ServerConsole({
     observer.observe(ref.current!);
 
     ws.addEventListener('ServerProcessRead', (event) => {
-      console.log(event.data);
-      term!.write(event.data);
+      if (event.serverId === server?.id) {
+        term!.write(event.data);
+      }
     });
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
