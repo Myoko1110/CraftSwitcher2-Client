@@ -1,5 +1,4 @@
-import type WebSocketClient from 'src/api/ws-client';
-import type { Directory, FileManager } from 'src/api/file-manager';
+import type { FileManager, ServerDirectory } from 'src/api/file-manager';
 
 import React from 'react';
 
@@ -20,12 +19,11 @@ import { Iconify } from 'src/components/iconify';
 // ----------------------------------------------------------------------
 
 type Props = {
-  directory?: Directory | null;
+  directory?: ServerDirectory | null;
   handleChangePath: (path: string) => void;
   filterName: string;
   setFilterName: (name: string) => void;
   selected: FileManager[];
-  ws: WebSocketClient | null;
   handleRenameDialogOpen: () => void;
   setRemoveOpen: React.Dispatch<React.SetStateAction<boolean>>;
   handleSetCopyFiles: () => void;
@@ -41,7 +39,6 @@ export default function ServerFileToolbar({
   filterName,
   setFilterName,
   selected,
-  ws,
   handleRenameDialogOpen,
   setRemoveOpen,
   handleSetCopyFiles,

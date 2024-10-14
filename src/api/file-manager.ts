@@ -85,11 +85,11 @@ export class FileManager {
     return result.status === 200 ? result.data.task_id : false;
   }
 
-  static async get(serverId: string, _path: string): Promise<Directory> {
+  static async get(serverId: string, _path: string): Promise<ServerDirectory> {
     const result = await axios.get(`/server/${serverId}/files?path=${_path}`);
     const directory: FilesResult = result.data;
 
-    return new Directory(
+    return new ServerDirectory(
       serverId,
       directory.name,
       directory.path,
@@ -99,7 +99,7 @@ export class FileManager {
       undefined,
       directory.children.map((c) => {
         if (c.is_dir) {
-          return new Directory(
+          return new ServerDirectory(
             serverId,
             c.name,
             c.path,
@@ -109,7 +109,7 @@ export class FileManager {
             c.registered_server_id
           );
         }
-        return new File(
+        return new ServerFile(
           serverId,
           c.name,
           c.path,
@@ -121,12 +121,12 @@ export class FileManager {
     );
   }
 
-  static async getInfo(serverId: string, _path: string): Promise<File | Directory> {
+  static async getInfo(serverId: string, _path: string): Promise<ServerFile | ServerDirectory> {
     const result = await axios.get(`/server/${serverId}/file/info?path=${_path}`);
     const file: FileInfoResult = result.data;
 
     if (file.is_dir) {
-      return new Directory(
+      return new ServerDirectory(
         serverId,
         file.name,
         file.path,
@@ -137,7 +137,7 @@ export class FileManager {
       );
     }
 
-    return new File(
+    return new ServerFile(
       serverId,
       file.name,
       file.path,
@@ -155,7 +155,7 @@ export class FileManager {
 
 // --------------------------------------------
 
-export class Directory extends FileManager {
+export class ServerDirectory extends FileManager {
   constructor(
     serverId: string,
     name: string,
@@ -183,11 +183,21 @@ export class Directory extends FileManager {
     );
     return result.status === 200 ? result.data.task_id : false;
   }
+
+  async uploadFile(file: File): Promise<number | false> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const filePath = path.join(this.path, file.name);
+
+    const result = await axios.post(`/server/${this.serverId}/file?path=${filePath}`, formData);
+    return result.status === 200 ? result.data.task_id : false;
+  }
 }
 
 // --------------------------------------------
 
-export class File extends FileManager {
+export class ServerFile extends FileManager {
   constructor(
     serverId: string,
     name: string,

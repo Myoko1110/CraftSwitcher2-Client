@@ -1,4 +1,4 @@
-import type { Directory, FileManager } from 'src/api/file-manager';
+import type { FileManager, ServerDirectory } from 'src/api/file-manager';
 
 import React from 'react';
 
@@ -16,7 +16,7 @@ function FileIcon({ name }: { name: string }) {
 }
 
 type Props = {
-  folder: Directory;
+  folder: ServerDirectory;
   path: string;
   onDoubleClick: (path: string) => void;
   onSelectRow: () => void;

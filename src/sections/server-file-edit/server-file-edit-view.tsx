@@ -10,7 +10,7 @@ import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import Breadcrumbs from '@mui/material/Breadcrumbs';
 
-import { File, FileManager } from 'src/api/file-manager';
+import { ServerFile, FileManager } from 'src/api/file-manager';
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { Iconify } from 'src/components/iconify';
@@ -22,7 +22,7 @@ export function ServerFileEditView() {
   const { id } = useParams<{ id: string }>();
   const [params] = useSearchParams();
 
-  const [file, setFile] = useState<File>();
+  const [file, setFile] = useState<ServerFile>();
   const [blob, setBlob] = useState<Blob>();
   const [content, setContent] = useState('');
   const [isChanged, setIsChanged] = useState(false);
@@ -35,9 +35,9 @@ export function ServerFileEditView() {
       const path = params.get('path')!;
 
       const fileInfo = await FileManager.getInfo(id, path);
-      if (!(fileInfo instanceof File)) return;
+      if (!(fileInfo instanceof ServerFile)) return;
 
-      const _file = fileInfo as File;
+      const _file = fileInfo as ServerFile;
       setFile(_file);
 
       const data = await _file.getData();
