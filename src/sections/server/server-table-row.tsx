@@ -15,6 +15,7 @@ import Checkbox from '@mui/material/Checkbox';
 import MenuList from '@mui/material/MenuList';
 import Snackbar from '@mui/material/Snackbar';
 import TableCell from '@mui/material/TableCell';
+import TextField from '@mui/material/TextField';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import FormControlLabel from '@mui/material/FormControlLabel';
@@ -48,6 +49,9 @@ export function ServerTableRow({
   const [removeOpen, setRemoveOpen] = useState(false);
   const [deleteConfigFile, setDeleteConfigFile] = useState(false);
 
+  const [renameOpen, setRenameOpen] = useState(false);
+  const [renameValue, setRenameValue] = useState('');
+
   const handleOpenPopover = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
     setOpenPopover(event.currentTarget);
   }, []);
@@ -71,6 +75,21 @@ export function ServerTableRow({
     e.preventDefault();
     await server.remove(deleteConfigFile);
     setRemoveOpen(false);
+    await getServers();
+  };
+
+  const handleRenameClick = () => {
+    setRenameOpen(true);
+    setRenameValue(server.name);
+    handleClosePopover();
+  };
+
+  const handleRename = async (e: FormEvent) => {
+    e.preventDefault();
+
+    await server.putConfig({ name: renameValue });
+
+    setRenameOpen(false);
     await getServers();
   };
 
@@ -142,6 +161,10 @@ export function ServerTableRow({
             },
           }}
         >
+          <MenuItem onClick={handleRenameClick}>
+            <Iconify icon="fluent:rename-16-filled" />
+            名前変更
+          </MenuItem>
           <MenuItem onClick={handleRemoveClick} sx={{ color: 'error.main' }}>
             <Iconify icon="solar:trash-bin-trash-bold" />
             削除
@@ -158,6 +181,39 @@ export function ServerTableRow({
         <Alert>起動に失敗しました</Alert>
       </Snackbar>
 
+      <Dialog open={renameOpen} onClose={() => setRenameOpen(false)} maxWidth="xs" fullWidth>
+        <DialogTitle>名前の変更</DialogTitle>
+        <IconButton
+          onClick={() => setRenameOpen(false)}
+          sx={(theme) => ({
+            position: 'absolute',
+            right: 8,
+            top: 8,
+            color: theme.palette.grey[500],
+          })}
+        >
+          <Iconify icon="eva:close-outline" />
+        </IconButton>
+        <form onSubmit={handleRename}>
+          <DialogContent>
+            <TextField
+              autoFocus
+              fullWidth
+              variant="outlined"
+              value={renameValue}
+              onChange={(e) => setRenameValue(e.target.value)}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button color="inherit" variant="outlined" onClick={() => setRenameOpen(false)}>
+              キャンセル
+            </Button>
+            <Button color="inherit" variant="contained" type="submit">
+              完了
+            </Button>
+          </DialogActions>
+        </form>
+      </Dialog>
       <Dialog open={removeOpen} onClose={() => setRemoveOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle>本当にこのサーバーを削除しますか？</DialogTitle>
         <IconButton
