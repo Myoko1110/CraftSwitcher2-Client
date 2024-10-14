@@ -4,7 +4,7 @@ import type WebSocketClient from 'src/api/ws-client';
 import { Terminal } from '@xterm/xterm';
 import { FitAddon } from '@xterm/addon-fit';
 import { WebglAddon } from '@xterm/addon-webgl';
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
 
 export default function ServerConsole({
   server,
@@ -18,15 +18,12 @@ export default function ServerConsole({
   const [fitAddon] = useState(new FitAddon());
   const [webglAddon] = useState(new WebglAddon());
 
-  const handleSendLine = (data: string) => {
-    ws.sendLine('123456', data);
-  };
-
-  const observer = new ResizeObserver((entries) => {
-    entries.forEach(() => {
-      fitAddon.fit();
-    });
-  });
+  const handleSendLine = useCallback(
+    (data: string) => {
+      ws.sendLine(server?.id!, data);
+    },
+    [server?.id, ws]
+  );
 
   useEffect(() => {
     term.loadAddon(fitAddon);
@@ -35,6 +32,13 @@ export default function ServerConsole({
 
     term.open(ref.current!);
     fitAddon.fit();
+
+    const observer = new ResizeObserver((entries) => {
+      entries.forEach(() => {
+        fitAddon.fit();
+      });
+    });
+
     observer.observe(ref.current!);
 
     ws.addEventListener('ServerProcessRead', (event) => {
@@ -42,9 +46,7 @@ export default function ServerConsole({
         term!.write(event.data);
       }
     });
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [fitAddon, handleSendLine, server?.id, term, webglAddon, ws]);
 
   return <div style={{ flexGrow: 1 }} ref={ref} />;
 }
