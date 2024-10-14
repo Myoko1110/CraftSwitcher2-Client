@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
 import { Editor } from '@monaco-editor/react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 
 import Box from '@mui/material/Box';
@@ -10,8 +10,8 @@ import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import Breadcrumbs from '@mui/material/Breadcrumbs';
 
-import { ServerFile, FileManager } from 'src/api/file-manager';
 import { DashboardContent } from 'src/layouts/dashboard';
+import { ServerFile, FileManager } from 'src/api/file-manager';
 
 import { Iconify } from 'src/components/iconify';
 
@@ -26,6 +26,31 @@ export function ServerFileEditView() {
   const [blob, setBlob] = useState<Blob>();
   const [content, setContent] = useState('');
   const [isChanged, setIsChanged] = useState(false);
+
+  const handleChange = (value: string | undefined) => {
+    setIsChanged(true);
+    setContent(value!);
+  };
+
+  const handleSave = useCallback(async () => {
+    if (!file) return;
+
+    const _blob = new Blob([content], { type: blob!.type });
+
+    await file.saveData(_blob);
+    setIsChanged(false);
+  }, [blob, content, file]);
+
+  const handleCtrlS = useCallback(
+    async (e: KeyboardEvent) => {
+      if (e.repeat) return;
+      if (e.key === 's' && e.ctrlKey) {
+        e.preventDefault();
+        await handleSave();
+      }
+    },
+    [handleSave]
+  );
 
   useEffect(() => {
     (async () => {
@@ -52,30 +77,7 @@ export function ServerFileEditView() {
     return () => {
       window.removeEventListener('keydown', handleCtrlS);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const handleChange = (value: string | undefined) => {
-    setIsChanged(true);
-    setContent(value!);
-  };
-
-  const handleSave = async () => {
-    if (!file) return;
-
-    const _blob = new Blob([content], { type: blob!.type });
-
-    await file.saveData(_blob);
-    setIsChanged(false);
-  };
-
-  const handleCtrlS = (e: KeyboardEvent) => {
-    if (e.repeat) return;
-    if (e.ctrlKey && e.key === 's') {
-      e.preventDefault();
-      handleSave().then();
-    }
-  };
+  }, [handleCtrlS]);
 
   return (
     <DashboardContent>
