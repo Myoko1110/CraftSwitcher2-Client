@@ -1,4 +1,4 @@
-import type { File, FileManager } from 'src/api/file-manager';
+import type { ServerFile, FileManager } from 'src/api/file-manager';
 
 import React from 'react';
 
@@ -19,7 +19,7 @@ function FileIcon({ name }: { name: string }) {
 }
 
 type Props = {
-  file: File;
+  file: ServerFile;
   onSelectRow: () => void;
   onContextMenu: (event: React.MouseEvent<HTMLTableRowElement>, file?: FileManager) => void;
   selected?: boolean;

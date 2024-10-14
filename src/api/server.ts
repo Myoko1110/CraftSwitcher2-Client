@@ -5,7 +5,7 @@ import ServerState from 'src/abc/server-state';
 
 import { FileManager } from './file-manager';
 
-import type { Directory } from './file-manager';
+import type { ServerDirectory } from './file-manager';
 
 // ----------------------------------------------------------------------
 
@@ -255,7 +255,7 @@ export default class Server {
     return result.data.result;
   }
 
-  async getDirectory(path: string): Promise<Directory> {
+  async getDirectory(path: string): Promise<ServerDirectory> {
     return FileManager.get(this.id, path);
   }
 

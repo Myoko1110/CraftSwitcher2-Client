@@ -15,12 +15,13 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import TableContainer from '@mui/material/TableContainer';
 
-import { File, Directory } from 'src/api/file-manager';
+import { ServerFile, ServerDirectory } from 'src/api/file-manager';
 
 import { Iconify } from 'src/components/iconify';
 import { Scrollbar } from 'src/components/scrollbar';
 
 import FileDialogs from './file-dialogs';
+import FileDropZone from './file-dropzone';
 import ServerFileToolbar from './server-file-toolbar';
 import { TableInvalidPath } from './table-invalid-path';
 import ServerFileTableRow from './server-file-table-row';
@@ -40,7 +41,7 @@ export default function ServerFiles({ server, ws }: Props) {
   const [params, setParams] = useSearchParams();
 
   const [files, setFiles] = useState<FileManager[]>([]);
-  const [directory, setDirectory] = useState<Directory | null>(null);
+  const [directory, setDirectory] = useState<ServerDirectory | null>(null);
 
   const [filterName, setFilterName] = useState('');
 
@@ -55,6 +56,7 @@ export default function ServerFiles({ server, ws }: Props) {
   const [cutFiles, setCutFiles] = useState<FileManager[]>([]);
 
   const [position, setPosition] = useState<AnchorPosition>(undefined);
+  const [isDragActive, setIsDragActive] = useState(true);
 
   const filteredFiles = applyFilter({
     inputData: files,
@@ -211,14 +213,18 @@ export default function ServerFiles({ server, ws }: Props) {
 
   return (
     <>
-      <Stack flexGrow={1} minWidth="0">
+      <Stack
+        flexGrow={1}
+        minWidth="0"
+        position="relative"
+        onDragEnter={() => setIsDragActive(true)}
+      >
         <ServerFileToolbar
           directory={directory}
           handleChangePath={handleChangePath}
           filterName={filterName}
           setFilterName={setFilterName}
           selected={table.selected}
-          ws={ws}
           handleRenameDialogOpen={handleRenameDialogOpen}
           setRemoveOpen={setRemoveOpen}
           handleSetCopyFiles={handleSetCopyFiles}
@@ -252,7 +258,7 @@ export default function ServerFiles({ server, ws }: Props) {
               <TableBody>
                 {filteredFiles.map((file) => {
                   const { path } = file;
-                  if (file instanceof Directory) {
+                  if (file instanceof ServerDirectory) {
                     return (
                       <ServerFolderTableRow
                         key={path}
@@ -265,7 +271,7 @@ export default function ServerFiles({ server, ws }: Props) {
                       />
                     );
                   }
-                  if (file instanceof File) {
+                  if (file instanceof ServerFile) {
                     return (
                       <ServerFileTableRow
                         key={path}
@@ -288,6 +294,7 @@ export default function ServerFiles({ server, ws }: Props) {
             </Table>
           </TableContainer>
         </Scrollbar>
+        <FileDropZone isActive={isDragActive} setIsActive={setIsDragActive} directory={directory} />
       </Stack>
 
       <Menu
@@ -357,7 +364,7 @@ export default function ServerFiles({ server, ws }: Props) {
 export function getComparator(
   order: 'asc' | 'desc',
   orderBy: string
-): (a: File | Directory, b: File | Directory) => number {
+): (a: ServerFile | ServerDirectory, b: ServerFile | ServerDirectory) => number {
   switch (orderBy) {
     case 'name':
       return order === 'desc' ? (a, b) => nameComparator(a, b) : (a, b) => -nameComparator(a, b);
@@ -370,9 +377,9 @@ export function getComparator(
   }
 }
 
-function nameComparator(a: File | Directory, b: File | Directory) {
-  const aIsFile = a instanceof File;
-  const bIsFile = b instanceof File;
+function nameComparator(a: ServerFile | ServerDirectory, b: ServerFile | ServerDirectory) {
+  const aIsFile = a instanceof ServerFile;
+  const bIsFile = b instanceof ServerFile;
 
   if (aIsFile === bIsFile) {
     if (b.name < a.name) return -1;
@@ -383,15 +390,15 @@ function nameComparator(a: File | Directory, b: File | Directory) {
   return 1;
 }
 
-function sizeComparator(a: File | Directory, b: File | Directory) {
+function sizeComparator(a: ServerFile | ServerDirectory, b: ServerFile | ServerDirectory) {
   if (b.size < a.size) return -1;
   if (b.size > a.size) return 1;
   return 0;
 }
 
-function timeComparator(a: File | Directory, b: File | Directory) {
-  const aIsFile = a instanceof File;
-  const bIsFile = b instanceof File;
+function timeComparator(a: ServerFile | ServerDirectory, b: ServerFile | ServerDirectory) {
+  const aIsFile = a instanceof ServerFile;
+  const bIsFile = b instanceof ServerFile;
 
   if (aIsFile === bIsFile) {
     if (b.modifyAt! < a.modifyAt!) return -1;

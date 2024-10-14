@@ -1,5 +1,5 @@
 import type WebSocketClient from 'src/api/ws-client';
-import type { Directory, FileManager } from 'src/api/file-manager';
+import type { ServerDirectory, FileManager } from 'src/api/file-manager';
 
 import React, { type FormEvent } from 'react';
 
@@ -18,7 +18,7 @@ type Props = {
   selected: FileManager[];
   ws: WebSocketClient | null;
   handleChangePath: (path: string) => void;
-  directory: Directory | null;
+  directory: ServerDirectory | null;
   renameOpen: boolean;
   setRenameOpen: React.Dispatch<React.SetStateAction<boolean>>;
   renameValue: string;
