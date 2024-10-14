@@ -1,8 +1,9 @@
 import type WebSocketClient from 'src/api/ws-client';
 import type { Directory, FileManager } from 'src/api/file-manager';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React from 'react';
 
+import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Toolbar from '@mui/material/Toolbar';
@@ -25,8 +26,13 @@ type Props = {
   setFilterName: (name: string) => void;
   selected: FileManager[];
   ws: WebSocketClient | null;
-  setRenameOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  handleRenameDialogOpen: () => void;
   setRemoveOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  handleSetCopyFiles: () => void;
+  handleSetCutFiles: () => void;
+  handlePaste: () => void;
+  copyFiles: FileManager[];
+  cutFiles: FileManager[];
 };
 
 export default function ServerFileToolbar({
@@ -36,8 +42,13 @@ export default function ServerFileToolbar({
   setFilterName,
   selected,
   ws,
-  setRenameOpen,
+  handleRenameDialogOpen,
   setRemoveOpen,
+  handleSetCopyFiles,
+  handleSetCutFiles,
+  handlePaste,
+  copyFiles,
+  cutFiles,
 }: Props) {
   const theme = useTheme();
   const layoutQuery: Breakpoint = 'lg';
@@ -46,92 +57,20 @@ export default function ServerFileToolbar({
   const location = directory?.location || '';
   const pathSegments = path.split('/');
 
-  const [copyFiles, setCopyFiles] = useState<FileManager[]>([]);
-  const [cutFiles, setCutFiles] = useState<FileManager[]>([]);
-
-  const handleSetCopyFiles = useCallback(() => {
-    if (!selected.length) return;
-
-    setCopyFiles(selected);
-    setCutFiles([]);
-  }, [selected]);
-
-  const handleSetCutFiles = useCallback(() => {
-    if (!selected.length) return;
-
-    setCutFiles(selected);
-    setCopyFiles([]);
-  }, [selected]);
-
-  const handlePaste = useCallback(() => {
-    if (copyFiles.length) {
-      // TODO: 重複のときの置き換え確認
-      // TODO: エラーハンドリング
-      copyFiles.forEach((file) => {
-        try {
-          file.copy(path);
-        } catch (e) {
-          console.log(e);
-        }
-
-        ws?.addEventListener('FileTaskEnd', (e) => {
-          if (e.src === file.path) {
-            handleChangePath(path);
-          }
-        });
-      });
-    }
-    if (cutFiles.length) {
-      cutFiles.forEach((file) => {
-        try {
-          file.move(path);
-        } catch (e) {
-          console.log(e);
-        }
-        ws?.addEventListener('FileTaskEnd', (e) => {
-          if (e.src === file.path) {
-            handleChangePath(path);
-          }
-        });
-      });
-    }
-  }, [copyFiles, cutFiles, handleChangePath, path, ws]);
-
-  const onKeyDown = useCallback(
-    (e: KeyboardEvent) => {
-      if (e.repeat) return;
-
-      if (e.key === 'Delete' || e.key === 'Backspace') {
-        setRemoveOpen(true);
-      }
-      if (e.key === 'c' && e.ctrlKey) {
-        handleSetCopyFiles();
-      }
-      if (e.key === 'x' && e.ctrlKey) {
-        handleSetCutFiles();
-      }
-      if (e.key === 'v' && e.ctrlKey) {
-        handlePaste();
-      }
-    },
-    [handlePaste, handleSetCopyFiles, handleSetCutFiles, setRemoveOpen]
-  );
-
-  useEffect(() => {
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [handlePaste, handleSetCopyFiles, handleSetCutFiles, onKeyDown]);
-
   return (
     <Toolbar
       sx={{
-        height: 64,
+        minHeight: 64,
         display: 'flex',
         justifyContent: 'space-between',
         borderBottom: 1,
         borderColor: 'grey.200',
-        p: theme.spacing(0, 1, 0, 3),
-        [theme.breakpoints.down(layoutQuery)]: { flexDirection: 'column' },
+        [theme.breakpoints.down(layoutQuery)]: {
+          flexDirection: 'column',
+          py: 1,
+          gap: 1,
+          alignItems: 'start',
+        },
       }}
     >
       <Stack direction="row">
@@ -180,44 +119,52 @@ export default function ServerFileToolbar({
         </Breadcrumbs>
       </Stack>
 
-      <Stack direction="row" gap={1}>
-        <Tooltip title="コピー">
-          <IconButton color="primary" disabled={!selected.length} onClick={handleSetCopyFiles}>
-            <Iconify icon="solar:copy-bold" />
-          </IconButton>
-        </Tooltip>
-        <Tooltip title="カット">
-          <IconButton color="primary" disabled={!selected.length} onClick={handleSetCutFiles}>
-            <Iconify icon="solar:scissors-bold" />
-          </IconButton>
-        </Tooltip>
-        <Tooltip title="ペースト">
-          <IconButton
-            color="primary"
-            disabled={!(copyFiles.length || cutFiles.length)}
-            onClick={handlePaste}
-          >
-            <Iconify icon="solar:clipboard-bold" />
-          </IconButton>
-        </Tooltip>
-        <Tooltip title="名前を変更">
-          <IconButton
-            color="primary"
-            disabled={!(selected.length === 1)}
-            onClick={() => setRenameOpen(true)}
-          >
-            <Iconify icon="fluent:rename-16-filled" />
-          </IconButton>
-        </Tooltip>
-        <Tooltip title="削除">
-          <IconButton
-            color="primary"
-            disabled={!selected.length}
-            onClick={() => setRemoveOpen(true)}
-          >
-            <Iconify icon="solar:trash-bin-trash-bold" />
-          </IconButton>
-        </Tooltip>
+      <Stack
+        direction="row"
+        gap={2}
+        justifyContent="space-between"
+        sx={{ [theme.breakpoints.down(layoutQuery)]: { width: '100%' } }}
+      >
+        <Box display="flex" gap={0.5}>
+          <Tooltip title="コピー">
+            <IconButton color="primary" disabled={!selected.length} onClick={handleSetCopyFiles}>
+              <Iconify icon="solar:copy-bold" />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="カット">
+            <IconButton color="primary" disabled={!selected.length} onClick={handleSetCutFiles}>
+              <Iconify icon="solar:scissors-bold" />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="ペースト">
+            <IconButton
+              color="primary"
+              disabled={!(copyFiles.length || cutFiles.length)}
+              onClick={handlePaste}
+            >
+              <Iconify icon="solar:clipboard-bold" />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="名前を変更">
+            <IconButton
+              color="primary"
+              disabled={!(selected.length === 1)}
+              onClick={handleRenameDialogOpen}
+            >
+              <Iconify icon="fluent:rename-16-filled" />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="削除">
+            <IconButton
+              color="primary"
+              disabled={!selected.length}
+              onClick={() => setRemoveOpen(true)}
+            >
+              <Iconify icon="solar:trash-bin-trash-bold" />
+            </IconButton>
+          </Tooltip>
+        </Box>
+
         <OutlinedInput
           fullWidth
           value={filterName}
@@ -228,7 +175,7 @@ export default function ServerFileToolbar({
               <Iconify width={20} icon="eva:search-fill" sx={{ color: 'text.disabled' }} />
             </InputAdornment>
           }
-          sx={{ maxWidth: 320, height: 42 }}
+          sx={{ maxWidth: 320, height: 42, flexGrow: 1 }}
         />
       </Stack>
     </Toolbar>

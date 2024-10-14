@@ -5,7 +5,6 @@ import type { FileManager } from 'src/api/file-manager';
 import { useSearchParams } from 'react-router-dom';
 import React, { useState, useEffect, useCallback } from 'react';
 
-import Box from '@mui/material/Box';
 import Menu from '@mui/material/Menu';
 import Stack from '@mui/material/Stack';
 import Table from '@mui/material/Table';
@@ -14,10 +13,12 @@ import MenuItem from '@mui/material/MenuItem';
 import TableBody from '@mui/material/TableBody';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
+import TableContainer from '@mui/material/TableContainer';
 
 import { File, Directory } from 'src/api/file-manager';
 
 import { Iconify } from 'src/components/iconify';
+import { Scrollbar } from 'src/components/scrollbar';
 
 import FileDialogs from './file-dialogs';
 import ServerFileToolbar from './server-file-toolbar';
@@ -50,6 +51,9 @@ export default function ServerFiles({ server, ws }: Props) {
   const [renameValue, setRenameValue] = useState('');
   const [removeOpen, setRemoveOpen] = useState(false);
 
+  const [copyFiles, setCopyFiles] = useState<FileManager[]>([]);
+  const [cutFiles, setCutFiles] = useState<FileManager[]>([]);
+
   const [position, setPosition] = useState<AnchorPosition>(undefined);
 
   const filteredFiles = applyFilter({
@@ -71,17 +75,7 @@ export default function ServerFiles({ server, ws }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params, server]);
 
-  const handleChangePath = (path: string) => {
-    if (path === directory?.path) getFiles();
-
-    table.resetSelected();
-    setParams((prev) => {
-      prev.set('path', path);
-      return prev;
-    });
-  };
-
-  const getFiles = async () => {
+  const getFiles = useCallback(async () => {
     setIsInValidPath(false);
     try {
       if (!server) return;
@@ -97,15 +91,26 @@ export default function ServerFiles({ server, ws }: Props) {
       }
       console.error(e);
     }
-  };
+  }, [params, server]);
+
+  const handleChangePath = useCallback(
+    (path: string) => {
+      if (path === directory?.path) getFiles();
+
+      table.resetSelected();
+      setParams((prev) => {
+        prev.set('path', path);
+        return prev;
+      });
+    },
+    [directory?.path, getFiles, setParams, table]
+  );
 
   const onContextMenu = (
     event: React.MouseEvent<HTMLTableRowElement | HTMLTableSectionElement>,
     file?: FileManager
   ) => {
     event.preventDefault();
-
-    console.log('aa');
 
     if (file && !table.selected.includes(file)) table.onSelectRow(file);
 
@@ -120,9 +125,89 @@ export default function ServerFiles({ server, ws }: Props) {
   };
 
   const handleRenameDialogOpen = () => {
+    handleCloseMenu();
     setRenameValue(table.selected[0].name);
     setRenameOpen(true);
   };
+
+  const handleSetCopyFiles = useCallback(() => {
+    handleCloseMenu();
+    if (!table.selected.length) return;
+
+    setCopyFiles(table.selected);
+    setCutFiles([]);
+  }, [table.selected]);
+
+  const handleSetCutFiles = useCallback(() => {
+    handleCloseMenu();
+    if (!table.selected.length) return;
+
+    setCutFiles(table.selected);
+    setCopyFiles([]);
+  }, [table.selected]);
+
+  const handlePaste = useCallback(() => {
+    handleCloseMenu();
+    if (copyFiles.length) {
+      // TODO: 重複のときの置き換え確認
+      // TODO: エラーハンドリング
+      copyFiles.forEach((file) => {
+        try {
+          file.copy(directory?.path!);
+        } catch (e) {
+          console.log(e);
+        }
+
+        ws?.addEventListener('FileTaskEnd', (e) => {
+          if (e.src === file.path) {
+            handleChangePath(directory?.path!);
+          }
+        });
+      });
+    }
+    if (cutFiles.length) {
+      cutFiles.forEach((file) => {
+        try {
+          file.move(directory?.path!);
+        } catch (e) {
+          console.log(e);
+        }
+        ws?.addEventListener('FileTaskEnd', (e) => {
+          if (e.src === file.path) {
+            handleChangePath(directory?.path!);
+          }
+        });
+      });
+    }
+  }, [copyFiles, cutFiles, directory, handleChangePath, ws]);
+
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      console.log(renameOpen, removeOpen);
+      if (renameOpen || removeOpen) return;
+      if (e.repeat) return;
+
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        setRemoveOpen(true);
+      }
+      if (e.key === 'c' && e.ctrlKey) {
+        handleSetCopyFiles();
+      }
+      if (e.key === 'x' && e.ctrlKey) {
+        handleSetCutFiles();
+      }
+      if (e.key === 'v' && e.ctrlKey) {
+        handlePaste();
+      }
+    },
+    [handlePaste, handleSetCopyFiles, handleSetCutFiles, removeOpen, renameOpen]
+  );
+
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [handleKeyDown]);
 
   return (
     <>
@@ -134,64 +219,75 @@ export default function ServerFiles({ server, ws }: Props) {
           setFilterName={setFilterName}
           selected={table.selected}
           ws={ws}
-          setRenameOpen={setRenameOpen}
+          handleRenameDialogOpen={handleRenameDialogOpen}
           setRemoveOpen={setRemoveOpen}
+          handleSetCopyFiles={handleSetCopyFiles}
+          handleSetCutFiles={handleSetCutFiles}
+          handlePaste={handlePaste}
+          copyFiles={copyFiles}
+          cutFiles={cutFiles}
         />
-        <Box px={2} flexGrow={1}>
-          <Table
-            sx={{
-              borderCollapse: 'separate',
-              borderSpacing: '0 3px',
-              '& .MuiTableCell-head': {
-                '&:first-of-type': { borderBottomLeftRadius: 12, borderTopLeftRadius: 12 },
-                '&:last-of-type': { borderBottomRightRadius: 12, borderTopRightRadius: 12 },
-              },
-              '& .MuiTableCell-body': {
-                '&:first-of-type': { borderBottomLeftRadius: 8, borderTopLeftRadius: 8 },
-                '&:last-of-type': { borderBottomRightRadius: 8, borderTopRightRadius: 8 },
-              },
-            }}
-          >
-            <ServerFileTableHead
-              orderBy={table.orderBy}
-              order={table.order}
-              onSort={table.onSort}
-            />
-            <TableBody>
-              {filteredFiles.map((file) => {
-                const { path } = file;
-                if (file instanceof Directory) {
-                  return (
-                    <ServerFolderTableRow
-                      key={path}
-                      folder={file}
-                      path={path}
-                      selected={table.selected.includes(file)}
-                      onDoubleClick={handleChangePath}
-                      onSelectRow={() => table.onSelectRow(file)}
-                      onContextMenu={onContextMenu}
-                    />
-                  );
-                }
-                if (file instanceof File) {
-                  return (
-                    <ServerFileTableRow
-                      key={path}
-                      file={file}
-                      selected={table.selected.includes(file)}
-                      onSelectRow={() => table.onSelectRow(file)}
-                      onContextMenu={onContextMenu}
-                    />
-                  );
-                }
-                return null;
-              })}
-              {isInvalidPath && (
-                <TableInvalidPath handleChangePath={handleChangePath} path={params.get('path')!} />
-              )}
-            </TableBody>
-          </Table>
-        </Box>
+        <Scrollbar>
+          <TableContainer sx={{ overflow: 'unset', px: 2, flexGrow: 1 }}>
+            <Table
+              sx={{
+                borderCollapse: 'separate',
+                borderSpacing: '0 3px',
+                '& .MuiTableCell-head': {
+                  '&:first-of-type': { borderBottomLeftRadius: 12, borderTopLeftRadius: 12 },
+                  '&:last-of-type': { borderBottomRightRadius: 12, borderTopRightRadius: 12 },
+                },
+                '& .MuiTableCell-body': {
+                  '&:first-of-type': { borderBottomLeftRadius: 8, borderTopLeftRadius: 8 },
+                  '&:last-of-type': { borderBottomRightRadius: 8, borderTopRightRadius: 8 },
+                },
+                minWidth: 750,
+              }}
+            >
+              <ServerFileTableHead
+                orderBy={table.orderBy}
+                order={table.order}
+                onSort={table.onSort}
+              />
+              <TableBody>
+                {filteredFiles.map((file) => {
+                  const { path } = file;
+                  if (file instanceof Directory) {
+                    return (
+                      <ServerFolderTableRow
+                        key={path}
+                        folder={file}
+                        path={path}
+                        selected={table.selected.includes(file)}
+                        onDoubleClick={handleChangePath}
+                        onSelectRow={() => table.onSelectRow(file)}
+                        onContextMenu={onContextMenu}
+                      />
+                    );
+                  }
+                  if (file instanceof File) {
+                    return (
+                      <ServerFileTableRow
+                        key={path}
+                        file={file}
+                        selected={table.selected.includes(file)}
+                        onSelectRow={() => table.onSelectRow(file)}
+                        onContextMenu={onContextMenu}
+                      />
+                    );
+                  }
+                  return null;
+                })}
+                {isInvalidPath && (
+                  <TableInvalidPath
+                    handleChangePath={handleChangePath}
+                    path={params.get('path')!}
+                  />
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Scrollbar>
       </Stack>
 
       <Menu
@@ -206,24 +302,32 @@ export default function ServerFiles({ server, ws }: Props) {
       >
         <MenuList dense sx={{ outline: 'none' }}>
           <MenuItem>
-            <ListItemIcon>
+            <ListItemIcon onClick={handleSetCopyFiles}>
               <Iconify icon="solar:copy-bold" />
             </ListItemIcon>
             <ListItemText>コピー</ListItemText>
           </MenuItem>
           <MenuItem>
-            <ListItemIcon>
+            <ListItemIcon onClick={handleSetCutFiles}>
               <Iconify icon="solar:scissors-bold" />
             </ListItemIcon>
             <ListItemText>切り取り</ListItemText>
           </MenuItem>
-          <MenuItem onClick={handleRenameDialogOpen}>
-            <ListItemIcon>
-              <Iconify icon="fluent:rename-16-filled" />
-            </ListItemIcon>
-            <ListItemText>名前の変更</ListItemText>
-          </MenuItem>
-          <MenuItem onClick={() => setRemoveOpen(true)}>
+          {table.selected.length === 1 && (
+            <MenuItem onClick={handleRenameDialogOpen}>
+              <ListItemIcon>
+                <Iconify icon="fluent:rename-16-filled" />
+              </ListItemIcon>
+              <ListItemText>名前の変更</ListItemText>
+            </MenuItem>
+          )}
+
+          <MenuItem
+            onClick={() => {
+              handleCloseMenu();
+              setRemoveOpen(true);
+            }}
+          >
             <ListItemIcon>
               <Iconify icon="solar:trash-bin-trash-bold" />
             </ListItemIcon>
@@ -236,7 +340,6 @@ export default function ServerFiles({ server, ws }: Props) {
         selected={table.selected}
         ws={ws}
         handleChangePath={handleChangePath}
-        resetSelected={table.resetSelected}
         directory={directory}
         renameOpen={renameOpen}
         setRenameOpen={setRenameOpen}

@@ -1,7 +1,7 @@
 import type { Breakpoint } from '@mui/material/styles';
 
+import { useParams } from 'react-router-dom';
 import React, { useState, useEffect } from 'react';
-import { useParams, Link as RouterLink } from 'react-router-dom';
 
 import Tab from '@mui/material/Tab';
 import Box from '@mui/material/Box';
@@ -12,6 +12,9 @@ import Stack from '@mui/material/Stack';
 import { useMediaQuery } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
+import Breadcrumbs from '@mui/material/Breadcrumbs';
+
+import { RouterLink } from 'src/routes/components';
 
 import Server from 'src/api/server';
 import ServerState from 'src/abc/server-state';
@@ -68,20 +71,24 @@ export function ServerConsoleView() {
     <DashboardContent maxWidth="xl">
       <Box display="flex" alignItems="center" pb={4}>
         <Box flexGrow={1}>
-          <Link
-            key="1"
-            color="inherit"
-            fontSize="small"
-            component={RouterLink}
-            to="/server"
-            sx={{ width: 'fit-content' }}
-          >
-            サーバー
-          </Link>
           <Stack direction="row" alignItems="center" gap={1.5}>
             <Typography variant="h3">{server?.name}</Typography>
             <ServerStateLabel state={state} />
           </Stack>
+          <Breadcrumbs>
+            <Link
+              color="inherit"
+              fontSize="small"
+              sx={{ width: 'fit-content' }}
+              component={RouterLink}
+              href="/server"
+            >
+              サーバー
+            </Link>
+            <Typography color="text.primary" fontSize="small">
+              管理
+            </Typography>
+          </Breadcrumbs>
         </Box>
         <Card sx={{ px: 2, py: 1, display: 'flex', gap: 1 }}>
           <ServerProcessButton server={server} state={state} />
@@ -102,9 +109,9 @@ export function ServerConsoleView() {
           value="console"
           sx={{ pr: 0.5, borderColor: 'divider' }}
         >
-          <Tab value="summary" label="概要" component={RouterLink} to="../" />
-          <Tab value="console" label="コンソール" component={RouterLink} to="./" />
-          <Tab value="file" label="ファイル" component={RouterLink} to="../file" />
+          <Tab value="summary" label="概要" component={RouterLink} href="../" />
+          <Tab value="console" label="コンソール" component={RouterLink} href="./" />
+          <Tab value="file" label="ファイル" component={RouterLink} href="../file" />
         </Tabs>
         <ServerConsole server={server} ws={ws} />
       </Card>

@@ -49,7 +49,7 @@ export default function ServerFolderTableRow({
       <TableCell sx={{ py: 0.5 }}>
         <Stack direction="row" alignItems="center" gap={1}>
           <FileIcon name="folder" />
-          <Typography>{folder.name}</Typography>
+          <Typography sx={{ textOverflow: 'ellipsis', lineClamp: 3 }}>{folder.name}</Typography>
         </Stack>
       </TableCell>
       <TableCell sx={{ py: 0.5 }}>{fDateTime(folder.modifyAt)}</TableCell>

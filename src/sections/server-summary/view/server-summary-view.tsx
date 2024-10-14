@@ -1,7 +1,7 @@
 import type { PerformanceProgress } from 'src/api/ws-client';
 
+import { useParams } from 'react-router-dom';
 import React, { useState, useEffect } from 'react';
-import { useParams, Link as RouterLink } from 'react-router-dom';
 
 import Box from '@mui/material/Box';
 import { Skeleton } from '@mui/lab';
@@ -9,16 +9,19 @@ import Tab from '@mui/material/Tab';
 import Link from '@mui/material/Link';
 import Card from '@mui/material/Card';
 import Tabs from '@mui/material/Tabs';
-import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import Table from '@mui/material/Table';
-import { useMediaQuery } from '@mui/material';
 import TableRow from '@mui/material/TableRow';
+import Grid from '@mui/material/Unstable_Grid2';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
+import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import LinearProgress from '@mui/material/LinearProgress';
+import CardHeader from '@mui/material/CardHeader';
+import { CardContent, useMediaQuery } from '@mui/material';
 import { useTheme, type Breakpoint } from '@mui/material/styles';
+
+import { RouterLink } from 'src/routes/components';
 
 import Server from 'src/api/server';
 import ServerState from 'src/abc/server-state';
@@ -27,6 +30,8 @@ import { DashboardContent } from 'src/layouts/dashboard';
 
 import { ServerStateLabel } from 'src/components/server-state-label';
 import { ServerProcessButton } from 'src/components/server-process-button';
+
+import { AnalyticsWidgetSummary } from '../analytics-widget-summary';
 
 export function ServerSummaryView() {
   const theme = useTheme();
@@ -95,7 +100,7 @@ export function ServerSummaryView() {
             color="inherit"
             fontSize="small"
             component={RouterLink}
-            to="/server"
+            href="/server"
             sx={{ width: 'fit-content' }}
           >
             サーバー
@@ -133,39 +138,89 @@ export function ServerSummaryView() {
             },
           }}
         >
-          <Tab value="summary" label="概要" component={RouterLink} to="./" />
-          <Tab value="console" label="コンソール" component={RouterLink} to="./console" />
-          <Tab value="file" label="ファイル" component={RouterLink} to="./file" />
+          <Tab value="summary" label="概要" component={RouterLink} href="./" />
+          <Tab value="console" label="コンソール" component={RouterLink} href="./console" />
+          <Tab value="file" label="ファイル" component={RouterLink} href="./file" />
         </Tabs>
         <Box p={2} flexGrow={1}>
-          <Grid container>
-            <Grid xs={12} sm={8} md={4}>
-              <Card sx={{ p: 2 }}>
-                <Typography variant="h6">Vanilla</Typography>
-                <Table>
-                  <TableBody sx={{ '.MuiTableCell-root': { p: 1.5 } }}>
-                    <TableRow>
-                      <TableCell>ステータス</TableCell>
-                      <TableCell>
-                        <ServerStateLabel state={state} />
-                      </TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell>CPU使用率</TableCell>
-                      <TableCell>
-                        <LinearProgress
-                          variant="determinate"
-                          value={serverPerformance?.jvm.memUsed}
-                        />
-                        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                          {!serverPerformance?.jvm.memUsed || serverPerformance?.jvm.memUsed === -1
-                            ? 'Unknown'
-                            : `${serverPerformance!.jvm.memUsed * 1024 * 1024}/${serverPerformance!.jvm.memTotal * 1024 * 1024}MB`}
-                        </Typography>
-                      </TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
+          <Grid container spacing={2}>
+            <Grid xs={12} sm={8} md={3}>
+              <AnalyticsWidgetSummary
+                title="CPU使用率"
+                value={32}
+                unit="%"
+                color="primary"
+                chart={{
+                  categories: ['12:00', '12:05', '12:10', '12:15', '12:20', '12:25', '12:30'],
+                  series: [56, 47, 40, 62, 73, 30, 23],
+                }}
+              />
+            </Grid>
+            <Grid xs={12} sm={8} md={3}>
+              <AnalyticsWidgetSummary
+                title="メモリ"
+                value={32}
+                unit="MB"
+                color="primary"
+                chart={{
+                  categories: ['12:00', '12:05', '12:10', '12:15', '12:20', '12:25', '12:30'],
+                  series: [56, 47, 40, 62, 73, 30, 23],
+                }}
+              />
+            </Grid>
+            <Grid xs={12} sm={8} md={3}>
+              <AnalyticsWidgetSummary
+                title="CPU使用率"
+                value={32}
+                unit="%"
+                color="primary"
+                chart={{
+                  categories: ['12:00', '12:05', '12:10', '12:15', '12:20', '12:25', '12:30'],
+                  series: [56, 47, 40, 62, 73, 30, 23],
+                }}
+              />
+            </Grid>
+            <Grid xs={12} sm={8} md={3}>
+              <AnalyticsWidgetSummary
+                title="参加プレイヤー数"
+                value={32}
+                unit="人"
+                color="primary"
+                chart={{
+                  categories: ['12:00', '12:05', '12:10', '12:15', '12:20', '12:25', '12:30'],
+                  series: [56, 47, 40, 62, 73, 30, 23],
+                }}
+              />
+            </Grid>
+            <Grid xs={6}>
+              <Card>
+                <CardHeader title="一般" />
+                <CardContent>
+                  <TextField label="名前" />
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid xs={6}>
+              <Card>
+                <CardHeader title="情報" />
+                <CardContent>
+                  <Table sx={{ '& .MuiTableCell-root': { p: 1 } }}>
+                    <TableBody>
+                      <TableRow>
+                        <TableCell>ID</TableCell>
+                        <TableCell>{server?.id}</TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell>サーバー種類</TableCell>
+                        <TableCell>{server?.type.displayName}</TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell>メモリ</TableCell>
+                        <TableCell>1KB</TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                </CardContent>
               </Card>
             </Grid>
           </Grid>

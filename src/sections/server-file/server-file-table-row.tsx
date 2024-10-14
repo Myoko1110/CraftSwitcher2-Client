@@ -44,12 +44,22 @@ export default function ServerFileTableRow({ file, onSelectRow, onContextMenu, s
         '&:hover': {
           backgroundColor: !selected ? 'grey.200' : null,
         },
+        overflow: 'hidden',
+        whiteSpace: 'nowrap',
       }}
     >
       <TableCell sx={{ py: 0.5 }}>
         <Stack direction="row" alignItems="center" gap={1}>
           <FileIcon name={file.type.name} />
-          <Typography>{file.name}</Typography>
+          <Typography
+            sx={{
+              textOverflow: 'ellipsis',
+              overflow: 'hidden',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {file.name}
+          </Typography>
         </Stack>
       </TableCell>
       <TableCell sx={{ py: 0.5 }}>{fDateTime(file.modifyAt)}</TableCell>

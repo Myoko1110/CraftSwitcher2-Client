@@ -72,7 +72,12 @@ export class FileManager {
 
   async rename(newName: string): Promise<number | false> {
     const newPath = path.join(this.location, newName);
-    return this.move(newPath);
+
+    const result = await axios.put(
+      `/server/${this.serverId}/file/move?path=${this.path}&dst_path=${newPath}`
+    );
+
+    return result.status === 200 ? result.data.task_id : false;
   }
 
   async remove(): Promise<number | false> {

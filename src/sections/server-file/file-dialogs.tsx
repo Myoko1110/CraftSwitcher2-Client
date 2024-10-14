@@ -18,7 +18,6 @@ type Props = {
   selected: FileManager[];
   ws: WebSocketClient | null;
   handleChangePath: (path: string) => void;
-  resetSelected: () => void;
   directory: Directory | null;
   renameOpen: boolean;
   setRenameOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -36,7 +35,6 @@ export default function FileDialogs({
   selected,
   ws,
   handleChangePath,
-  resetSelected,
   directory,
   renameOpen,
   setRenameOpen,
@@ -48,22 +46,30 @@ export default function FileDialogs({
   const handleRename = async (e: FormEvent) => {
     e.preventDefault();
     setRenameOpen(false);
-    await selected[0].rename(renameValue);
+    const taskId = await selected[0].rename(renameValue);
+
+    if (taskId === false) return; // TODO: エラーハンドリング
+
+    ws?.addEventListener('FileTaskEnd', (fileTaskEvent) => {
+      if (fileTaskEvent.taskId === taskId) {
+        handleChangePath(directory?.path!!);
+      }
+    });
   };
 
-  const handleRemove = () => {
+  const handleRemove = (e: FormEvent) => {
+    e.preventDefault();
     if (!selected.length) return;
 
     selected.forEach((file) => {
       file.remove();
 
-      ws?.addEventListener('FileTaskEnd', (e) => {
-        if (e.src === file.path) {
+      ws?.addEventListener('FileTaskEnd', (fileTaskEvent) => {
+        if (fileTaskEvent.src === file.path) {
           handleChangePath(directory?.path!!);
         }
       });
     });
-    resetSelected();
   };
 
   return (
