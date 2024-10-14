@@ -36,17 +36,18 @@ export function ServerView() {
 
   const notFound = !servers.length;
 
-  useEffect(() => {
-    async function getServers() {
-      try {
-        setServers(await Server.all());
-      } catch (e) {
-        setUnableToLoad(true);
-        return;
-      }
-
-      setIsLoading(false);
+  const getServers = async () => {
+    try {
+      setServers(await Server.all());
+    } catch (e) {
+      setUnableToLoad(true);
+      return;
     }
+
+    setIsLoading(false);
+  };
+
+  useEffect(() => {
     getServers();
 
     const _ws = new WebSocketClient();
@@ -105,6 +106,7 @@ export function ServerView() {
                     ws={ws!}
                     selected={table.selected.includes(server.id)}
                     onSelectRow={() => table.onSelectRow(server.id)}
+                    getServers={getServers}
                   />
                 ))}
 

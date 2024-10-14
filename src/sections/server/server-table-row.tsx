@@ -1,10 +1,9 @@
+import type { FormEvent } from 'react';
 import type Server from 'src/api/server';
-import type ServerType from 'src/abc/server-type';
-import type ServerState from 'src/abc/server-state';
 import type WebSocketClient from 'src/api/ws-client';
 
 import { Link } from 'react-router-dom';
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Alert from '@mui/material/Alert';
@@ -18,7 +17,9 @@ import Snackbar from '@mui/material/Snackbar';
 import TableCell from '@mui/material/TableCell';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
+import FormControlLabel from '@mui/material/FormControlLabel';
 import MenuItem, { menuItemClasses } from '@mui/material/MenuItem';
+import { Dialog, DialogTitle, DialogActions, DialogContent } from '@mui/material';
 
 import { Iconify } from 'src/components/iconify';
 import { ServerStateLabel } from 'src/components/server-state-label';
@@ -26,25 +27,26 @@ import { ServerProcessButton } from 'src/components/server-process-button';
 
 // ----------------------------------------------------------------------
 
-export type UserProps = {
-  id: string;
-  name: string;
-  createdAt: Date;
-  numOfOnlinePlayers: number;
-  serverType: ServerType;
-  status: ServerState;
-};
-
 type ServerTableRowProps = {
   server: Server;
   ws: WebSocketClient;
   selected: boolean;
   onSelectRow: () => void;
+  getServers: () => void;
 };
 
-export function ServerTableRow({ server, ws, selected, onSelectRow }: ServerTableRowProps) {
+export function ServerTableRow({
+  server,
+  ws,
+  selected,
+  onSelectRow,
+  getServers,
+}: ServerTableRowProps) {
   const [openPopover, setOpenPopover] = useState<HTMLButtonElement | null>(null);
   const [state, setState] = useState(server.state);
+
+  const [removeOpen, setRemoveOpen] = useState(false);
+  const [deleteConfigFile, setDeleteConfigFile] = useState(false);
 
   const handleOpenPopover = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
     setOpenPopover(event.currentTarget);
@@ -59,6 +61,18 @@ export function ServerTableRow({ server, ws, selected, onSelectRow }: ServerTabl
   const handleStartErrorClose = useCallback(() => {
     setStartError(false);
   }, []);
+
+  const handleRemoveClick = () => {
+    setRemoveOpen(true);
+    handleClosePopover();
+  };
+
+  const handleRemove = async (e: FormEvent) => {
+    e.preventDefault();
+    await server.remove(deleteConfigFile);
+    setRemoveOpen(false);
+    await getServers();
+  };
 
   useEffect(() => {
     ws.addEventListener('ServerChangeState', (e) => {
@@ -124,11 +138,11 @@ export function ServerTableRow({ server, ws, selected, onSelectRow }: ServerTabl
               px: 1,
               gap: 2,
               borderRadius: 0.75,
-              [`&.${menuItemClasses.selected}`]: { bgcolor: 'action.selected' },
+              [`&.${menuItemClasses.selected}`]: { backgroundColor: 'action.selected' },
             },
           }}
         >
-          <MenuItem onClick={handleClosePopover} sx={{ color: 'error.main' }}>
+          <MenuItem onClick={handleRemoveClick} sx={{ color: 'error.main' }}>
             <Iconify icon="solar:trash-bin-trash-bold" />
             削除
           </MenuItem>
@@ -143,6 +157,42 @@ export function ServerTableRow({ server, ws, selected, onSelectRow }: ServerTabl
       >
         <Alert>起動に失敗しました</Alert>
       </Snackbar>
+
+      <Dialog open={removeOpen} onClose={() => setRemoveOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>本当にこのサーバーを削除しますか？</DialogTitle>
+        <IconButton
+          onClick={() => setRemoveOpen(false)}
+          sx={{
+            position: 'absolute',
+            right: 8,
+            top: 8,
+            color: (theme) => theme.palette.grey[500],
+          }}
+        >
+          <Iconify icon="eva:close-outline" />
+        </IconButton>
+        <form onSubmit={handleRemove}>
+          <DialogContent sx={{ py: 0 }}>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={deleteConfigFile}
+                  onChange={(e) => setDeleteConfigFile(e.target.checked)}
+                />
+              }
+              label={<Typography variant="body2">Configファイルを削除</Typography>}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button color="error" variant="contained" type="submit">
+              削除
+            </Button>
+            <Button color="inherit" variant="outlined" onClick={() => setRemoveOpen(false)}>
+              キャンセル
+            </Button>
+          </DialogActions>
+        </form>
+      </Dialog>
     </>
   );
 }
