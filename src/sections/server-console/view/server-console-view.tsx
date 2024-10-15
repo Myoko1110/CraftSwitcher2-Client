@@ -124,7 +124,7 @@ export function ServerConsoleView() {
           <Tab value="console" label="コンソール" component={RouterLink} href="./" />
           <Tab value="file" label="ファイル" component={RouterLink} href="../file" />
         </Tabs>
-        <ServerConsole server={server} ws={ws} />
+        <ServerConsole server={server} state={state} ws={ws} />
       </Card>
     </DashboardContent>
   );
