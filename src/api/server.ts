@@ -25,23 +25,24 @@ export default class Server {
    */
   static async all(): Promise<Server[]> {
     const result = await axios.get('/servers');
-    return result.data.map(
-      (value: ServerResult) =>
-        new Server(
-          value.id,
-          value.name,
-          ServerType.get(value.type),
-          ServerState.get(value.state),
-          value.directory,
-          value.is_loaded,
-          value.build_status
-        )
-    );
+    return result.data.map((value: ServerResult) => this.serializeFromResult(value));
   }
 
-  static async get(id: string) {
-    const all = await Server.all();
-    return all.find((value) => value.id === id);
+  static async get(id: string): Promise<Server> {
+    const result = await axios.get(`/server/${id}`);
+    return this.serializeFromResult(result.data);
+  }
+
+  private static serializeFromResult(value: ServerResult) {
+    return new Server(
+      value.id,
+      value.name,
+      ServerType.get(value.type),
+      ServerState.get(value.state),
+      value.directory,
+      value.is_loaded,
+      value.build_status
+    );
   }
 
   /**
