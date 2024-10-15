@@ -14,8 +14,16 @@ import { fNumber } from 'src/utils/format-number';
 
 // ----------------------------------------------------------------------
 
-function FileIcon({ name }: { name: string }) {
-  return <img width="18px" height="18px" src={`/assets/file/${name}.svg`} alt={name} />;
+function FileIcon({ name, isCutFileSelected }: { name: string; isCutFileSelected: boolean }) {
+  return (
+    <img
+      width="18px"
+      height="18px"
+      src={`/assets/file/${name}.svg`}
+      alt={name}
+      style={{ opacity: isCutFileSelected ? 0.4 : 1 }}
+    />
+  );
 }
 
 type Props = {
@@ -23,10 +31,19 @@ type Props = {
   onSelectRow: () => void;
   onContextMenu: (event: React.MouseEvent<HTMLTableRowElement>, file?: FileManager) => void;
   selected?: boolean;
+  isCutFileSelected: boolean;
 };
 
-export default function ServerFileTableRow({ file, onSelectRow, onContextMenu, selected }: Props) {
+export default function ServerFileTableRow({
+  file,
+  onSelectRow,
+  onContextMenu,
+  selected,
+  isCutFileSelected,
+}: Props) {
   const router = useRouter();
+
+  console.log(isCutFileSelected);
 
   const handleDoubleClick = async () => {
     if (file.type.isEditable) {
@@ -60,7 +77,7 @@ export default function ServerFileTableRow({ file, onSelectRow, onContextMenu, s
     >
       <TableCell sx={{ py: 0.5 }}>
         <Stack direction="row" alignItems="center" gap={1}>
-          <FileIcon name={file.type.name} />
+          <FileIcon name={file.type.name} isCutFileSelected={isCutFileSelected} />
           <Typography
             sx={{
               textOverflow: 'ellipsis',

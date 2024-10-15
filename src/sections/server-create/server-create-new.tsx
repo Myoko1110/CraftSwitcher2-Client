@@ -153,8 +153,6 @@ export default function ServerCreateNew({ setPage }: { setPage: (page: number) =
     } catch (e) {
       /* empty */
     }
-
-    console.log(agreeToEula);
     try {
       await server.setEula(agreeToEula);
     } catch (e) {

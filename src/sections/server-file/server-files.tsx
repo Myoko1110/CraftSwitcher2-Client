@@ -72,12 +72,12 @@ export default function ServerFiles({ server, ws }: Props) {
       });
     }
 
-    getFiles();
+    reloadFiles();
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params, server]);
 
-  const getFiles = useCallback(async () => {
+  const reloadFiles = useCallback(async () => {
     setIsInValidPath(false);
     try {
       if (!server) return;
@@ -97,7 +97,7 @@ export default function ServerFiles({ server, ws }: Props) {
 
   const handleChangePath = useCallback(
     (path: string) => {
-      if (path === directory?.path) getFiles();
+      if (path === directory?.path) reloadFiles();
 
       table.resetSelected();
       setParams((prev) => {
@@ -105,7 +105,7 @@ export default function ServerFiles({ server, ws }: Props) {
         return prev;
       });
     },
-    [directory?.path, getFiles, setParams, table]
+    [directory?.path, reloadFiles, setParams, table]
   );
 
   const onContextMenu = (
@@ -197,7 +197,6 @@ export default function ServerFiles({ server, ws }: Props) {
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      console.log(renameOpen, removeOpen);
       if (renameOpen || removeOpen) return;
       if (e.repeat) return;
 
@@ -278,6 +277,7 @@ export default function ServerFiles({ server, ws }: Props) {
                         folder={file}
                         path={path}
                         selected={table.selected.includes(file)}
+                        isCutFileSelected={cutFiles.includes(file)}
                         onDoubleClick={handleChangePath}
                         onSelectRow={() => table.onSelectRow(file)}
                         onContextMenu={onContextMenu}
@@ -290,6 +290,7 @@ export default function ServerFiles({ server, ws }: Props) {
                         key={path}
                         file={file}
                         selected={table.selected.includes(file)}
+                        isCutFileSelected={cutFiles.includes(file)}
                         onSelectRow={() => table.onSelectRow(file)}
                         onContextMenu={onContextMenu}
                       />

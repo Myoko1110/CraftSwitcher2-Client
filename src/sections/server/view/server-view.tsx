@@ -106,7 +106,7 @@ export function ServerView() {
                     ws={ws!}
                     selected={table.selected.includes(server.id)}
                     onSelectRow={() => table.onSelectRow(server.id)}
-                    getServers={getServers}
+                    reloadServers={getServers}
                   />
                 ))}
 

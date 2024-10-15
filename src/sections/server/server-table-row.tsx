@@ -33,7 +33,7 @@ type ServerTableRowProps = {
   ws: WebSocketClient;
   selected: boolean;
   onSelectRow: () => void;
-  getServers: () => void;
+  reloadServers: () => void;
 };
 
 export function ServerTableRow({
@@ -41,7 +41,7 @@ export function ServerTableRow({
   ws,
   selected,
   onSelectRow,
-  getServers,
+  reloadServers,
 }: ServerTableRowProps) {
   const [openPopover, setOpenPopover] = useState<HTMLButtonElement | null>(null);
   const [state, setState] = useState(server.state);
@@ -75,7 +75,7 @@ export function ServerTableRow({
     e.preventDefault();
     await server.remove(deleteConfigFile);
     setRemoveOpen(false);
-    await getServers();
+    await reloadServers();
   };
 
   const handleRenameClick = () => {
@@ -90,7 +90,7 @@ export function ServerTableRow({
     await server.putConfig({ name: renameValue });
 
     setRenameOpen(false);
-    await getServers();
+    await reloadServers();
   };
 
   useEffect(() => {

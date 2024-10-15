@@ -11,8 +11,16 @@ import { fDateTime } from 'src/utils/format-time';
 
 // ----------------------------------------------------------------------
 
-function FileIcon({ name }: { name: string }) {
-  return <img width="18px" height="18px" src={`/assets/file/${name}.svg`} alt={name} />;
+function FileIcon({ name, isCutFileSelected }: { name: string; isCutFileSelected: boolean }) {
+  return (
+    <img
+      width="18px"
+      height="18px"
+      src={`/assets/file/${name}.svg`}
+      alt={name}
+      style={{ opacity: isCutFileSelected ? 0.4 : 1 }}
+    />
+  );
 }
 
 type Props = {
@@ -21,7 +29,8 @@ type Props = {
   onDoubleClick: (path: string) => void;
   onSelectRow: () => void;
   onContextMenu: (event: React.MouseEvent<HTMLTableRowElement>, file?: FileManager) => void;
-  selected?: boolean;
+  selected: boolean;
+  isCutFileSelected: boolean;
 };
 
 export default function ServerFolderTableRow({
@@ -29,7 +38,8 @@ export default function ServerFolderTableRow({
   path,
   onDoubleClick,
   onSelectRow,
-  selected = false,
+  selected,
+  isCutFileSelected,
   onContextMenu,
 }: Props) {
   return (
@@ -48,7 +58,7 @@ export default function ServerFolderTableRow({
     >
       <TableCell sx={{ py: 0.5 }}>
         <Stack direction="row" alignItems="center" gap={1}>
-          <FileIcon name="folder" />
+          <FileIcon name="folder" isCutFileSelected={isCutFileSelected} />
           <Typography sx={{ textOverflow: 'ellipsis', lineClamp: 3 }}>{folder.name}</Typography>
         </Stack>
       </TableCell>

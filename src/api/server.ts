@@ -262,7 +262,6 @@ export default class Server {
 
   async getEula(): Promise<string> {
     const result = await axios.get(`/server/${this.id}/eula`);
-    console.log(result);
     return result.data.eula;
   }
 
