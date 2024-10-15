@@ -9,10 +9,11 @@ import Card from '@mui/material/Card';
 import Tabs from '@mui/material/Tabs';
 import Link from '@mui/material/Link';
 import Stack from '@mui/material/Stack';
-import { useMediaQuery } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 import Breadcrumbs from '@mui/material/Breadcrumbs';
+import { alpha, useMediaQuery } from '@mui/material';
+import LinearProgress, { linearProgressClasses } from '@mui/material/LinearProgress';
 
 import { RouterLink } from 'src/routes/components';
 
@@ -42,7 +43,7 @@ export function ServerConsoleView() {
   useEffect(() => {
     if (!id) return undefined;
 
-    async function getServer() {
+    (async () => {
       try {
         const res = await Server.get(id!);
         setServer(res!);
@@ -51,8 +52,7 @@ export function ServerConsoleView() {
         // TODO: エラーハンドリング
         console.error(e);
       }
-    }
-    getServer();
+    })();
 
     ws.addEventListener('ServerChangeState', (event) => {
       if (event.serverId === id) {
@@ -124,7 +124,34 @@ export function ServerConsoleView() {
           <Tab value="console" label="コンソール" component={RouterLink} href="./" />
           <Tab value="file" label="ファイル" component={RouterLink} href="../file" />
         </Tabs>
-        <ServerConsole server={server} state={state} ws={ws} />
+
+        {server ? (
+          <ServerConsole server={server} state={state} ws={ws} />
+        ) : (
+          <Box
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            flex="1 1 auto"
+            position="relative"
+            width="100%"
+            height="100%"
+            top={0}
+            left={0}
+            bgcolor="black"
+            zIndex={1}
+            flexGrow={1}
+          >
+            <LinearProgress
+              sx={{
+                width: 1,
+                maxWidth: 320,
+                backgroundColor: alpha(theme.palette.grey[200], 0.16),
+                [`& .${linearProgressClasses.bar}`]: { backgroundColor: theme.palette.grey[300] },
+              }}
+            />
+          </Box>
+        )}
       </Card>
     </DashboardContent>
   );

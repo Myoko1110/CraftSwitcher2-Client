@@ -12,6 +12,7 @@ export default class WebSocketClient {
   private events = new Map<any, ((e: any) => void)[]>();
 
   constructor() {
+    console.log('WebSocketClient constructor');
     this.ws = new WebSocket('ws://localhost:8080/api/ws');
     this.ws.onmessage = this.onMessage.bind(this);
   }

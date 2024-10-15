@@ -16,7 +16,7 @@ export default function ServerConsole({
   state,
   ws,
 }: {
-  server: Server | null;
+  server: Server;
   state: ServerState;
   ws: WebSocketClient;
 }) {
@@ -27,8 +27,8 @@ export default function ServerConsole({
 
   const handleSendLine = useCallback(
     (data: string) => {
-      if (!server || server.state.isRunning) return;
-      ws.sendLine(server.id!, data);
+      if (server.state.isRunning) return;
+      ws.sendLine(server.id, data);
     },
     [server, ws]
   );
@@ -50,11 +50,11 @@ export default function ServerConsole({
     observer.observe(ref.current!);
 
     ws.addEventListener('ServerProcessRead', (event) => {
-      if (event.serverId === server?.id) {
+      if (event.serverId === server.id) {
         term!.write(event.data);
       }
     });
-  }, [fitAddon, handleSendLine, server?.id, term, webglAddon, ws]);
+  }, [fitAddon, handleSendLine, server.id, term, webglAddon, ws]);
 
   return (
     <Box sx={{ position: 'relative', flexGrow: 1 }}>
