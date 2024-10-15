@@ -8,7 +8,7 @@
     backdrop-filter: blur(6px);
     color: var(--palette-text-primary);
     box-shadow: var(--customShadows-dropdown);
-    background-color: rgba(var(--palette-background-defaultChannel) / 0.9);
+    background-color: rgba(var(--palette-background-defaultChannel) / 0.8);
   }
   .apexcharts-xaxistooltip {
     border-radius: 10px;
@@ -16,7 +16,7 @@
     backdrop-filter: blur(6px);
     color: var(--palette-text-primary);
     box-shadow: var(--customShadows-dropdown);
-    background-color: rgba(var(--palette-background-defaultChannel) / 0.9);
+    background-color: rgba(var(--palette-background-defaultChannel) / 0.8);
     &::before {
       border-bottom-color: rgba(var(--palette-grey-500Channel) / 0.16);
     }

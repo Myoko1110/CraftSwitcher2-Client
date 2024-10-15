@@ -17,7 +17,6 @@ export default class WebSocketClient {
   }
 
   public sendLine(serverId: string, data: string): void {
-    // TODO: 送る
     this.ws.send(
       JSON.stringify({
         type: 'server_process_write',

@@ -247,7 +247,7 @@ export default function ServerFiles({ server, ws }: Props) {
           handleDownload={handleDownload}
         />
         <Scrollbar>
-          <TableContainer sx={{ overflow: 'unset', px: 2, flexGrow: 1 }}>
+          <TableContainer sx={{ overflow: 'unset', px: 2, pb: 2, flexGrow: 1 }}>
             <Table
               sx={{
                 borderCollapse: 'separate',
