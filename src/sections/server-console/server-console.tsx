@@ -20,9 +20,10 @@ export default function ServerConsole({
 
   const handleSendLine = useCallback(
     (data: string) => {
-      ws.sendLine(server?.id!, data);
+      if (!server || server.state.isRunning) return;
+      ws.sendLine(server.id!, data);
     },
-    [server?.id, ws]
+    [server, ws]
   );
 
   useEffect(() => {
