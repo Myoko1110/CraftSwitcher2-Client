@@ -6,6 +6,8 @@ import FileType from 'src/abc/file-type';
 
 // ----------------------------------------------------------------------
 
+export class ServerFileList extends Array<FileManager> {}
+
 export class FileManager {
   public _path: string;
 
@@ -97,27 +99,29 @@ export class FileManager {
       undefined,
       undefined,
       undefined,
-      directory.children.map((c) => {
-        if (c.is_dir) {
-          return new ServerDirectory(
+      new ServerFileList(
+        ...directory.children.map((c) => {
+          if (c.is_dir) {
+            return new ServerDirectory(
+              serverId,
+              c.name,
+              c.path,
+              new Date(c.modify_time * 1000),
+              new Date(c.create_time * 1000),
+              c.is_server_dir,
+              c.registered_server_id
+            );
+          }
+          return new ServerFile(
             serverId,
             c.name,
             c.path,
             new Date(c.modify_time * 1000),
             new Date(c.create_time * 1000),
-            c.is_server_dir,
-            c.registered_server_id
+            c.size
           );
-        }
-        return new ServerFile(
-          serverId,
-          c.name,
-          c.path,
-          new Date(c.modify_time * 1000),
-          new Date(c.create_time * 1000),
-          c.size
-        );
-      })
+        })
+      )
     );
   }
 
@@ -165,12 +169,12 @@ export class ServerDirectory extends FileManager {
     public isServerDir: boolean | undefined = undefined,
     public registeredServerId: string | null | undefined = undefined,
 
-    private _children: FileManager[] | undefined = undefined
+    private _children: ServerFileList | undefined = undefined
   ) {
     super(name, location, modifyAt, createdAt, -1, FileType.DIRECTORY, serverId);
   }
 
-  async children(): Promise<FileManager[]> {
+  async children(): Promise<ServerFileList> {
     if (!this._children) {
       this._children = (await FileManager.get(super.serverId, this.path))._children!;
     }

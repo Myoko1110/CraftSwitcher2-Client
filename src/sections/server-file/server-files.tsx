@@ -15,7 +15,7 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import TableContainer from '@mui/material/TableContainer';
 
-import { ServerFile, ServerDirectory } from 'src/api/file-manager';
+import { ServerFile, ServerFileList, ServerDirectory } from 'src/api/file-manager';
 
 import { Iconify } from 'src/components/iconify';
 import { Scrollbar } from 'src/components/scrollbar';
@@ -40,7 +40,7 @@ export default function ServerFiles({ server, ws }: Props) {
 
   const [params, setParams] = useSearchParams();
 
-  const [files, setFiles] = useState<FileManager[]>([]);
+  const [files, setFiles] = useState<ServerFileList>(new ServerFileList());
   const [directory, setDirectory] = useState<ServerDirectory | null>(null);
 
   const [filterName, setFilterName] = useState('');
