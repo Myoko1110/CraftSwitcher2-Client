@@ -6,7 +6,16 @@ import FileType from 'src/abc/file-type';
 
 // ----------------------------------------------------------------------
 
-export class ServerFileList extends Array<FileManager> {}
+export class ServerFileList extends Array<FileManager> {
+  async archive(_path: string, filesRoot: string): Promise<number | false> {
+    const includeFiles = JSON.stringify(this.map((f) => f.path));
+    const result = await axios.post(
+      `/server/${this[0].serverId}/file/archive/make?include_files=${includeFiles}&path=${_path}&files_root=${filesRoot}`
+    );
+
+    return result.status === 200 ? result.data.task_id : false;
+  }
+}
 
 export class FileManager {
   public _path: string;
@@ -123,6 +132,23 @@ export class FileManager {
         })
       )
     );
+  }
+
+  async extract(outputDir: string, password?: string): Promise<boolean> {
+    if (this.type.name !== FileType.ARCHIVE.name) return false;
+
+    const result = await axios.post(
+      `/server/${this.serverId}/file/archive/extract?path=${this.path}&output_dir=${outputDir}`,
+      {
+        password,
+      },
+      {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      }
+    );
+    return result.status === 200;
   }
 
   static async getInfo(serverId: string, _path: string): Promise<ServerFile | ServerDirectory> {

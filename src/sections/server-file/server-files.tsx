@@ -216,10 +216,13 @@ export default function ServerFiles({ server, ws }: Props) {
     [handlePaste, handleSetCopyFiles, handleSetCutFiles, removeOpen, renameOpen]
   );
 
+  const handleArchive = useCallback(async () => {
+    const archiveFiles = new ServerFileList(...table.selected);
+  }, [table.selected]);
+
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [handleKeyDown]);
 
   return (
