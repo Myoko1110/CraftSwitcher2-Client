@@ -114,7 +114,7 @@ export default function ServerFiles({ server, ws }: Props) {
   ) => {
     event.preventDefault();
 
-    if (file && !table.selected.includes(file)) table.onSelectRow(file);
+    if (file && !table.selected.includes(file)) table.setSelected([file]);
 
     const [clientX, clientY] = [event.clientX, event.clientY];
     setPosition({ top: clientY, left: clientX });
@@ -220,6 +220,55 @@ export default function ServerFiles({ server, ws }: Props) {
     const archiveFiles = new ServerFileList(...table.selected);
   }, [table.selected]);
 
+  const handleClick = (e: React.MouseEvent<HTMLTableElement>) => {
+    if (e.target === e.currentTarget) table.resetSelected();
+  };
+
+  const handleSelect = (e: React.MouseEvent<HTMLTableRowElement>, f: FileManager) => {
+    // そのまま選択
+    if (table.selected.length === 0) {
+      table.onSelectRow(f);
+      return;
+    }
+
+    const targetIndex = filteredFiles.indexOf(f);
+
+    if (e.shiftKey) {
+      // 選択中のものが1つの場合
+      if (table.selected.length === 1) {
+        const start = Math.min(filteredFiles.indexOf(table.selected[0]), targetIndex);
+        const end = Math.max(filteredFiles.indexOf(table.selected[0]), targetIndex);
+        table.setSelected(filteredFiles.slice(start, end + 1));
+        return;
+      }
+
+      // 選択中のインデックスリスト
+      const filteredFilesIndexList = table.selected.map((file) => filteredFiles.indexOf(file));
+
+      // 選択するファイルと一番距離の遠いファイルのインデックスを取得
+      const farthestIndex = filteredFilesIndexList.reduce((prev, curr) =>
+        Math.abs(curr - targetIndex) > Math.abs(prev - targetIndex) ? curr : prev
+      );
+
+      const start = Math.min(farthestIndex, targetIndex);
+      const end = Math.max(farthestIndex, targetIndex);
+      table.setSelected(filteredFiles.slice(start, end + 1));
+
+      return;
+    }
+
+    if (e.ctrlKey) {
+      if (table.selected.includes(f)) {
+        table.setSelected(table.selected.filter((value) => value !== f));
+        return;
+      }
+      table.setSelected([...table.selected, f]);
+      return;
+    }
+
+    table.setSelected([f]);
+  };
+
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
@@ -249,11 +298,20 @@ export default function ServerFiles({ server, ws }: Props) {
           handleDownload={handleDownload}
         />
         <Scrollbar>
-          <TableContainer sx={{ overflow: 'unset', px: 2, pb: 2, flexGrow: 1 }}>
+          <TableContainer
+            sx={{
+              overflow: 'unset',
+              px: 2,
+              pb: 2,
+              flexGrow: 1,
+              '&:focus-visible': { outline: 'none' },
+            }}
+            onClick={handleClick}
+          >
             <Table
               sx={{
                 borderCollapse: 'separate',
-                borderSpacing: '0 3px',
+                borderSpacing: '0 4px',
                 '& .MuiTableCell-head': {
                   '&:first-of-type': { borderBottomLeftRadius: 12, borderTopLeftRadius: 12 },
                   '&:last-of-type': { borderBottomRightRadius: 12, borderTopRightRadius: 12 },
@@ -264,6 +322,7 @@ export default function ServerFiles({ server, ws }: Props) {
                 },
                 minWidth: 750,
               }}
+              onClick={handleClick}
             >
               <ServerFileTableHead
                 orderBy={table.orderBy}
@@ -282,7 +341,7 @@ export default function ServerFiles({ server, ws }: Props) {
                         selected={table.selected.includes(file)}
                         isCutFileSelected={cutFiles.includes(file)}
                         onDoubleClick={handleChangePath}
-                        onSelectRow={() => table.onSelectRow(file)}
+                        handleSelect={handleSelect}
                         onContextMenu={onContextMenu}
                       />
                     );
@@ -294,7 +353,7 @@ export default function ServerFiles({ server, ws }: Props) {
                         file={file}
                         selected={table.selected.includes(file)}
                         isCutFileSelected={cutFiles.includes(file)}
-                        onSelectRow={() => table.onSelectRow(file)}
+                        handleSelect={handleSelect}
                         onContextMenu={onContextMenu}
                       />
                     );
@@ -531,5 +590,6 @@ export function useTable() {
     onSelectAllRows,
     onChangeRowsPerPage,
     resetSelected,
+    setSelected,
   };
 }

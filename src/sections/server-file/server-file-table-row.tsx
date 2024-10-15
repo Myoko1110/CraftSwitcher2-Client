@@ -28,7 +28,7 @@ function FileIcon({ name, isCutFileSelected }: { name: string; isCutFileSelected
 
 type Props = {
   file: ServerFile;
-  onSelectRow: () => void;
+  handleSelect: (e: React.MouseEvent<HTMLTableRowElement>, f: FileManager) => void;
   onContextMenu: (event: React.MouseEvent<HTMLTableRowElement>, file?: FileManager) => void;
   selected?: boolean;
   isCutFileSelected: boolean;
@@ -36,14 +36,12 @@ type Props = {
 
 export default function ServerFileTableRow({
   file,
-  onSelectRow,
+  handleSelect,
   onContextMenu,
   selected,
   isCutFileSelected,
 }: Props) {
   const router = useRouter();
-
-  console.log(isCutFileSelected);
 
   const handleDoubleClick = async () => {
     if (file.type.isEditable) {
@@ -62,7 +60,7 @@ export default function ServerFileTableRow({
   return (
     <TableRow
       onContextMenu={(e) => onContextMenu(e, file)}
-      onClick={onSelectRow}
+      onClick={(e) => handleSelect(e, file)}
       onDoubleClick={handleDoubleClick}
       sx={{
         backgroundColor: selected ? 'primary.lighter' : null,
