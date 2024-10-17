@@ -100,6 +100,10 @@ export default class Server {
     return result.data.result ? (await Server.get(id))! : false;
   }
 
+  get displayName(): String {
+    return this.name || this.id;
+  }
+
   /**
    * サーバーを起動します
    */

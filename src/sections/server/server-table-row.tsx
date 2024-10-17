@@ -111,7 +111,7 @@ export function ServerTableRow({
         <TableCell component="th" scope="row">
           <Box gap={2} display="flex" alignItems="center">
             <Avatar alt={server.type.name} />
-            <Typography variant="h6">{server.name}</Typography>
+            <Typography variant="h6">{server.displayName}</Typography>
           </Box>
         </TableCell>
 
