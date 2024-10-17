@@ -63,6 +63,9 @@ export default function ServerCreateNew({ setPage }: { setPage: (page: number) =
   const [buildError, setBuildError] = useState(false);
   const [serverError, setServerError] = useState(false);
 
+  // user changed
+  const [modifiedDirectory, setModifiedDirectory] = useState(false);
+
   const theme = useTheme();
 
   useState(() => {
@@ -265,7 +268,12 @@ export default function ServerCreateNew({ setPage }: { setPage: (page: number) =
                 fullWidth
                 label="名前"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e) => {
+                  setName(e.target.value);
+                  if (!modifiedDirectory) {
+                    setDirectory(e.target.value.replaceAll(/[\\/:*?"<>|]/g, "_").replaceAll(/_+/g, "_"));
+                  }
+                }}
                 error={nameEmptyError}
                 helperText={nameEmptyError ? '必須項目です' : ''}
               />
@@ -291,7 +299,10 @@ export default function ServerCreateNew({ setPage }: { setPage: (page: number) =
                 fullWidth
                 label="ディレクトリ名"
                 value={directory}
-                onChange={(e) => setDirectory(e.target.value)}
+                onChange={(e) => {
+                  setDirectory(e.target.value);
+                  setModifiedDirectory(true);
+                }}
                 InputProps={{
                   endAdornment: (
                     <InputAdornment position="end">

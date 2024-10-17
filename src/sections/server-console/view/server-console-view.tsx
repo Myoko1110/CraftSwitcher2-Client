@@ -72,7 +72,7 @@ export function ServerConsoleView() {
       <Box display="flex" alignItems="center" pb={4}>
         <Box flexGrow={1}>
           <Stack direction="row" alignItems="center" gap={1.5}>
-            <Typography variant="h3">{server?.name}</Typography>
+            <Typography variant="h3">{server?.displayName}</Typography>
             <ServerStateLabel state={state} />
           </Stack>
           <Breadcrumbs>

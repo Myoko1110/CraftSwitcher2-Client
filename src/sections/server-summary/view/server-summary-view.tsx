@@ -106,7 +106,7 @@ export function ServerSummaryView() {
             サーバー
           </Link>
           <Stack direction="row" alignItems="center" gap={1.5}>
-            <Typography variant="h3">{server?.name || <Skeleton />}</Typography>
+            <Typography variant="h3">{server?.displayName || <Skeleton />}</Typography>
             <ServerStateLabel state={state} />
           </Stack>
         </Box>

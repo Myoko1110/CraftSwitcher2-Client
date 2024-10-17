@@ -74,7 +74,7 @@ export function ServerFileView() {
       <Box display="flex" alignItems="center" pb={4}>
         <Box flexGrow={1}>
           <Stack direction="row" alignItems="center" gap={1.5}>
-            <Typography variant="h3">{server?.name || <Skeleton />}</Typography>
+            <Typography variant="h3">{server?.displayName || <Skeleton />}</Typography>
             <ServerStateLabel state={state} />
           </Stack>
           <Breadcrumbs>
