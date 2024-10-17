@@ -5,15 +5,13 @@ import type { FileManager } from 'src/api/file-manager';
 import { useSearchParams } from 'react-router-dom';
 import React, { useState, useEffect, useCallback } from 'react';
 
-import Menu from '@mui/material/Menu';
 import Stack from '@mui/material/Stack';
 import Table from '@mui/material/Table';
+import Popover from '@mui/material/Popover';
 import MenuList from '@mui/material/MenuList';
-import MenuItem from '@mui/material/MenuItem';
 import TableBody from '@mui/material/TableBody';
-import ListItemIcon from '@mui/material/ListItemIcon';
-import ListItemText from '@mui/material/ListItemText';
 import TableContainer from '@mui/material/TableContainer';
+import MenuItem, { menuItemClasses } from '@mui/material/MenuItem';
 
 import { ServerFile, ServerFileList, ServerDirectory } from 'src/api/file-manager';
 
@@ -373,7 +371,7 @@ export default function ServerFiles({ server, ws }: Props) {
         <FileDropZone isActive={isDragActive} setIsActive={setIsDragActive} directory={directory} />
       </Stack>
 
-      <Menu
+      <Popover
         anchorReference="anchorPosition"
         open={menuOpen}
         onClose={handleCloseMenu}
@@ -383,34 +381,42 @@ export default function ServerFiles({ server, ws }: Props) {
           horizontal: 'left',
         }}
       >
-        <MenuList dense sx={{ outline: 'none' }}>
-          <MenuItem>
-            <ListItemIcon onClick={handleSetCopyFiles}>
-              <Iconify icon="solar:copy-bold" />
-            </ListItemIcon>
-            <ListItemText>コピー</ListItemText>
+        <MenuList
+          dense
+          sx={{
+            p: 0.5,
+            gap: 0.5,
+            width: 140,
+            display: 'flex',
+            flexDirection: 'column',
+            [`& .${menuItemClasses.root}`]: {
+              px: 1,
+              gap: 2,
+              borderRadius: 0.75,
+              [`&.${menuItemClasses.selected}`]: { backgroundColor: 'action.selected' },
+            },
+            outline: 'none',
+          }}
+        >
+          <MenuItem onClick={handleSetCopyFiles}>
+            <Iconify icon="solar:copy-bold" />
+            コピー
           </MenuItem>
-          <MenuItem>
-            <ListItemIcon onClick={handleSetCutFiles}>
-              <Iconify icon="solar:scissors-bold" />
-            </ListItemIcon>
-            <ListItemText>切り取り</ListItemText>
+          <MenuItem onClick={handleSetCutFiles}>
+            <Iconify icon="solar:scissors-bold" />
+            切り取り
           </MenuItem>
           {table.selected.length === 1 && (
             <MenuItem onClick={handleRenameDialogOpen}>
-              <ListItemIcon>
-                <Iconify icon="fluent:rename-16-filled" />
-              </ListItemIcon>
-              <ListItemText>名前の変更</ListItemText>
+              <Iconify icon="fluent:rename-16-filled" />
+              名前の変更
             </MenuItem>
           )}
 
           {table.selected.length === 1 && table.selected[0] instanceof ServerFile && (
             <MenuItem onClick={handleDownload}>
-              <ListItemIcon>
-                <Iconify icon="solar:download-bold" />
-              </ListItemIcon>
-              <ListItemText>ダウンロード</ListItemText>
+              <Iconify icon="solar:download-bold" />
+              ダウンロード
             </MenuItem>
           )}
 
@@ -420,13 +426,11 @@ export default function ServerFiles({ server, ws }: Props) {
               setRemoveOpen(true);
             }}
           >
-            <ListItemIcon>
-              <Iconify icon="solar:trash-bin-trash-bold" />
-            </ListItemIcon>
-            <ListItemText>削除</ListItemText>
+            <Iconify icon="solar:trash-bin-trash-bold" />
+            削除
           </MenuItem>
         </MenuList>
-      </Menu>
+      </Popover>
 
       <FileDialogs
         selected={table.selected}
