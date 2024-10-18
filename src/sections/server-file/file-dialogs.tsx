@@ -1,7 +1,7 @@
 import type WebSocketClient from 'src/api/ws-client';
 import type { FileManager, ServerDirectory } from 'src/api/file-manager';
 
-import React, { type FormEvent } from 'react';
+import React, { useCallback, type FormEvent } from 'react';
 
 import Grid from '@mui/material/Grid';
 import Button from '@mui/material/Button';
@@ -11,6 +11,8 @@ import Typography from '@mui/material/Typography';
 import { Dialog, DialogTitle, DialogActions, DialogContent } from '@mui/material';
 
 import { fDateTime } from 'src/utils/format-time';
+
+import { ServerFileList } from 'src/api/file-manager';
 
 import { Iconify } from 'src/components/iconify';
 
@@ -25,6 +27,10 @@ type Props = {
   setRenameValue: React.Dispatch<React.SetStateAction<string>>;
   removeOpen: boolean;
   setRemoveOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  archiveOpen: boolean;
+  setArchiveOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  archiveFileName: string;
+  setArchiveFileName: React.Dispatch<React.SetStateAction<string>>;
 };
 
 function FileIcon({ name, width = 18 }: { name: string; width: number | string }) {
@@ -42,6 +48,10 @@ export default function FileDialogs({
   setRenameValue,
   removeOpen,
   setRemoveOpen,
+  archiveOpen,
+  setArchiveOpen,
+  archiveFileName,
+  setArchiveFileName,
 }: Props) {
   const handleRename = async (e: FormEvent) => {
     e.preventDefault();
@@ -66,10 +76,17 @@ export default function FileDialogs({
 
       ws?.addEventListener('FileTaskEnd', (fileTaskEvent) => {
         if (fileTaskEvent.src === file.path) {
-          handleChangePath(directory?.path!!);
+          handleChangePath(directory?.path!);
         }
       });
     });
+  };
+
+  const handleArchive = async (e: FormEvent) => {
+    e.preventDefault();
+    const archiveFiles = new ServerFileList(...selected);
+
+    archiveFiles.archive(archiveFileName, directory?.path!, directory?.path!);
   };
 
   return (
@@ -153,6 +170,40 @@ export default function FileDialogs({
             </Button>
             <Button color="inherit" variant="outlined" onClick={() => setRemoveOpen(false)}>
               キャンセル
+            </Button>
+          </DialogActions>
+        </form>
+      </Dialog>
+
+      <Dialog open={archiveOpen} onClose={() => setArchiveOpen(false)} maxWidth="xs" fullWidth>
+        <DialogTitle>ファイルを圧縮</DialogTitle>
+        <IconButton
+          onClick={() => setArchiveOpen(false)}
+          sx={(theme) => ({
+            position: 'absolute',
+            right: 8,
+            top: 8,
+            color: theme.palette.grey[500],
+          })}
+        >
+          <Iconify icon="eva:close-outline" />
+        </IconButton>
+        <form onSubmit={handleArchive}>
+          <DialogContent>
+            <TextField
+              autoFocus
+              fullWidth
+              variant="outlined"
+              value={archiveFileName}
+              onChange={(e) => setArchiveFileName(e.target.value)}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button color="inherit" variant="outlined" onClick={() => setArchiveOpen(false)}>
+              キャンセル
+            </Button>
+            <Button color="inherit" variant="contained" type="submit">
+              完了
             </Button>
           </DialogActions>
         </form>

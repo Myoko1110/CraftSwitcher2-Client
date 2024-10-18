@@ -7,10 +7,17 @@ import FileType from 'src/abc/file-type';
 // ----------------------------------------------------------------------
 
 export class ServerFileList extends Array<FileManager> {
-  async archive(_path: string, filesRoot: string): Promise<number | false> {
-    const includeFiles = JSON.stringify(this.map((f) => f.path));
+  async archive(name: string, location: string, filesRoot: string): Promise<number | false> {
+    const _path: string = path.join(location, name);
+
+    const params = new URLSearchParams({
+      path: _path,
+      files_root: filesRoot,
+    });
+    this.forEach((f) => params.append('include_files', f.path));
+
     const result = await axios.post(
-      `/server/${this[0].serverId}/file/archive/make?include_files=${includeFiles}&path=${_path}&files_root=${filesRoot}`
+      `/server/${this[0].serverId}/file/archive/make?${params.toString()}`
     );
 
     return result.status === 200 ? result.data.task_id : false;

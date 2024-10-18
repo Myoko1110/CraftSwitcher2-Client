@@ -36,25 +36,36 @@ type AnchorPosition = { top: number; left: number } | undefined;
 export default function ServerFiles({ server, ws }: Props) {
   const table = useTable();
 
+  // path
   const [params, setParams] = useSearchParams();
+  const [isInvalidPath, setIsInValidPath] = useState(false);
 
+  // fileData
   const [files, setFiles] = useState<ServerFileList>(new ServerFileList());
   const [directory, setDirectory] = useState<ServerDirectory | null>(null);
 
-  const [filterName, setFilterName] = useState('');
-
-  const [isInvalidPath, setIsInValidPath] = useState(false);
-
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [renameOpen, setRenameOpen] = useState(false);
-  const [renameValue, setRenameValue] = useState('');
-  const [removeOpen, setRemoveOpen] = useState(false);
-
+  // copy cut
   const [copyFiles, setCopyFiles] = useState<FileManager[]>([]);
   const [cutFiles, setCutFiles] = useState<FileManager[]>([]);
 
+  // filter
+  const [filterName, setFilterName] = useState('');
+
+  // menu
+  const [menuOpen, setMenuOpen] = useState(false);
   const [position, setPosition] = useState<AnchorPosition>(undefined);
+
+  // dialog
+  const [renameOpen, setRenameOpen] = useState(false);
+  const [renameValue, setRenameValue] = useState('');
+  const [removeOpen, setRemoveOpen] = useState(false);
+  const [archiveOpen, setArchiveOpen] = useState(false);
+
+  // upload
   const [isDragActive, setIsDragActive] = useState(false);
+
+  // archive
+  const [archiveFileName, setArchiveFileName] = useState('');
 
   const filteredFiles = applyFilter({
     inputData: files,
@@ -193,9 +204,14 @@ export default function ServerFiles({ server, ws }: Props) {
     link.click();
   }, [table.selected]);
 
+  const handleArchive = useCallback(async () => {
+    handleCloseMenu();
+    setArchiveOpen(true);
+  }, []);
+
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      if (renameOpen || removeOpen) return;
+      if (renameOpen || removeOpen || archiveOpen) return;
       if (e.repeat) return;
 
       if (e.key === 'Delete' || e.key === 'Backspace') {
@@ -211,12 +227,8 @@ export default function ServerFiles({ server, ws }: Props) {
         handlePaste();
       }
     },
-    [handlePaste, handleSetCopyFiles, handleSetCutFiles, removeOpen, renameOpen]
+    [archiveOpen, handlePaste, handleSetCopyFiles, handleSetCutFiles, removeOpen, renameOpen]
   );
-
-  const handleArchive = useCallback(async () => {
-    const archiveFiles = new ServerFileList(...table.selected);
-  }, [table.selected]);
 
   const handleClick = (e: React.MouseEvent<HTMLTableElement>) => {
     if (e.target === e.currentTarget) table.resetSelected();
@@ -420,6 +432,11 @@ export default function ServerFiles({ server, ws }: Props) {
             </MenuItem>
           )}
 
+          <MenuItem onClick={handleArchive}>
+            <Iconify icon="solar:download-bold" />
+            圧縮
+          </MenuItem>
+
           <MenuItem
             onClick={() => {
               handleCloseMenu();
@@ -443,6 +460,10 @@ export default function ServerFiles({ server, ws }: Props) {
         setRenameValue={setRenameValue}
         removeOpen={removeOpen}
         setRemoveOpen={setRemoveOpen}
+        archiveOpen={archiveOpen}
+        setArchiveOpen={setArchiveOpen}
+        archiveFileName={archiveFileName}
+        setArchiveFileName={setArchiveFileName}
       />
     </>
   );
