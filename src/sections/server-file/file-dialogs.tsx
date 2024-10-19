@@ -59,6 +59,7 @@ export default function FileDialogs({
 
   const handleRemove = (e: FormEvent) => {
     e.preventDefault();
+    setRemoveOpen(false);
     if (!selected.length) return;
 
     selected.forEach((file) => {
