@@ -141,21 +141,16 @@ export class FileManager {
     );
   }
 
-  async extract(outputDir: string, password?: string): Promise<boolean> {
-    if (this.type.name !== FileType.ARCHIVE.name) return false;
+  async extract(outputDir: string, password?: string) {
+    if (!this.type.equal(FileType.ARCHIVE)) return false;
 
     const result = await axios.post(
       `/server/${this.serverId}/file/archive/extract?path=${this.path}&output_dir=${outputDir}`,
       {
         password,
-      },
-      {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
       }
     );
-    return result.status === 200;
+    return result.data;
   }
 
   static async getInfo(serverId: string, _path: string): Promise<ServerFile | ServerDirectory> {
@@ -258,6 +253,14 @@ export class ServerFile extends FileManager {
     formData.append('file', data);
 
     await axios.post(`/server/${this.serverId}/file?path=${this.path}`, formData);
+  }
+
+  get fileName(): string {
+    return path.parse(this.name).name;
+  }
+
+  get extName(): string {
+    return path.extname(this.name);
   }
 }
 

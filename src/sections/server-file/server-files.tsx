@@ -13,6 +13,7 @@ import TableBody from '@mui/material/TableBody';
 import TableContainer from '@mui/material/TableContainer';
 import MenuItem, { menuItemClasses } from '@mui/material/MenuItem';
 
+import FileType from 'src/abc/file-type';
 import { ServerFile, ServerFileList, ServerDirectory } from 'src/api/file-manager';
 
 import { Iconify } from 'src/components/iconify';
@@ -204,10 +205,16 @@ export default function ServerFiles({ server, ws }: Props) {
     link.click();
   }, [table.selected]);
 
-  const handleArchive = useCallback(async () => {
+  const handleCompress = useCallback(async () => {
     handleCloseMenu();
     setArchiveOpen(true);
   }, []);
+
+  const handleExtract = useCallback(async () => {
+    handleCloseMenu();
+    const file = table.selected[0] as ServerFile;
+    const res = await file.extract(file.fileName);
+  }, [table]);
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -410,6 +417,12 @@ export default function ServerFiles({ server, ws }: Props) {
             outline: 'none',
           }}
         >
+          {table.selected.length === 1 && table.selected[0].type.equal(FileType.ARCHIVE) && (
+            <MenuItem onClick={handleExtract}>
+              <Iconify icon="solar:archive-up-bold" />
+              展開
+            </MenuItem>
+          )}
           <MenuItem onClick={handleSetCopyFiles}>
             <Iconify icon="solar:copy-bold" />
             コピー
@@ -432,8 +445,8 @@ export default function ServerFiles({ server, ws }: Props) {
             </MenuItem>
           )}
 
-          <MenuItem onClick={handleArchive}>
-            <Iconify icon="solar:download-bold" />
+          <MenuItem onClick={handleCompress}>
+            <Iconify icon="solar:zip-file-bold" />
             圧縮
           </MenuItem>
 
