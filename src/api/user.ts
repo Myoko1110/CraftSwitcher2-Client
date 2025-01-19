@@ -15,6 +15,9 @@ export default class User {
     public permission: number
   ) {}
 
+  /**
+   * セッションの生成と設定
+   */
   static async login(username: string, password: string): Promise<boolean> {
     try {
       const result = await axios.post('/login', { username, password });
@@ -24,6 +27,9 @@ export default class User {
     }
   }
 
+  /**
+   * セッションが有効かどうかを返す
+   */
   static async isValidSession(): Promise<boolean> {
     try {
       const result = await axios.get('/login');
@@ -33,6 +39,9 @@ export default class User {
     }
   }
 
+  /**
+   * 登録されたユーザーの一覧
+   */
   static async all(): Promise<User[]> {
     try {
       const result = await axios.get('/users');
@@ -51,6 +60,9 @@ export default class User {
     }
   }
 
+  /**
+   * ユーザーを作成
+   */
   static async add(username: string, password: string): Promise<UserOperationResult> {
     try {
       const result = await axios.post('/user/add', { username, password });
@@ -60,6 +72,9 @@ export default class User {
     }
   }
 
+  /**
+   * ユーザーを削除
+   */
   async remove(): Promise<UserOperationResult> {
     try {
       const result = await axios.delete(`/user/remove?user_id=${this.id}`);

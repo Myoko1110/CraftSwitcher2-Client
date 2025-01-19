@@ -316,15 +316,21 @@ export function ServerFileView() {
       if (e.key === 'v' && e.ctrlKey) {
         handlePaste();
       }
+      if (e.key === 'a' && e.ctrlKey) {
+        e.preventDefault();
+        table.setSelected(new ServerFileList(...filteredFiles));
+      }
     },
     [
       archiveOpen,
+      filteredFiles,
       handlePaste,
       handleSetCopyFiles,
       handleSetCutFiles,
       mkdirOpen,
       removeOpen,
       renameOpen,
+      table,
     ]
   );
 

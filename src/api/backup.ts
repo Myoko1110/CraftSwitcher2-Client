@@ -49,6 +49,9 @@ export default class Backup {
     );
   }
 
+  /**
+   * バックアップID一覧
+   */
   static async getIDList(): Promise<BackupId[]> {
     try {
       const result = await axios.get('/backups');
@@ -58,7 +61,11 @@ export default class Backup {
     }
   }
 
-  static async getInfo(id: string): Promise<Backup> {
+  /**
+   * バックアップの情報
+   * @param id バックアップID
+   */
+  static async getById(id: string): Promise<Backup> {
     try {
       const result = await axios.get(`/backup/${id}`);
       const data = toCamelCase(result.data) as BackupResult;
@@ -68,6 +75,10 @@ export default class Backup {
     }
   }
 
+  /**
+   * バックアップ一覧
+   * @param server サーバー
+   */
   static async getByServer(server: Server): Promise<Backup[]> {
     try {
       const result = await axios.get(`/server/${server.id}/backups`);
@@ -78,6 +89,10 @@ export default class Backup {
     }
   }
 
+  /**
+   * 実行中のバックアップタスクを取得
+   * @param server サーバー
+   */
   static async getTask(server: Server): Promise<BackupTask> {
     try {
       const result = await axios.get(`/server/${server.id}/backup/`);
@@ -87,6 +102,12 @@ export default class Backup {
     }
   }
 
+  /**
+   * バックアップを開始
+   * @param server バックアップするサーバー
+   * @param comments コメント
+   * @param snapshot スナップショット(圧縮なし)にするか
+   */
   static async create(server: Server, comments: string | null, snapshot: boolean = false) {
     try {
       const result = await axios.post(
@@ -98,6 +119,16 @@ export default class Backup {
     }
   }
 
+  /**
+   * バックアップのプレビュー
+   *
+   * バックアップ前のファイルリストやサイズプレビュー用など
+   * @param server サーバー
+   * @param checkFiles 常に実際のファイルをチェックする
+   * @param includeFiles バックアップ対象のファイル情報を返す
+   * @param includeErrors エラーファイルを返す
+   * @param onlyUpdates 異なるファイルのみ `files` に含める
+   */
   static async preview(
     server: Server,
     {
@@ -126,6 +157,11 @@ export default class Backup {
     }
   }
 
+  /**
+   * バックアップの削除
+   *
+   * バックアップをファイルとデータベースから削除します。ファイルエラーは無視されます。
+   */
   async remove(): Promise<boolean> {
     try {
       const result = await axios.delete(`/backup/${this.id}`);
@@ -135,6 +171,14 @@ export default class Backup {
     }
   }
 
+  /**
+   * ファイル一覧
+   *
+   * バックアップされたファイルを一覧します。
+   * @param checkFiles 常に実際のファイルをチェックする
+   * @param includeFiles バックアップ対象のファイル情報を返す
+   * @param includeErrors エラーファイルを返す
+   */
   async files({
     checkFiles,
     includeFiles,
@@ -157,6 +201,16 @@ export default class Backup {
     }
   }
 
+  /**
+   * バックアップファイルの比較
+   *
+   * バックアップ同士のファイルを比較します。含まれないファイルを新規ファイルとしてマークします。
+   * @param target 比較対象
+   * @param checkFiles 常に実際のファイルをチェックします
+   * @param includeFiles バックアップ対象のファイル情報を返す
+   * @param includeErrors エラーファイルを返す
+   * @param onlyUpdates 異なるファイルのみ `files` に含める
+   */
   async compareWithBackup(
     target: Backup,
     {
@@ -186,6 +240,11 @@ export default class Backup {
     }
   }
 
+  /**
+   * バックアップデータの取得
+   *
+   * バックアップをファイルにパックします。スナップショットの場合は圧縮が必要なため時間がかかります。
+   */
   async export(): Promise<Blob> {
     try {
       const result = await axios.get(`/backup/${this.id}/export`, {
@@ -197,6 +256,14 @@ export default class Backup {
     }
   }
 
+  /**
+   * バックアップのリストア
+   *
+   * バックアップされたデータを展開して復元します。(サーバーディレクトリにある既存のデータが全て削除されます)\
+   * 実行前にバックアップ検証を実行し、変更をプレビューすることを推奨します。\
+   * 他のバックアップタスクと同時実行できません。
+   * @param server リストア先のサーバー
+   */
   async restore(server: Server): Promise<BackupTask> {
     try {
       const result = await axios.post(`/server/${server.id}/backup/${this.id}/restore`);
@@ -209,6 +276,16 @@ export default class Backup {
     }
   }
 
+  /**
+   * バックアップの検証(リストア前の比較用)
+   *
+   * バックアップ同士のファイルを比較します。含まれないファイルを新規ファイルとしてマークします。\
+   * `compareWithServer({checkFiles: true})` のエイリアスです。
+   * @param server サーバー
+   * @param includeFiles バックアップ対象のファイル情報を返す
+   * @param includeErrors エラーファイルを返す
+   * @param onlyUpdates 異なるファイルのみ `files` に含める
+   */
   async verify(
     server: Server,
     {
@@ -236,6 +313,16 @@ export default class Backup {
     }
   }
 
+  /**
+   * バックアップファイルの比較
+   *
+   * バックアップとサーバーデータのファイルを比較します。含まれないファイルを新規ファイルとしてマークします。
+   * @param server サーバー
+   * @param checkFiles 常に実際のファイルをチェックします
+   * @param includeFiles バックアップ対象のファイル情報を返す
+   * @param includeErrors エラーファイルを返す
+   * @param onlyUpdates 異なるファイルのみ `files` に含める
+   */
   async compareWithServer(
     server: Server,
     {
@@ -266,10 +353,15 @@ export default class Backup {
     }
   }
 
-  // TODO: server?
-  async getFile(server: Server, path: string): Promise<Blob> {
+  /**
+   * ファイルデータの取得
+   *
+   * バックアップに格納されたファイルを返します
+   * @param path ファイルパス
+   */
+  async getFile(path: string): Promise<Blob> {
     try {
-      const result = await axios.get(`/server/${server.id}/backup/${this.id}/file?path=${path}`, {
+      const result = await axios.get(`/backup/${this.id}/file?path=${path}`, {
         responseType: 'blob',
       });
       return result.data;

@@ -5,12 +5,13 @@ import type { LaunchOption } from 'src/abc/server-config';
 
 export type ServerResult = {
   id: string;
-  name: string;
+  name: string | null;
   type: string;
   state: string;
-  directory: string;
+  directory: string | null;
   isLoaded: boolean;
-  buildStatus: string;
+  buildStatus: string | null;
+  status: ServerStatusInfo | null;
 };
 
 export type CreateServerParams = {
@@ -22,6 +23,29 @@ export type CreateServerParams = {
   launchCommand?: string;
   stopCommand?: string | null;
   shutdownTimeout?: number | null;
+};
+
+export type ServerStatusInfo = {
+  id: string;
+  process?: {
+    cpuUsage: number;
+    memUsed: number;
+    memVirtualUsed: number;
+  };
+  jvm?: {
+    cpuUsage?: number;
+    memUsed?: number;
+    memTotal?: number;
+  };
+  game?: {
+    ticks?: number;
+    maxPlayers?: number;
+    onlinePlayers?: number;
+    players?: {
+      uuid: string;
+      name: string;
+    }[];
+  };
 };
 
 /**

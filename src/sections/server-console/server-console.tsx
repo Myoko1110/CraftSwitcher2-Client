@@ -63,7 +63,6 @@ export default function ServerConsole({ server, state }: { server: Server; state
     })();
 
     const debouncedFit = debounce(() => {
-      console.log('ss');
       ws.setTermSize(server.id, term.cols, term.rows);
       term.scrollToBottom();
     });

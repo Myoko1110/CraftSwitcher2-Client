@@ -1,5 +1,5 @@
 import type { BackupTask, BackupPreviewResult } from 'src/models/backup';
-import type { ServerResult, CreateServerParams } from 'src/models/server';
+import type { ServerResult, CreateServerParams, ServerStatusInfo } from 'src/models/server';
 
 import axios from 'axios';
 
@@ -19,16 +19,19 @@ import type { ServerDirectory } from './server-file-manager';
 export default class Server {
   constructor(
     public id: string,
-    public name: string,
+    public name: string | null,
     public type: ServerType,
     public state: ServerState,
-    public directory: string,
+    public directory: string | null,
     public isLoaded: boolean,
-    public buildStatus: string
+    public buildStatus: string | null,
+    public status: ServerStatusInfo | null
   ) {}
 
   /**
-   * 登録されているサーバーを取得します
+   * 登録サーバーの一覧
+   *
+   * 登録されているサーバーを取得します。
    */
   static async all(): Promise<Server[]> {
     try {
@@ -39,9 +42,22 @@ export default class Server {
     }
   }
 
+  /**
+   * サーバーを取得
+   * @param id サーバーID
+   */
   static async get(id: string): Promise<Server> {
     try {
       const result = await axios.get(`/server/${id}`);
+      return this.serializeFromResult(result.data as ServerResult);
+    } catch (e) {
+      throw APIError.fromError(e);
+    }
+  }
+
+  static async getWithStatus(id: string): Promise<Server> {
+    try {
+      const result = await axios.get(`/server/${id}?include_status=true`);
       return this.serializeFromResult(result.data as ServerResult);
     } catch (e) {
       throw APIError.fromError(e);
@@ -56,29 +72,33 @@ export default class Server {
       ServerState.get(value.state),
       value.directory,
       value.isLoaded,
-      value.buildStatus
+      value.buildStatus,
+      value.status
     );
   }
 
   /**
-   * サーバーを作成します
+   * サーバーを作成
    * @returns 成功した場合はサーバーID、失敗した場合はfalse
    */
-  static async create({
-    name,
-    directory,
-    type,
-    launchOption,
-    enableLaunchCommand = false,
-    launchCommand = '',
-    stopCommand = null,
-    shutdownTimeout = null,
-  }: CreateServerParams): Promise<Server | false> {
+  static async create(
+    {
+      name,
+      directory,
+      type,
+      launchOption,
+      enableLaunchCommand = false,
+      launchCommand = '',
+      stopCommand = null,
+      shutdownTimeout = null,
+    }: CreateServerParams,
+    eula?: boolean
+  ): Promise<Server | false> {
     const id = window.crypto.randomUUID();
 
     try {
       const result = await axios.post(
-        `/server/${id}`,
+        `/server/${id}${eula !== undefined ? `?eula=${eula}` : ''}`,
         {
           name,
           directory,
@@ -106,7 +126,9 @@ export default class Server {
   }
 
   /**
-   * サーバーを起動します
+   * サーバーを起動
+   *
+   * `buildStatus` が `STANDBY` の場合はサーバーを起動せず、代わりにビルダーを実行します。
    */
   async start(): Promise<boolean> {
     try {
@@ -118,7 +140,7 @@ export default class Server {
   }
 
   /**
-   * サーバーを停止します
+   * サーバーを停止
    */
   async stop(): Promise<boolean> {
     try {
@@ -130,7 +152,7 @@ export default class Server {
   }
 
   /**
-   * サーバーを再起動します
+   * サーバーを再起動
    */
   async restart(): Promise<boolean> {
     try {
@@ -142,7 +164,7 @@ export default class Server {
   }
 
   /**
-   * サーバーを強制終了します
+   * サーバーを強制終了
    */
   async kill(): Promise<boolean> {
     try {
@@ -154,7 +176,9 @@ export default class Server {
   }
 
   /**
-   * サーバーにコマンドを送信します
+   * サーバープロセスに送信
+   *
+   * コマンド文などの文字列をサーバープロセスへ書き込みます。
    */
   async sendLine(line: string): Promise<boolean> {
     try {
@@ -166,33 +190,41 @@ export default class Server {
   }
 
   /**
-   * 擬似端末のウインドウサイズを取得します
-   * 幅x高のカーソル数を返します
+   * 擬似端末のウインドウサイズを取得
+   *
+   * 幅x高のカーソル数を返します。
    */
-  async getTermSize(): Promise<number[]> {
+  async getTermSize(): Promise<[number, number]> {
     try {
       const result = await axios.get(`/server/${this.id}/term/size`);
-      return result.data;
+      return result.data as [number, number];
     } catch (e) {
       throw APIError.fromError(e);
     }
   }
 
   /**
-   * 擬似端末のウインドウサイズを設定します
-   * 幅x高のカーソル数を指定します
+   * 擬似端末のウインドウサイズを設定
+   *
+   * 幅x高のカーソル数を返します
+   * @param cols 幅
+   * @param rows 高
    */
-  async setTermSize(cols: number, rows: number): Promise<boolean> {
+  async setTermSize(cols: number, rows: number): Promise<[number, number]> {
     try {
       const result = await axios.post(`/server/${this.id}/term/size?cols=${cols}&rows=${rows}`);
-      return result.data.result;
+      return result.data as [number, number];
     } catch (e) {
       throw APIError.fromError(e);
     }
   }
 
   /**
-   * キャッシュされているサーバーログを取得します
+   * サーバープロセスの出力ログ
+   *
+   * キャッシュされているサーバーログを取得します。
+   * @param includeBuffer 改行されていない行を含む
+   * @param maxLines 取得する最大行数( `null` でキャッシュされている全ての行を出力)
    */
   async getLogsLatest(
     includeBuffer: boolean = false,
@@ -212,12 +244,15 @@ export default class Server {
   }
 
   /**
-   * 構成済みのサーバーを登録します
+   * 構成済みのサーバーを追加
+   *
+   * @param directory インポートするディレクトリ
+   * @param eula Minecraft EULA に同意されていれば true にできます
    */
-  async import(directory: string): Promise<boolean> {
+  async import(directory: string, eula?: boolean): Promise<boolean> {
     try {
       const result = await axios.post(
-        `/server/${this.id}/import`,
+        `/server/${this.id}/import${eula !== undefined ? `?eula=${eula}` : ''}`,
         { directory },
         {
           headers: {
@@ -232,13 +267,12 @@ export default class Server {
   }
 
   /**
-   *  サーバーを削除します
-   * @param deleteConfigFile
+   * サーバーを削除します
    */
-  async remove(deleteConfigFile: boolean = false): Promise<boolean> {
+  async remove(deleteConfigFile?: boolean): Promise<boolean> {
     try {
       const result = await axios.delete(
-        `/server/${this.id}${deleteConfigFile ? '?delete_config_file=true' : ''}`
+        `/server/${this.id}${deleteConfigFile !== undefined ? `?delete_config_file=${deleteConfigFile}` : ''}`
       );
       return result.data.result;
     } catch (e) {
@@ -247,7 +281,7 @@ export default class Server {
   }
 
   /**
-   * サーバーの設定を取得します
+   * サーバー設定の取得
    */
   async getConfig(): Promise<ServerConfig> {
     try {
@@ -259,7 +293,7 @@ export default class Server {
   }
 
   /**
-   * サーバーの設定を更新します
+   * サーバー設定の更新
    * @param config
    */
   async updateConfig(config: Partial<ServerConfig>): Promise<ServerConfig> {
@@ -276,7 +310,7 @@ export default class Server {
   }
 
   /**
-   * 設定ファイルを再読み込みします
+   * サーバー設定ファイルの再読み込み
    */
   async reloadConfig(): Promise<ServerConfig> {
     try {
@@ -288,13 +322,14 @@ export default class Server {
   }
 
   /**
-   * サーバーJarのインストールをします
+   * サーバーJarのインストール
    * ビルドが必要な場合は、サーバーの初回起動時に実行されます。
    */
   async install(
     serverType: ServerType,
     version: string,
-    build: string
+    build: string,
+    javaPreset?: string
   ): Promise<FileOperationResult> {
     try {
       const params = new URLSearchParams({
@@ -302,6 +337,8 @@ export default class Server {
         version,
         build,
       });
+      if (javaPreset) params.set('java_preset', javaPreset);
+
       const result = await axios.post(`/server/${this.id}/install?${params.toString()}`);
       return new FileOperationResult(result.data);
     } catch (e) {
@@ -310,7 +347,7 @@ export default class Server {
   }
 
   /**
-   * ビルダーを削除をします
+   * ビルダーを削除
    */
   async removeBuild(): Promise<boolean> {
     try {
@@ -321,10 +358,9 @@ export default class Server {
     }
   }
 
-  async getDirectory(path: string): Promise<ServerDirectory> {
-    return ServerFileManager.get(this.id, path);
-  }
-
+  /**
+   * EULA の値を取得
+   */
   async getEula(): Promise<boolean> {
     try {
       const result = await axios.get(`/server/${this.id}/eula`);
@@ -334,6 +370,10 @@ export default class Server {
     }
   }
 
+  /**
+   * EULA の値を設定
+   * @param accept Minecraft EULA に同意されていれば `true` にできます
+   */
   async setEula(accept: boolean): Promise<boolean> {
     try {
       const result = await axios.post(`/server/${this.id}/eula?accept=${accept}`);
@@ -341,6 +381,10 @@ export default class Server {
     } catch (e) {
       throw APIError.fromError(e);
     }
+  }
+
+  async getDirectory(path: string): Promise<ServerDirectory> {
+    return ServerFileManager.get(this.id, path);
   }
 
   async getBackups(): Promise<Backup[]> {

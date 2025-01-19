@@ -46,6 +46,25 @@ export class ServerGlobalConfig {
       throw APIError.fromError(e);
     }
   }
+
+  async save(): Promise<void> {
+    try {
+      await axios.put('/config/server_global', {
+        'launchOption.javaPreset': this.javaPreset,
+        'launchOption.javaExecutable': this.javaExecutable,
+        'launchOption.javaOptions': this.javaOptions,
+        'launchOption.serverOptions': this.serverOptions,
+        'launchOption.maxHeapMemory': this.maxHeapMemory,
+        'launchOption.minHeapMemory': this.minHeapMemory,
+        'launchOption.enableFreeMemoryCheck': this.enableFreeMemoryCheck,
+        'launchOption.enableReporterAgent': this.enableReporterAgent,
+        'launchOption.enableScreen': this.enableScreen,
+        shutdownTimeout: this.shutdownTimeout,
+      });
+    } catch (e) {
+      throw APIError.fromError(e);
+    }
+  }
 }
 
 type ServerGlobalConfigResult = {

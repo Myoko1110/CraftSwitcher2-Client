@@ -8,6 +8,9 @@ import { JarDLBuildInfoResult } from 'src/models/jardl';
 // ------------------------------------------------------------
 
 export default class ServerInstaller {
+  /**
+   * 利用可能なサーバーのタイプ
+   */
   static async getAvailableTypes(): Promise<string[]> {
     try {
       const result = await axios.get('/jardl/types');
@@ -17,6 +20,10 @@ export default class ServerInstaller {
     }
   }
 
+  /**
+   * 対応バージョンの一覧
+   * @param type
+   */
   static async getVersions(type: string): Promise<JarDLVersionInfoResult[]> {
     try {
       const result = await axios.get(`/jardl/${type}/versions`);
@@ -26,6 +33,9 @@ export default class ServerInstaller {
     }
   }
 
+  /**
+   * ビルドの一覧
+   */
   static async getBuilds(type: string, version: string): Promise<JarDLBuildInfoResult[]> {
     try {
       const result = await axios.get(`/jardl/${type}/version/${version}/builds`);
@@ -35,6 +45,11 @@ export default class ServerInstaller {
     }
   }
 
+  /**
+   * ビルドの情報
+   *
+   * ビルドの追加情報を取得して返します。
+   */
   static async getBuild(
     type: string,
     version: string,
