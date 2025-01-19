@@ -10,6 +10,8 @@ import { FileTask } from 'src/models/task';
 import { APIError } from 'src/abc/api-error';
 import { StorageInfo, FileOperationResult } from 'src/models/file';
 
+import type Server from './server';
+
 // ----------------------------------------------------------------------
 
 export class ServerFileManager {
@@ -27,7 +29,7 @@ export class ServerFileManager {
 
   constructor(
     { name, path: _path, type, size, modifyTime, createTime }: FileManagerParams,
-    public serverId: string
+    public server: Server
   ) {
     this.name = name;
     this._path = _path;
@@ -49,7 +51,7 @@ export class ServerFileManager {
     return path.parse(this.name).name;
   }
 
-  static deserialize(fileInfo: FileInfoResult, serverId: string): ServerFileManager {
+  static deserialize(fileInfo: FileInfoResult, server: Server): ServerFileManager {
     if (fileInfo.isDir) {
       return new ServerDirectory(
         {
@@ -61,7 +63,7 @@ export class ServerFileManager {
           isServerDir: fileInfo.isServerDir,
           registeredServerId: fileInfo.registeredServerId,
         },
-        serverId
+        server
       );
     }
     return new ServerFile(
@@ -73,7 +75,7 @@ export class ServerFileManager {
         modifyTime: new Date(fileInfo.modifyTime * 1000),
         createTime: new Date(fileInfo.createTime * 1000),
       },
-      serverId
+      server
     );
   }
 
@@ -88,13 +90,13 @@ export class ServerFileManager {
 
   /**
    * 指定されたパスのファイルを取得します
-   * @param serverId サーバーID
+   * @param server サーバー
    * @param _path ファイルのパス
    * @returns ファイルまたはフォルダーのリスト
    */
-  static async get(serverId: string, _path: string): Promise<ServerDirectory> {
+  static async get(server: Server, _path: string): Promise<ServerDirectory> {
     try {
-      const result = await axios.get(`/server/${serverId}/files?path=${_path}`);
+      const result = await axios.get(`/server/${server.id}/files?path=${_path}`);
       const directory: FileDirectoryInfoResult = result.data;
 
       return new ServerDirectory(
@@ -102,10 +104,10 @@ export class ServerFileManager {
           name: directory.name,
           path: directory.path,
           children: new ServerFileList(
-            ...directory.children.map((c) => this.deserialize(c, serverId))
+            ...directory.children.map((c) => this.deserialize(c, server))
           ),
         },
-        serverId
+        server
       );
     } catch (e) {
       throw APIError.fromError(e);
@@ -128,7 +130,7 @@ export class ServerFileManager {
         try {
           // eslint-disable-next-line no-await-in-loop
           const result = await axios.put(
-            `/server/${this.serverId}/file/copy?path=${this.src}&dst_path=${dstPath}`
+            `/server/${this.server.id}/file/copy?path=${this.src}&dst_path=${dstPath}`
           );
 
           return new FileOperationResult(result.data);
@@ -147,7 +149,7 @@ export class ServerFileManager {
 
     try {
       const result = await axios.put(
-        `/server/${this.serverId}/file/copy?path=${this.src}&dst_path=${dstPath}`
+        `/server/${this.server.id}/file/copy?path=${this.src}&dst_path=${dstPath}`
       );
       return new FileOperationResult(result.data);
     } catch (e) {
@@ -165,7 +167,7 @@ export class ServerFileManager {
 
     try {
       const result = await axios.put(
-        `/server/${this.serverId}/file/move?path=${this.src}&dst_path=${dstPath}`
+        `/server/${this.server.id}/file/move?path=${this.src}&dst_path=${dstPath}`
       );
       return new FileOperationResult(result.data);
     } catch (e) {
@@ -183,7 +185,7 @@ export class ServerFileManager {
 
     try {
       const result = await axios.put(
-        `/server/${this.serverId}/file/move?path=${this.src}&dst_path=${newPath}`
+        `/server/${this.server.id}/file/move?path=${this.src}&dst_path=${newPath}`
       );
       return new FileOperationResult(result.data);
     } catch (e) {
@@ -197,7 +199,7 @@ export class ServerFileManager {
    */
   async remove(): Promise<FileOperationResult> {
     try {
-      const result = await axios.delete(`/server/${this.serverId}/file?path=${this.src}`);
+      const result = await axios.delete(`/server/${this.server.id}/file?path=${this.src}`);
       return new FileOperationResult(result.data);
     } catch (e) {
       throw APIError.fromError(e);
@@ -217,7 +219,7 @@ export class ServerFileManager {
 
     try {
       const result = await axios.post(
-        `/server/${this.serverId}/file/archive/extract?path=${this.src}&output_dir=${outputDir}`,
+        `/server/${this.server.id}/file/archive/extract?path=${this.src}&output_dir=${outputDir}`,
         {
           password,
         }
@@ -238,22 +240,22 @@ export class ServerFileManager {
 
   /**
    * フォルダーまたはファイルの情報を取得します
-   * @param serverId サーバーID
+   * @param server サーバー
    * @param _path ファイルのパス
    * @returns ファイルまたはフォルダーの情報
    */
-  static async getInfo(serverId: string, _path: string): Promise<ServerFileManager> {
+  static async getInfo(server: Server, _path: string): Promise<ServerFileManager> {
     try {
-      const result = await axios.get(`/server/${serverId}/file/info?path=${_path}`);
-      return this.deserialize(result.data, serverId);
+      const result = await axios.get(`/server/${server}/file/info?path=${_path}`);
+      return this.deserialize(result.data, server);
     } catch (e) {
       throw APIError.fromError(e);
     }
   }
 
-  static async getStorageInfo(serverId?: string): Promise<StorageInfo> {
+  static async getStorageInfo(server?: Server): Promise<StorageInfo> {
     try {
-      const result = await axios.get(`/storage/info${serverId ? `?server_id=${serverId}` : ''}`);
+      const result = await axios.get(`/storage/info${server ? `?server_id=${server.id}` : ''}`);
       return new StorageInfo(result.data);
     } catch (e) {
       throw APIError.fromError(e);
@@ -284,7 +286,7 @@ export class ServerFileList extends Array<ServerFileManager> {
       this.forEach((f) => params.append('include_files', f.src));
 
       const result = await axios.post(
-        `/server/${this[0].serverId}/file/archive/make?${params.toString()}`
+        `/server/${this[0].server.id}/file/archive/make?${params.toString()}`
       );
 
       return result.data.task_id || false;
@@ -314,9 +316,9 @@ export class ServerDirectory extends ServerFileManager {
       isServerDir,
       registeredServerId,
     }: DirectoryParams,
-    public serverId: string
+    public server: Server
   ) {
-    super({ name, path: _path, type: FileType.DIRECTORY, size, modifyTime, createTime }, serverId);
+    super({ name, path: _path, type: FileType.DIRECTORY, size, modifyTime, createTime }, server);
     this._children = children;
     this.isServerDir = isServerDir;
     this.registeredServerId = registeredServerId;
@@ -324,7 +326,7 @@ export class ServerDirectory extends ServerFileManager {
 
   async children(): Promise<ServerFileList> {
     if (!this._children) {
-      this._children = (await ServerFileManager.get(super.serverId, this.src))._children!;
+      this._children = (await ServerFileManager.get(super.server, this.src))._children!;
     }
     return this._children;
   }
@@ -344,7 +346,7 @@ export class ServerDirectory extends ServerFileManager {
     }
 
     try {
-      const result = await axios.post(`/server/${this.serverId}/file/mkdir?${params.toString()}`);
+      const result = await axios.post(`/server/${this.server.id}/file/mkdir?${params.toString()}`);
       return new FileTask(result.data);
     } catch (e) {
       throw APIError.fromError(e);
@@ -359,7 +361,7 @@ export class ServerDirectory extends ServerFileManager {
     const filePath = path.join(this.src, name);
 
     try {
-      const result = await axios.post(`/server/${this.serverId}/file?path=${filePath}`, formData);
+      const result = await axios.post(`/server/${this.server.id}/file?path=${filePath}`, formData);
       return new FileTask(result.data);
     } catch (e) {
       throw APIError.fromError(e);
@@ -372,7 +374,7 @@ export class ServerDirectory extends ServerFileManager {
 export class ServerFile extends ServerFileManager {
   async getData(): Promise<Blob> {
     try {
-      const result = await axios.get(`/server/${this.serverId}/file?path=${this.src}`, {
+      const result = await axios.get(`/server/${this.server.id}/file?path=${this.src}`, {
         responseType: 'blob',
       });
       return result.data;
@@ -386,7 +388,7 @@ export class ServerFile extends ServerFileManager {
       const formData = new FormData();
       formData.append('file', data);
 
-      const result = await axios.post(`/server/${this.serverId}/file?path=${this.src}`, formData);
+      const result = await axios.post(`/server/${this.server.id}/file?path=${this.src}`, formData);
       return result.data as FileInfoResult;
     } catch (e) {
       throw APIError.fromError(e);

@@ -1,5 +1,5 @@
 import type { BackupTask, BackupPreviewResult } from 'src/models/backup';
-import type { ServerResult, CreateServerParams, ServerStatusInfo } from 'src/models/server';
+import type { ServerResult, ServerStatusInfo, CreateServerParams } from 'src/models/server';
 
 import axios from 'axios';
 
@@ -384,7 +384,7 @@ export default class Server {
   }
 
   async getDirectory(path: string): Promise<ServerDirectory> {
-    return ServerFileManager.get(this.id, path);
+    return ServerFileManager.get(this, path);
   }
 
   async getBackups(): Promise<Backup[]> {
