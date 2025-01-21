@@ -13,6 +13,7 @@ import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import Breadcrumbs from '@mui/material/Breadcrumbs';
 
+import Server from 'src/api/server';
 import { APIError } from 'src/abc/api-error';
 import { DashboardContent } from 'src/layouts/dashboard';
 import { ServerFileManager } from 'src/api/server-file-manager';
@@ -72,7 +73,9 @@ export function ServerFileEditView() {
       const path = params.get('path')!;
 
       try {
-        const fileInfo = await ServerFileManager.getInfo(id, path);
+        const server = await Server.get(id);
+
+        const fileInfo = await ServerFileManager.getInfo(server, path);
         if (!fileInfo.isFile()) return;
 
         const _file = fileInfo as ServerFile;

@@ -76,22 +76,23 @@ export function ServerTableRow({
     e.preventDefault();
     await server.remove(deleteConfigFile);
     setRemoveOpen(false);
-    await reloadServers();
+    reloadServers();
   };
 
   const handleRenameClick = () => {
     setRenameOpen(true);
-    setRenameValue(server.name);
+    setRenameValue(server.name || '');
     handleClosePopover();
   };
 
   const handleRename = async (e: FormEvent) => {
     e.preventDefault();
 
-    await server.updateConfig({ name: renameValue });
+    const value = renameValue || null;
+    await server.updateConfig({ name: value });
 
     setRenameOpen(false);
-    await reloadServers();
+    reloadServers();
   };
 
   useEffect(() => {
