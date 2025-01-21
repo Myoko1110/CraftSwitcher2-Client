@@ -12,6 +12,6 @@ export default class FileTaskResult {
     if (taskResult) {
       return taskResult;
     }
-    throw new Error(`Unknown FileTaskResult: ${value}`);
+    throw new TypeError();
   }
 }

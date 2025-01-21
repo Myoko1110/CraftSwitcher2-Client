@@ -34,7 +34,7 @@ export class ServerConfig {
 
     return new ServerConfig(
       data.name,
-      ServerType.get(data.type),
+      ServerType.valueOf(data.type),
       LaunchOption.deserializeFromConfig(data),
       data.enableLaunchCommand,
       data.launchCommand,

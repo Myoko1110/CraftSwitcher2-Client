@@ -78,8 +78,8 @@ export class WebSocketClient {
 
           case 'server_change_state': {
             const ev = new ServerChangeStateEvent(
-              ServerState.get(data.new_state),
-              ServerState.get(data.old_state),
+              ServerState.valueOf(data.new_state),
+              ServerState.valueOf(data.old_state),
               data.server
             );
             this.events.get('ServerChangeState')?.map((cb) => cb(ev));

@@ -220,7 +220,7 @@ export function ServerConfigView() {
                   value={type?.name || ''}
                   label="種類"
                   onChange={(e) => {
-                    setType(ServerType.get(e.target.value));
+                    setType(ServerType.valueOf(e.target.value));
                     setChanged(true);
                   }}
                   variant="outlined"

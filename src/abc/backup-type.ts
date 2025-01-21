@@ -12,7 +12,7 @@ export default class BackupType {
       case 'snapshot':
         return BackupType.SNAPSHOT;
       default:
-        throw new Error(`不明なBackupType: ${value}`);
+        throw new TypeError();
     }
   }
 }

@@ -68,8 +68,8 @@ export default class Server {
     return new Server(
       value.id,
       value.name,
-      ServerType.get(value.type),
-      ServerState.get(value.state),
+      ServerType.valueOf(value.type),
+      ServerState.valueOf(value.state),
       value.directory,
       value.isLoaded,
       value.buildStatus,
@@ -395,7 +395,7 @@ export default class Server {
     return Backup.getTask(this);
   }
 
-  async createBackup(comments: string | null, snapshot: boolean = false): Promise<BackupTask> {
+  async createBackup(comments?: string, snapshot?: boolean): Promise<BackupTask> {
     return Backup.create(this, comments, snapshot);
   }
 

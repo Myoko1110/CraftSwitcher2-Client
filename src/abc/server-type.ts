@@ -138,13 +138,13 @@ export default class ServerType {
     return SERVER_TYPE_SPECS[this.name];
   }
 
-  static get(name: string): ServerType {
+  static valueOf(name: string): ServerType {
     return ServerType.all.find((value) => value.name === name) || ServerType.UNKNOWN;
   }
 
   static async availableTypes(): Promise<ServerType[]> {
     const result = await ServerInstaller.getAvailableTypes();
-    return result.map((c) => ServerType.get(c)!);
+    return result.map((c) => ServerType.valueOf(c)!);
   }
 
   async getVersions(): Promise<JarDLVersionInfoResult[]> {

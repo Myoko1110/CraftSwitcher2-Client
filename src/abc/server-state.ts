@@ -33,7 +33,7 @@ export default class ServerState {
     return (_SERVER_STATE_VALUE[this.name] || -1) < (_SERVER_STATE_VALUE[other.name] || -1);
   }
 
-  static get(name: string) {
+  static valueOf(name: string) {
     return ServerState.all.find((value) => value.name === name) || ServerState.UNKNOWN;
   }
 }

@@ -23,9 +23,10 @@ export default class FileEventType {
 
   static valueOf(value: string): FileEventType {
     const eventType: FileEventType = (FileEventType as any)[value.toUpperCase()];
+
     if (eventType) {
       return eventType;
     }
-    throw new Error(`Unknown FileEventType: ${value}`);
+    throw new TypeError();
   }
 }

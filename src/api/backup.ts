@@ -108,7 +108,11 @@ export default class Backup {
    * @param comments コメント
    * @param snapshot スナップショット(圧縮なし)にするか
    */
-  static async create(server: Server, comments: string | null, snapshot: boolean = false) {
+  static async create(server: Server, comments?: string, snapshot?: boolean): Promise<BackupTask> {
+    const params = new URLSearchParams();
+    if (comments !== undefined) params.append('comments', comments);
+    if (snapshot !== undefined) params.append('snapshot', snapshot.toString());
+
     try {
       const result = await axios.post(
         `/server/${server.id}/backup?comments=${comments}&snapshot=${snapshot}`
@@ -367,6 +371,17 @@ export default class Backup {
       return result.data;
     } catch (e) {
       throw APIError.fromError(e);
+    }
+  }
+
+  async getPreviousBackup(): Promise<Backup | null> {
+    if (this.previousBackupId === null) {
+      return null;
+    }
+    try {
+      return await Backup.getById(this.previousBackupId);
+    } catch (e) {
+      return null;
     }
   }
 }
