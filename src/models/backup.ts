@@ -121,18 +121,18 @@ export class BackupTask extends FileTask {
     dst,
     server,
     comments,
-    backup_type,
-    backup_id,
+    backupType,
+    backupId,
   }: BackupTaskAPIResult) {
     super({ id, type, progress, result, src, dst, server });
     this.comments = comments;
-    this.backupType = BackupType.valueOf(backup_type);
-    this.backupId = backup_id;
+    this.backupType = BackupType.valueOf(backupType);
+    this.backupId = backupId;
   }
 }
 
 type BackupTaskAPIResult = FileTaskAPIResult & {
   comments: string | null;
-  backup_type: string;
-  backup_id: string;
+  backupType: string;
+  backupId: string;
 };
