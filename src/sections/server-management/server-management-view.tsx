@@ -1,5 +1,5 @@
 import { toast } from 'sonner';
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet, useParams, useLocation } from 'react-router-dom';
 
 import Box from '@mui/material/Box';
@@ -19,8 +19,9 @@ import { RouterLink } from 'src/routes/components';
 import Server from 'src/api/server';
 import { APIError } from 'src/abc/api-error';
 import ServerState from 'src/abc/server-state';
+import { useWebsocket } from 'src/websocket/hooks';
 import { DashboardContent } from 'src/layouts/dashboard';
-import { WebSocketContext, type ServerChangeStateEvent } from 'src/websocket';
+import { type ServerChangeStateEvent } from 'src/websocket';
 
 import { ServerStateLabel } from 'src/components/server-state-label';
 import { ServerProcessButton } from 'src/components/server-process-button';
@@ -36,7 +37,7 @@ export function ServerManagementView() {
   const { id } = useParams<{ id: string }>();
   const [server, setServer] = useState<Server | null>(null);
   const [state, setState] = useState<ServerState>(ServerState.UNKNOWN);
-  const ws = useContext(WebSocketContext);
+  const ws = useWebsocket();
 
   const location = useLocation();
 

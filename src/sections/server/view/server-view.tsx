@@ -1,6 +1,6 @@
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
-import { useState, useEffect, useContext, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -12,7 +12,7 @@ import TableContainer from '@mui/material/TableContainer';
 
 import Server from 'src/api/server';
 import { APIError } from 'src/abc/api-error';
-import { WebSocketContext } from 'src/websocket';
+import { useWebsocket } from 'src/websocket/hooks';
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { Iconify } from 'src/components/iconify';
@@ -31,7 +31,7 @@ export function ServerView() {
   const table = useTable();
 
   const [servers, setServers] = useState<Server[]>([]);
-  const ws = useContext(WebSocketContext);
+  const ws = useWebsocket();
 
   const [isLoading, setIsLoading] = useState(true);
   const [unableToLoad, setUnableToLoad] = useState(false);

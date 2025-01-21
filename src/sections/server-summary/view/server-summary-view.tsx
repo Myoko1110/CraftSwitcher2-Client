@@ -1,8 +1,8 @@
 import type Server from 'src/api/server';
 import type { PerformanceProgress } from 'src/websocket';
 
+import React, { useState, useEffect } from 'react';
 import { useParams, useOutletContext } from 'react-router-dom';
-import React, { useState, useEffect, useContext } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -15,7 +15,7 @@ import TableCell from '@mui/material/TableCell';
 import TextField from '@mui/material/TextField';
 import CardHeader from '@mui/material/CardHeader';
 
-import { WebSocketContext } from 'src/websocket';
+import { useWebsocket } from 'src/websocket/hooks';
 
 import { AnalyticsWidgetSummary } from '../analytics-widget-summary';
 
@@ -24,7 +24,7 @@ import { AnalyticsWidgetSummary } from '../analytics-widget-summary';
 export function ServerSummaryView() {
   const { id } = useParams<{ id: string }>();
   const [performance, setPerformance] = useState<PerformanceProgress | null>(null);
-  const ws = useContext(WebSocketContext);
+  const ws = useWebsocket();
   const { server } = useOutletContext<{ server: Server | null }>();
 
   useEffect(() => {

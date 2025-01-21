@@ -35,7 +35,7 @@ export type DashboardLayoutProps = {
 export function DashboardLayout({ sx, children, header }: DashboardLayoutProps) {
   const theme = useTheme();
 
-  const route = useRouter();
+  const router = useRouter();
 
   const [navOpen, setNavOpen] = useState(false);
   const [isValidSession, setIsValidSession] = useState(false);
@@ -48,11 +48,11 @@ export function DashboardLayout({ sx, children, header }: DashboardLayoutProps) 
         const isValid = await User.isValidSession();
 
         if (!isValid) {
-          route.replace('/login');
+          router.replace('/login');
         }
         setIsValidSession(true);
       } catch (e) {
-        route.replace('/login');
+        router.replace('/login');
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps

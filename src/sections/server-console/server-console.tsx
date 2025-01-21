@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import { Terminal } from '@xterm/xterm';
 import { FitAddon } from '@xterm/addon-fit';
 import { WebglAddon } from '@xterm/addon-webgl';
-import { useRef, useState, useEffect, useContext } from 'react';
+import { useRef, useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import { alpha } from '@mui/material';
@@ -14,7 +14,7 @@ import Slide from '@mui/material/Slide';
 import Typography from '@mui/material/Typography';
 
 import { APIError } from 'src/abc/api-error';
-import { WebSocketContext } from 'src/websocket';
+import { useWebsocket } from 'src/websocket/hooks';
 
 // ---------------------
 
@@ -35,7 +35,7 @@ export default function ServerConsole({ server, state }: { server: Server; state
   const [fitAddon] = useState(new FitAddon());
   const [webglAddon] = useState(new WebglAddon());
 
-  const ws = useContext(WebSocketContext);
+  const ws = useWebsocket();
 
   const [wsState, setWsState] = useState(true);
 

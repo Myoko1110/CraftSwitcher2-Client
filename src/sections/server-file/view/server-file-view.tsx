@@ -3,15 +3,15 @@ import type { FileTaskEvent } from 'src/websocket';
 import type { ServerFileManager } from 'src/api/server-file-manager';
 
 import { toast } from 'sonner';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, useOutletContext } from 'react-router-dom';
-import React, { useState, useEffect, useContext, useCallback } from 'react';
 
 import Stack from '@mui/material/Stack';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableContainer from '@mui/material/TableContainer';
 
-import { WebSocketContext } from 'src/websocket';
+import { useWebsocket } from 'src/websocket/hooks';
 import FileTaskResult from 'src/abc/file-task-result';
 import { APIError, APIErrorCode } from 'src/abc/api-error';
 import { ServerFile, ServerFileList, ServerDirectory } from 'src/api/server-file-manager';
@@ -33,7 +33,7 @@ type AnchorPosition = { top: number; left: number } | undefined;
 
 export function ServerFileView() {
   const { server } = useOutletContext<{ server: Server | null }>();
-  const ws = useContext(WebSocketContext);
+  const ws = useWebsocket();
 
   const table = useTable();
 

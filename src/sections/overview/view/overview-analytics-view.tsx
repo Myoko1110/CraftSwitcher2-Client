@@ -1,12 +1,12 @@
 import type { PerformanceProgress } from 'src/websocket';
 
-import { useState, useEffect, useContext } from 'react';
+import { useState, useEffect } from 'react';
 
 import Grid from '@mui/material/Unstable_Grid2';
 import Typography from '@mui/material/Typography';
 
 import Server from 'src/api/server';
-import { WebSocketContext } from 'src/websocket';
+import { useWebsocket } from 'src/websocket/hooks';
 import { DashboardContent } from 'src/layouts/dashboard';
 import { ServerFileManager } from 'src/api/server-file-manager';
 
@@ -19,7 +19,7 @@ import { AnalyticsConversionRates } from '../analytics-conversion-rates';
 // ----------------------------------------------------------------------
 
 export function OverviewAnalyticsView() {
-  const ws = useContext(WebSocketContext);
+  const ws = useWebsocket();
 
   const [performance, setPerformance] = useState<PerformanceProgress>();
   const [storageInfo, setStorageInfo] = useState<{
