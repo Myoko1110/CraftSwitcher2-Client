@@ -1,5 +1,5 @@
 import type Server from 'src/api/server';
-import type { PerformanceProgress } from 'src/websocket';
+import type { Performance } from 'src/websocket/models/performance';
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useOutletContext } from 'react-router-dom';
@@ -23,12 +23,12 @@ import { AnalyticsWidgetSummary } from '../analytics-widget-summary';
 
 export function ServerSummaryView() {
   const { id } = useParams<{ id: string }>();
-  const [performance, setPerformance] = useState<PerformanceProgress | null>(null);
+  const [performance, setPerformance] = useState<Performance | null>(null);
   const ws = useWebsocket();
   const { server } = useOutletContext<{ server: Server | null }>();
 
   useEffect(() => {
-    const onPerformanceProgress = (e: PerformanceProgress) => {
+    const onPerformanceProgress = (e: Performance) => {
       setPerformance(e);
       const s = e.servers.find((sv) => sv.id === id);
     };

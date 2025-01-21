@@ -1,4 +1,4 @@
-import type { PerformanceProgress } from 'src/websocket';
+import type { Performance } from 'src/websocket/models/performance';
 
 import { useState, useEffect } from 'react';
 
@@ -21,7 +21,7 @@ import { AnalyticsConversionRates } from '../analytics-conversion-rates';
 export function OverviewAnalyticsView() {
   const ws = useWebsocket();
 
-  const [performance, setPerformance] = useState<PerformanceProgress>();
+  const [performance, setPerformance] = useState<Performance>();
   const [storageInfo, setStorageInfo] = useState<{
     totalSize: number;
     usedSize: number;
@@ -38,7 +38,7 @@ export function OverviewAnalyticsView() {
       setServers(s);
     })();
 
-    const onPerformanceProgress = (data: PerformanceProgress) => {
+    const onPerformanceProgress = (data: Performance) => {
       console.log(data);
       setPerformance(data);
     };
@@ -79,8 +79,9 @@ export function OverviewAnalyticsView() {
             value={
               performance
                 ? Math.round(
-                    ((performance.system.memory.total - performance.system.memory.available) /
-                      performance.system.memory.total) *
+                    ((performance.system.memory.totalBytes -
+                      performance.system.memory.availableBytes) /
+                      performance.system.memory.totalBytes) *
                       100
                   )
                 : undefined

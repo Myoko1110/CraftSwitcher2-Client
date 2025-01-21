@@ -1,4 +1,5 @@
-import type { FileTaskEvent, WebSocketClient } from 'src/websocket';
+import type { WebSocketClient } from 'src/websocket';
+import type { FileTaskEvent } from 'src/websocket/models';
 import type { ServerDirectory, ServerFileManager } from 'src/api/server-file-manager';
 
 import { toast } from 'sonner';
@@ -96,7 +97,7 @@ export default function FileDialogs({
 
       if (res.result === FileTaskResult.PENDING) {
         const fileTaskEndEvent = (fileTaskEvent: FileTaskEvent) => {
-          if (fileTaskEvent.taskId === res.taskId) {
+          if (fileTaskEvent.task.id === res.taskId) {
             reloadFiles();
             ws?.removeEventListener('FileTaskEnd', fileTaskEndEvent);
           }
@@ -126,7 +127,7 @@ export default function FileDialogs({
           const res = await file.remove();
           if (res.result === FileTaskResult.PENDING) {
             const fileTaskEndEvent = (fileTaskEvent: FileTaskEvent) => {
-              if (fileTaskEvent.src === file.src) {
+              if (fileTaskEvent.task.src === file.src) {
                 done += 1;
                 ws?.removeEventListener('FileTaskEnd', fileTaskEndEvent);
               }
@@ -182,7 +183,7 @@ export default function FileDialogs({
       setArchiveOpen(false);
 
       const fileTaskEndEvent = (fileTaskEvent: FileTaskEvent) => {
-        if (fileTaskEvent.taskId === res) {
+        if (fileTaskEvent.task.id === res) {
           reloadFiles();
           toast.success('圧縮ファイルを作成しました');
           ws?.removeEventListener('FileTaskEnd', fileTaskEndEvent);

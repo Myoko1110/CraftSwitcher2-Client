@@ -1,5 +1,5 @@
 import type Server from 'src/api/server';
-import type { FileTaskEvent } from 'src/websocket';
+import type { FileTaskEvent } from 'src/websocket/models';
 import type { ServerFileManager } from 'src/api/server-file-manager';
 
 import { toast } from 'sonner';
@@ -204,8 +204,8 @@ export function ServerFileView() {
             : await file.move(directory?.src!);
           if (res) {
             const fileTaskEndEvent = (e: FileTaskEvent) => {
-              if (e.src === file.src) {
-                if (e.result !== 'success') error += 1;
+              if (e.task.src === file.src) {
+                if (e.task.result !== FileTaskResult.SUCCESS) error += 1;
                 done += 1;
                 ws.removeEventListener('FileTaskEnd', fileTaskEndEvent);
               }
@@ -263,8 +263,8 @@ export function ServerFileView() {
       const res = await file.extract(file.fileName);
       if (res.result === FileTaskResult.PENDING) {
         const fileTaskEndEvent = (e: FileTaskEvent) => {
-          if (e.src === file.src) {
-            if (e.result !== 'success') {
+          if (e.task.src === file.src) {
+            if (e.task.result !== FileTaskResult.SUCCESS) {
               toast.error(`圧縮ファイル作成に失敗しました`);
             }
             reloadFiles();

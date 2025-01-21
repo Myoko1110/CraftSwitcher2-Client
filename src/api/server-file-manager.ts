@@ -1,6 +1,6 @@
 // eslint-disable-next-line max-classes-per-file
 import type { FileWithPath } from 'react-dropzone';
-import type { FileInfoResult, FileDirectoryInfoResult } from 'src/models/file';
+import type { FileInfo, FileDirectoryInfoResult } from 'src/models/file';
 
 import axios from 'axios';
 import path from 'path-browserify';
@@ -51,7 +51,7 @@ export class ServerFileManager {
     return path.parse(this.name).name;
   }
 
-  static deserialize(fileInfo: FileInfoResult, server: Server): ServerFileManager {
+  static deserialize(fileInfo: FileInfo, server: Server): ServerFileManager {
     if (fileInfo.isDir) {
       return new ServerDirectory(
         {
@@ -383,13 +383,13 @@ export class ServerFile extends ServerFileManager {
     }
   }
 
-  async saveData(data: Blob): Promise<FileInfoResult> {
+  async saveData(data: Blob): Promise<FileInfo> {
     try {
       const formData = new FormData();
       formData.append('file', data);
 
       const result = await axios.post(`/server/${this.server.id}/file?path=${this.src}`, formData);
-      return result.data as FileInfoResult;
+      return result.data as FileInfo;
     } catch (e) {
       throw APIError.fromError(e);
     }

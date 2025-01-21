@@ -1,6 +1,5 @@
 import type Server from 'src/api/server';
 import type ServerState from 'src/abc/server-state';
-import type { ServerProcessReadEvent } from 'src/websocket';
 
 import { toast } from 'sonner';
 import { Terminal } from '@xterm/xterm';
@@ -15,6 +14,7 @@ import Typography from '@mui/material/Typography';
 
 import { APIError } from 'src/abc/api-error';
 import { useWebsocket } from 'src/websocket/hooks';
+import { ServerProcessReadEvent } from '../../websocket/models';
 
 // ---------------------
 

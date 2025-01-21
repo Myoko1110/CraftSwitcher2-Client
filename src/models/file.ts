@@ -1,7 +1,7 @@
 // eslint-disable-next-line max-classes-per-file
 import FileTaskResult from 'src/abc/file-task-result';
 
-export type FileInfoResult = {
+export type FileInfo = {
   name: string;
   path: string;
   isDir: boolean;
@@ -15,7 +15,7 @@ export type FileInfoResult = {
 export type FileDirectoryInfoResult = {
   name: string;
   path: string;
-  children: FileInfoResult[];
+  children: FileInfo[];
 };
 
 export class FileOperationResult {
@@ -23,7 +23,7 @@ export class FileOperationResult {
 
   taskId: number | null;
 
-  file: FileInfoResult | null;
+  file: FileInfo | null;
 
   constructor({ result, task_id, file }: FileOperationAPIResult) {
     this.result = FileTaskResult.valueOf(result);
@@ -34,7 +34,7 @@ export class FileOperationResult {
 type FileOperationAPIResult = {
   result: string;
   task_id: number | null;
-  file: FileInfoResult;
+  file: FileInfo;
 };
 
 export class StorageInfo {

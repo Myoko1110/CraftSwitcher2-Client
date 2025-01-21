@@ -1,3 +1,5 @@
+import type { ServerChangeStateEvent } from 'src/websocket/models';
+
 import { toast } from 'sonner';
 import React, { useState, useEffect } from 'react';
 import { Outlet, useParams, useLocation } from 'react-router-dom';
@@ -21,7 +23,6 @@ import { APIError } from 'src/abc/api-error';
 import ServerState from 'src/abc/server-state';
 import { useWebsocket } from 'src/websocket/hooks';
 import { DashboardContent } from 'src/layouts/dashboard';
-import { type ServerChangeStateEvent } from 'src/websocket';
 
 import { ServerStateLabel } from 'src/components/server-state-label';
 import { ServerProcessButton } from 'src/components/server-process-button';

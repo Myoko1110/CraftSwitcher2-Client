@@ -1,6 +1,7 @@
 import type { FormEvent } from 'react';
 import type Server from 'src/api/server';
-import type { WebSocketClient, ServerChangeStateEvent } from 'src/websocket';
+import type { WebSocketClient } from 'src/websocket';
+import type { ServerChangeStateEvent } from 'src/websocket/models';
 
 import { Link } from 'react-router-dom';
 import React, { useState, useEffect, useCallback } from 'react';

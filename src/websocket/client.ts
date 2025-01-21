@@ -1,12 +1,32 @@
 // eslint-disable-next-line max-classes-per-file
-import Server from 'src/api/server';
-import ServerState from 'src/abc/server-state';
+import humps from 'humps';
+
+import {
+  Performance,
+  FileTaskEvent,
+  ServerOperationEvent,
+  WebsocketClientEvent,
+  ServerChangeStateEvent,
+  ServerProcessReadEvent,
+  SwitcherOperationEvent,
+  ExtensionOperationEvent,
+} from './models';
+
+import type { EventMap } from './abc/event-map';
+import type {
+  PerformanceInput,
+  FileTaskEventInput,
+  ServerOperationEventInput,
+  WebsocketClientEventInput,
+  ServerChangeStateEventInput,
+  ServerProcessReadEventInput,
+  ExtensionOperationEventInput,
+} from './models';
 
 // ----------------------------------------------------------------------
 
 const websocketUrl = `${import.meta.env.VITE_FRONTEND_URL}/ws`;
 
-// TODO: イベント追加
 export class WebSocketClient {
   private ws: WebSocket;
 
@@ -19,7 +39,6 @@ export class WebSocketClient {
     this.ws.onmessage = this.onMessage.bind(this);
     this.ws.onclose = this.onClose.bind(this);
     this.ws.onopen = this.onOpen.bind(this);
-    console.log('WebSocket connection open');
   }
 
   private connect() {
@@ -27,7 +46,6 @@ export class WebSocketClient {
     this.ws.onmessage = this.onMessage.bind(this);
     this.ws.onclose = this.onClose.bind(this);
     this.ws.onopen = this.onOpen.bind(this);
-    console.log('WebSocket connection open');
   }
 
   public sendLine(serverId: string, data: string): void {
@@ -52,13 +70,13 @@ export class WebSocketClient {
   }
 
   private onMessage(e: MessageEvent<string>) {
-    const data = JSON.parse(e.data);
+    const data = humps.camelizeKeys(JSON.parse(e.data));
 
     switch (data.type) {
       case 'progress':
-        switch (data.progress_type) {
+        switch (data.progressType) {
           case 'performance': {
-            const ev = new PerformanceProgress(data.servers, data.system, data.timestamp);
+            const ev = new Performance(data as PerformanceInput);
             this.events.get('PerformanceProgress')?.map((cb) => cb(ev));
             break;
           }
@@ -69,50 +87,106 @@ export class WebSocketClient {
         break;
 
       case 'event':
-        switch (data.event_type) {
-          case 'server_process_read': {
-            const ev = new ServerProcessReadEvent(data.server, data.data);
-            this.events.get('ServerProcessRead')?.map((cb) => cb(ev));
-            break;
-          }
-
+        switch (data.eventType) {
           case 'server_change_state': {
-            const ev = new ServerChangeStateEvent(
-              ServerState.valueOf(data.new_state),
-              ServerState.valueOf(data.old_state),
-              data.server
-            );
+            const ev = new ServerChangeStateEvent(data as ServerChangeStateEventInput);
             this.events.get('ServerChangeState')?.map((cb) => cb(ev));
             break;
           }
 
           case 'file_task_start': {
-            const { task } = data;
-            const ev = new FileTaskEvent(
-              task.dst,
-              task.id,
-              task.progress,
-              task.result,
-              task.server,
-              task.src,
-              task.type
-            );
+            const ev = new FileTaskEvent(data as FileTaskEventInput);
             this.events.get('FileTaskStart')?.map((cb) => cb(ev));
             break;
           }
 
           case 'file_task_end': {
-            const { task } = data;
-            const ev = new FileTaskEvent(
-              task.dst,
-              task.id,
-              task.progress,
-              task.result,
-              task.server,
-              task.src,
-              task.type
-            );
+            const ev = new FileTaskEvent(data as FileTaskEventInput);
             this.events.get('FileTaskEnd')?.map((cb) => cb(ev));
+            break;
+          }
+
+          case 'websocket_client_connect': {
+            const ev = new WebsocketClientEvent(data as WebsocketClientEventInput);
+            this.events.get('WebsocketClientConnect')?.map((cb) => cb(ev));
+            break;
+          }
+
+          case 'websocket_client_disconnect': {
+            const ev = new WebsocketClientEvent(data as WebsocketClientEventInput);
+            this.events.get('WebsocketClientDisconnect')?.map((cb) => cb(ev));
+            break;
+          }
+
+          case 'server_created': {
+            const ev = new ServerOperationEvent(data as ServerOperationEventInput);
+            this.events.get('ServerCreated')?.map((cb) => cb(ev));
+            break;
+          }
+
+          case 'server_deleted': {
+            const ev = new ServerOperationEvent(data as ServerOperationEventInput);
+            this.events.get('ServerDeleted')?.map((cb) => cb(ev));
+            break;
+          }
+
+          case 'server_process_read': {
+            const ev = new ServerProcessReadEvent(data as ServerProcessReadEventInput);
+            this.events.get('ServerProcessRead')?.map((cb) => cb(ev));
+            break;
+          }
+
+          case 'extension_add': {
+            const ev = new ExtensionOperationEvent(data as ExtensionOperationEventInput);
+            this.events.get('ExtensionAdd')?.map((cb) => cb(ev));
+            break;
+          }
+
+          case 'extension_remove': {
+            const ev = new ExtensionOperationEvent(data as ExtensionOperationEventInput);
+            this.events.get('ExtensionRemove')?.map((cb) => cb(ev));
+            break;
+          }
+
+          case 'switcher_config_loaded': {
+            const ev = new SwitcherOperationEvent();
+            this.events.get('SwitcherConfigLoaded')?.map((cb) => cb(ev));
+            break;
+          }
+
+          case 'switcher_servers_loaded': {
+            const ev = new SwitcherOperationEvent();
+            this.events.get('SwitcherServersLoaded')?.map((cb) => cb(ev));
+            break;
+          }
+
+          case 'switcher_servers_reloaded': {
+            const ev = new SwitcherOperationEvent();
+            this.events.get('SwitcherServersReloaded')?.map((cb) => cb(ev));
+            break;
+          }
+
+          case 'file_created': {
+            const ev = new FileTaskEvent(data as FileTaskEventInput);
+            this.events.get('FileCreated')?.map((cb) => cb(ev));
+            break;
+          }
+
+          case 'file_deleted': {
+            const ev = new FileTaskEvent(data as FileTaskEventInput);
+            this.events.get('FileDeleted')?.map((cb) => cb(ev));
+            break;
+          }
+
+          case 'file_modified': {
+            const ev = new FileTaskEvent(data as FileTaskEventInput);
+            this.events.get('FileModified')?.map((cb) => cb(ev));
+            break;
+          }
+
+          case 'file_moved': {
+            const ev = new FileTaskEvent(data as FileTaskEventInput);
+            this.events.get('FileMoved')?.map((cb) => cb(ev));
             break;
           }
 
@@ -136,6 +210,7 @@ export class WebSocketClient {
   }
 
   private onOpen(e: Event) {
+    console.log('WebSocket connection open');
     this.events.get('open')?.map((cb) => cb(e));
   }
 
@@ -156,86 +231,4 @@ export class WebSocketClient {
     this.closed = true;
     this.ws.close();
   }
-}
-
-export class PerformanceProgress {
-  public servers: {
-    game: { ticks: number } | null;
-    id: string;
-    jvm: { cpuUsage: number; memTotal: number; memUsed: number } | null;
-  }[];
-
-  constructor(
-    servers: {
-      game: { ticks: number } | null;
-      id: string;
-      jvm: { cpu_usage: number; mem_total: number; mem_used: number } | null;
-    }[],
-    public system: {
-      cpu: { usage: number; count: number };
-      memory: { available: number; swap_available: number; swap_total: number; total: number };
-    },
-    public _timestamp: number
-  ) {
-    this.servers = servers.map((s) => ({
-      game: s.game ? { ticks: s.game.ticks } : null,
-      id: s.id,
-      jvm: s.jvm
-        ? { cpuUsage: s.jvm.cpu_usage, memTotal: s.jvm.mem_total, memUsed: s.jvm.mem_used }
-        : null,
-    }));
-  }
-
-  get timestamp(): Date {
-    return new Date(this._timestamp * 1000);
-  }
-}
-
-export class ServerProcessReadEvent {
-  constructor(
-    public serverId: string,
-    public data: string
-  ) {}
-
-  async getServer(): Promise<Server> {
-    return (await Server.get(this.serverId))!;
-  }
-}
-
-export class ServerChangeStateEvent {
-  constructor(
-    public newState: ServerState,
-    public oldState: ServerState,
-    public serverId: string
-  ) {}
-
-  async getServer(): Promise<Server> {
-    return (await Server.get(this.serverId))!;
-  }
-}
-
-export class FileTaskEvent {
-  constructor(
-    public dst: string,
-    public taskId: number,
-    public progress: number,
-    public result: string,
-    public serverId: string,
-    public src: string,
-    public type: string
-  ) {}
-
-  async getServer(): Promise<Server> {
-    return (await Server.get(this.serverId))!;
-  }
-}
-
-export interface EventMap {
-  PerformanceProgress: PerformanceProgress;
-  ServerProcessRead: ServerProcessReadEvent;
-  ServerChangeState: ServerChangeStateEvent;
-  FileTaskStart: FileTaskEvent;
-  FileTaskEnd: FileTaskEvent;
-  open: Event;
-  close: CloseEvent;
 }
