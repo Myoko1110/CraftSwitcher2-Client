@@ -9,8 +9,9 @@ import type {
   ExtensionOperationEvent,
 } from '../models';
 
-export interface EventMap {
+export interface ListenerMap {
   PerformanceProgress: Performance;
+  FileTaskProgress: FileTaskEvent;
 
   ServerChangeState: ServerChangeStateEvent;
   FileTaskStart: FileTaskEvent;

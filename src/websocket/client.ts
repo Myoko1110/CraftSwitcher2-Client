@@ -12,7 +12,7 @@ import {
   ExtensionOperationEvent,
 } from './models';
 
-import type { EventMap } from './abc/event-map';
+import type { ListenerMap } from './abc/listener-map';
 import type {
   PerformanceInput,
   FileTaskEventInput,
@@ -78,6 +78,12 @@ export class WebSocketClient {
           case 'performance': {
             const ev = new Performance(data as PerformanceInput);
             this.events.get('PerformanceProgress')?.map((cb) => cb(ev));
+            break;
+          }
+
+          case 'file_task': {
+            const ev = new FileTaskEvent(data as FileTaskEventInput);
+            this.events.get('FileTaskProgress')?.map((cb) => cb(ev));
             break;
           }
 
@@ -214,13 +220,16 @@ export class WebSocketClient {
     this.events.get('open')?.map((cb) => cb(e));
   }
 
-  addEventListener<K extends keyof EventMap>(event: K, callback: (e: EventMap[K]) => void) {
+  addEventListener<K extends keyof ListenerMap>(event: K, callback: (e: ListenerMap[K]) => void) {
     const events = this.events.get(event) || [];
     events.push(callback);
     this.events.set(event, events);
   }
 
-  removeEventListener<K extends keyof EventMap>(event: K, callback: (e: EventMap[K]) => void) {
+  removeEventListener<K extends keyof ListenerMap>(
+    event: K,
+    callback: (e: ListenerMap[K]) => void
+  ) {
     const events = this.events.get(event) || [];
     const newEvents = events.filter((cb) => cb !== callback);
 
