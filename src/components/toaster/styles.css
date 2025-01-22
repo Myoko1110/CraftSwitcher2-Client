@@ -11,19 +11,19 @@
     background-color: var(--palette-text-primary);
     color: var(--palette-background-paper);
     padding: 8px 8px 8px 12px;
-    border-color: rgba(var(--palette-grey-500Channel) / 0.16);;
+    border-color: rgba(var(--palette-grey-500Channel) / 0.16);
 }
 
 .toaster__closeButton {
     top: 0;
     right: 0;
     left: auto;
-    border: 1px solid rgba(var(--palette-grey-500Channel) / 0.16);;
+    border: 1px solid rgba(var(--palette-grey-500Channel) / 0.16);
     transform: translate(-6px, 6px);
 }
 
 .toaster__default .toaster__closeButton {
-    background-color: var(--palette-text-primary)!important;
+    background-color: var(--palette-text-primary) !important;
     color: var(--palette-background-paper);
     border-color: rgba(var(--palette-grey-500Channel) / 0.16);
     transition: ease border 0.2s;
@@ -45,7 +45,21 @@
 .toaster__icon svg {
     height: 24px;
     width: 24px;
+}
 
+.sonner-loading-wrapper {
+    height: 48px !important;
+    width: 48px !important;
+    position: relative !important;
+}
+
+.sonner-spinner {
+    height: 20px;
+    width: 20px;
+}
+
+.toaster[data-type="loading"] .toaster__icon {
+    background-color: rgba(var(--palette-grey-400Channel) / 0.16);
 }
 
 .toaster__info .toaster__icon {
