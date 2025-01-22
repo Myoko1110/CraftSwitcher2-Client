@@ -30,9 +30,9 @@ export function BackupTableHead({
 }: BackupTableHeadProps) {
   const headLabel = [
     { id: 'name', label: '名前' },
-    { id: 'createdAt', label: '作成日時' },
-    { id: 'type', label: 'タイプ' },
     { id: 'comment', label: 'コメント' },
+    { id: 'size', label: 'サイズ' },
+    { id: '' },
     { id: '' },
   ];
 

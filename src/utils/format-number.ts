@@ -86,7 +86,7 @@ export function fData(inputValue: InputNumberValue) {
   if (number === null || number === 0) return '0 バイト';
 
   const units = ['バイト', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
-  const decimal = 2;
+  const decimal = 1;
   const baseValue = 1024;
 
   const index = Math.floor(Math.log(number) / Math.log(baseValue));

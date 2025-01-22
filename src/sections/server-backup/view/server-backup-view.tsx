@@ -30,7 +30,7 @@ export function ServerBackupView() {
     (async () => {
       try {
         const b = await server.getBackups();
-        setBackups(b);
+        setBackups(b.reverse());
         setIsLoading(false);
       } catch (e) {
         console.error(e);
