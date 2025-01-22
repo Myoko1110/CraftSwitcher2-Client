@@ -337,7 +337,7 @@ export default class Server {
         version,
         build,
       });
-      if (javaPreset) params.set('java_preset', javaPreset);
+      if (javaPreset) params.append('java_preset', javaPreset);
 
       const result = await axios.post(`/server/${this.id}/install?${params.toString()}`);
       return new FileOperationResult(result.data);

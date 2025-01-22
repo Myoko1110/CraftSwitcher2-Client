@@ -114,9 +114,7 @@ export default class Backup {
     if (snapshot !== undefined) params.append('snapshot', snapshot.toString());
 
     try {
-      const result = await axios.post(
-        `/server/${server.id}/backup?comments=${comments}&snapshot=${snapshot}`
-      );
+      const result = await axios.post(`/server/${server.id}/backup?${params.toString()}`);
       return new BackupTask(result.data);
     } catch (e) {
       throw APIError.fromError(e);
@@ -383,5 +381,9 @@ export default class Backup {
     } catch (e) {
       return null;
     }
+  }
+
+  get isSnapshot(): boolean {
+    return this.type === BackupType.SNAPSHOT;
   }
 }

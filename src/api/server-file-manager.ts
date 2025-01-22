@@ -246,7 +246,7 @@ export class ServerFileManager {
    */
   static async getInfo(server: Server, _path: string): Promise<ServerFileManager> {
     try {
-      const result = await axios.get(`/server/${server}/file/info?path=${_path}`);
+      const result = await axios.get(`/server/${server.id}/file/info?path=${_path}`);
       return this.deserialize(result.data, server);
     } catch (e) {
       throw APIError.fromError(e);
