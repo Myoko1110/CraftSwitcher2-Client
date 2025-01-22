@@ -21,6 +21,7 @@ export const ServerPage = lazy(() => import('src/pages/server'));
 export const ServerManagement = lazy(() => import('src/pages/server-management'));
 export const ServerFileEditPage = lazy(() => import('src/pages/server-file-edit'));
 export const ServerBackupCreatePage = lazy(() => import('src/pages/server-backup-create'));
+export const ServerBackupRestorePage = lazy(() => import('src/pages/server-backup-restore'));
 export const ServerCreatePage = lazy(() => import('src/pages/server-create'));
 export const UserPage = lazy(() => import('src/pages/user'));
 export const LoginPage = lazy(() => import('src/pages/login'));
@@ -76,6 +77,10 @@ export function Router() {
             {
               path: ':id/backup/create',
               element: <ServerBackupCreatePage />,
+            },
+            {
+              path: ':id/backup/restore/:backupId',
+              element: <ServerBackupRestorePage />,
             },
           ],
         },
