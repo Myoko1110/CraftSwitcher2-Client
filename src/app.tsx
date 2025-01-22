@@ -15,7 +15,7 @@ import { SonnerToaster } from 'src/components/toaster/toaster';
 
 export default function App() {
   useScrollToTop();
-  axios.defaults.baseURL = import.meta.env.VITE_FRONTEND_URL;
+  axios.defaults.baseURL = import.meta.env.VITE_BACKEND_URL;
   axios.defaults.headers.post['content-type'] = 'application/x-www-form-urlencoded';
   axios.defaults.withCredentials = true;
 

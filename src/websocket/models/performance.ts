@@ -1,10 +1,11 @@
 import type { ServerStatusInfo } from 'src/models/server';
 import type { SystemCpuInfo, SystemMemoryInfo } from 'src/models/system';
+import dayjs, { Dayjs } from 'dayjs';
 
 // --------------------------------------------------
 
 export class Performance {
-  public time: Date;
+  public time: Dayjs;
 
   public system: {
     cpu: SystemCpuInfo;
@@ -14,7 +15,7 @@ export class Performance {
   public servers: ServerStatusInfo[];
 
   constructor({ time, system, servers }: PerformanceInput) {
-    this.time = new Date(time * 1000);
+    this.time = dayjs.utc(time * 1000);
     this.system = {
       cpu: system.cpu,
       memory: system.memory,

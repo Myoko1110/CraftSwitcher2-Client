@@ -1,13 +1,17 @@
 import type { Dayjs } from 'dayjs';
 
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
 import duration from 'dayjs/plugin/duration';
+import timezone from 'dayjs/plugin/timezone';
 import relativeTime from 'dayjs/plugin/relativeTime';
 
 // ----------------------------------------------------------------------
 
 dayjs.extend(duration);
 dayjs.extend(relativeTime);
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 // ----------------------------------------------------------------------
 
@@ -45,7 +49,11 @@ export function fDateTime(date: DatePickerFormat, format?: string) {
 
   const isValid = dayjs(date).isValid();
 
-  return isValid ? dayjs(date).format(format ?? formatStr.dateTime) : 'Invalid time value';
+  return isValid
+    ? dayjs(date)
+        .tz('Asia/Tokyo')
+        .format(format ?? formatStr.dateTime)
+    : 'Invalid time value';
 }
 
 // ----------------------------------------------------------------------

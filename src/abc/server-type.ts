@@ -1,5 +1,5 @@
 // eslint-disable-next-line max-classes-per-file
-import type { JarDLBuildInfoResult, JarDLVersionInfoResult } from 'src/models/jardl';
+import type { JarDLBuildInfo, JarDLVersionInfo } from 'src/models/jardl';
 
 import ServerInstaller from 'src/api/jardl';
 
@@ -147,15 +147,15 @@ export default class ServerType {
     return result.map((c) => ServerType.valueOf(c)!);
   }
 
-  async getVersions(): Promise<JarDLVersionInfoResult[]> {
+  async getVersions(): Promise<JarDLVersionInfo[]> {
     return ServerInstaller.getVersions(this.name);
   }
 
-  async getBuilds(version: string): Promise<JarDLBuildInfoResult[]> {
+  async getBuilds(version: string): Promise<JarDLBuildInfo[]> {
     return ServerInstaller.getBuilds(this.name, version);
   }
 
-  async getBuild(version: string, build: string): Promise<JarDLBuildInfoResult> {
+  async getBuild(version: string, build: string): Promise<JarDLBuildInfo> {
     return ServerInstaller.getBuild(this.name, version, build);
   }
 }

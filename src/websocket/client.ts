@@ -25,7 +25,7 @@ import type {
 
 // ----------------------------------------------------------------------
 
-const websocketUrl = `${import.meta.env.VITE_FRONTEND_URL}/ws`;
+const websocketUrl = `${import.meta.env.VITE_BACKEND_URL}/ws`;
 
 export class WebSocketClient {
   private ws: WebSocket;

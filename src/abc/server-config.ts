@@ -1,5 +1,8 @@
 // eslint-disable-next-line max-classes-per-file
+import type { Dayjs } from 'dayjs';
 import type { AxiosResponse } from 'axios';
+
+import dayjs from 'dayjs';
 
 import ServerType from './server-type';
 
@@ -12,9 +15,9 @@ export class ServerConfig {
     public launchCommand: string | null,
     public stopCommand: string | null,
     public shutdownTimeout: number | null,
-    public readonly createdAt: Date | null,
-    public readonly lastLaunchAt: Date | null,
-    public readonly lastBackupAt: Date | null
+    public readonly createdAt: Dayjs | null,
+    public readonly lastLaunchAt: Dayjs | null,
+    public readonly lastBackupAt: Dayjs | null
   ) {}
 
   static serialize(config: Partial<ServerConfig>) {
@@ -40,9 +43,9 @@ export class ServerConfig {
       data.launchCommand,
       data.stopCommand,
       data.shutdownTimeout,
-      data.createdAt ? new Date(data.createdAt) : null,
-      data.lastLaunchAt ? new Date(data.lastLaunchAt) : null,
-      data.lastBackupAt ? new Date(data.lastBackupAt) : null
+      data.createdAt ? dayjs.utc(data.createdAt) : null,
+      data.lastLaunchAt ? dayjs.utc(data.lastLaunchAt) : null,
+      data.lastBackupAt ? dayjs.utc(data.lastBackupAt) : null
     );
   }
 }
@@ -121,10 +124,11 @@ export type ServerConfigResult = {
   'launchOption.enableReporterAgent': boolean | null;
   'launchOption.enableScreen': boolean | null;
   enableLaunchCommand: boolean | null;
-  launchCommand: string | null;
+  launchCommand: string;
   stopCommand: string | null;
   shutdownTimeout: number | null;
-  createdAt: Date | null;
-  lastLaunchAt: Date | null;
-  lastBackupAt: Date | null;
+  createdAt: string | null;
+  lastLaunchAt: string | null;
+  lastBackupAt: string | null;
+  // TODO: 追加
 };

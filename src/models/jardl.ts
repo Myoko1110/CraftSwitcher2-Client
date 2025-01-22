@@ -1,9 +1,13 @@
-export type JarDLVersionInfoResult = {
+import type { Dayjs } from 'dayjs';
+
+import dayjs from 'dayjs';
+
+export type JarDLVersionInfo = {
   version: string;
   buildCount: number | null;
 };
 
-export class JarDLBuildInfoResult {
+export class JarDLBuildInfo {
   build: string;
 
   downloadUrl: string | null;
@@ -12,7 +16,7 @@ export class JarDLBuildInfoResult {
 
   requireJdk: boolean | null;
 
-  updatedDatetime: Date | null;
+  updatedAt: Dayjs | null;
 
   recommended: false;
 
@@ -20,18 +24,19 @@ export class JarDLBuildInfoResult {
 
   isLoadedInfo: true;
 
-  constructor(data: JarDLBuildInfoAPIResult) {
+  constructor(data: JarDLBuildInfoResult) {
     this.build = data.build;
     this.downloadUrl = data.downloadUrl;
     this.javaMajorVersion = data.javaMajorVersion;
     this.requireJdk = data.requireJdk;
-    this.updatedDatetime = data.updatedDatetime ? new Date(data.updatedDatetime) : null;
+    this.updatedAt = data.updatedDatetime ? dayjs.utc(data.updatedDatetime) : null;
     this.recommended = data.recommended;
     this.isRequiredBuild = data.isRequiredBuild;
     this.isLoadedInfo = data.isLoadedInfo;
   }
 }
-export type JarDLBuildInfoAPIResult = {
+
+export type JarDLBuildInfoResult = {
   build: string;
   downloadUrl: string | null;
   javaMajorVersion: number | null;

@@ -1,6 +1,8 @@
+import type { Dayjs } from 'dayjs';
 import type { UserResult, UserOperationResult } from 'src/models/user';
 
 import axios from 'axios';
+import dayjs from 'dayjs';
 
 import { APIError } from 'src/abc/api-error';
 
@@ -10,7 +12,7 @@ export default class User {
   constructor(
     public id: number,
     public name: string,
-    public lastLogin: Date | null,
+    public lastLogin: Dayjs | null,
     public lastAddress: string | null,
     public permission: number
   ) {}
@@ -50,7 +52,7 @@ export default class User {
           new User(
             u.id,
             u.name,
-            u.lastLogin ? new Date(u.lastLogin) : null,
+            u.lastLogin ? dayjs.utc(u.lastLogin) : null,
             u.lastAddress,
             u.permission
           )

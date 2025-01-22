@@ -1,8 +1,10 @@
 // eslint-disable-next-line max-classes-per-file
+import type { Dayjs } from 'dayjs';
 import type { FileWithPath } from 'react-dropzone';
 import type { FileInfo, FileDirectoryInfoResult } from 'src/models/file';
 
 import axios from 'axios';
+import dayjs from 'dayjs';
 import path from 'path-browserify';
 
 import FileType from 'src/abc/file-type';
@@ -21,9 +23,9 @@ export class ServerFileManager {
 
   public size?: number;
 
-  public modifyAt?: Date;
+  public modifyAt?: Dayjs;
 
-  public createdAt?: Date;
+  public createdAt?: Dayjs;
 
   public type: FileType;
 
@@ -58,8 +60,8 @@ export class ServerFileManager {
           name: fileInfo.name,
           path: fileInfo.path,
           size: fileInfo.size,
-          modifyTime: new Date(fileInfo.modifyTime * 1000),
-          createTime: new Date(fileInfo.createTime * 1000),
+          modifyTime: dayjs.utc(fileInfo.modifyTime * 1000),
+          createTime: dayjs.utc(fileInfo.createTime * 1000),
           isServerDir: fileInfo.isServerDir,
           registeredServerId: fileInfo.registeredServerId,
         },
@@ -72,8 +74,8 @@ export class ServerFileManager {
         path: fileInfo.path,
         type: FileType.getByFilename(fileInfo.name),
         size: fileInfo.size,
-        modifyTime: new Date(fileInfo.modifyTime * 1000),
-        createTime: new Date(fileInfo.createTime * 1000),
+        modifyTime: dayjs.utc(fileInfo.modifyTime * 1000),
+        createTime: dayjs.utc(fileInfo.createTime * 1000),
       },
       server
     );
@@ -401,16 +403,16 @@ type FileManagerParams = {
   path: string;
   type: FileType;
   size?: number;
-  modifyTime?: Date;
-  createTime?: Date;
+  modifyTime?: Dayjs;
+  createTime?: Dayjs;
 };
 
 type DirectoryParams = {
   name: string;
   path: string;
   size?: number;
-  modifyTime?: Date;
-  createTime?: Date;
+  modifyTime?: Dayjs;
+  createTime?: Dayjs;
   children?: ServerFileList;
   isServerDir?: boolean;
   registeredServerId?: string | null;

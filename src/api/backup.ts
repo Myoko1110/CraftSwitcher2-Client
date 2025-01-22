@@ -1,3 +1,4 @@
+import type { Dayjs } from 'dayjs';
 import type {
   BackupId,
   BackupResult,
@@ -7,6 +8,7 @@ import type {
 } from 'src/models/backup';
 
 import axios from 'axios';
+import dayjs from 'dayjs';
 
 import { toCamelCase } from 'src/utils/to-camelcase';
 
@@ -23,7 +25,7 @@ export default class Backup {
     public id: string,
     public type: BackupType,
     public source: string,
-    public createdAt: Date,
+    public createdAt: Dayjs,
     public previousBackupId: string | null,
     public path: string,
     public comments: string | null,
@@ -38,7 +40,7 @@ export default class Backup {
       data.id,
       BackupType.valueOf(data.type),
       data.source,
-      new Date(data.created),
+      dayjs.utc(data.created),
       data.previousBackupId,
       data.path,
       data.comments,
