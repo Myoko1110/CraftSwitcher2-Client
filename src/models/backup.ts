@@ -1,8 +1,9 @@
+// eslint-disable-next-line max-classes-per-file
 import type Backup from 'src/api/backup';
-import type SnapshotStatus from 'src/abc/snapshot-status';
-import type BackupFileErrorType from 'src/abc/backup-file-error-type';
 
 import BackupType from 'src/abc/backup-type';
+import SnapshotStatus from 'src/abc/snapshot-status';
+import BackupFileErrorType from 'src/abc/backup-file-error-type';
 
 import { FileTask } from './task';
 
@@ -32,71 +33,178 @@ export interface BackupId {
 
 export interface BackupFileInfo {
   size: number;
-  modify_time: string;
-  is_dir: boolean;
+  modifyTime: string;
+  isDir: boolean;
 }
 
-export interface BackupFileDifference {
-  path: string;
-  old_info: BackupFileInfo | null;
-  new_info: BackupFileInfo | null;
-  status: SnapshotStatus;
+export class BackupFileDifference {
+  public path: string;
+
+  public oldInfo: BackupFileInfo | null;
+
+  public newInfo: BackupFileInfo | null;
+
+  public status: SnapshotStatus;
+
+  constructor({ path, oldInfo, newInfo, status }: BackupFileDifferenceAPIResult) {
+    this.path = path;
+    this.oldInfo = oldInfo;
+    this.newInfo = newInfo;
+    this.status = SnapshotStatus.valueOf(status);
+  }
 }
 
 export interface BackupFilePathInfo {
   path: string;
-  is_dir: boolean;
+  isDir: boolean;
   size: number;
-  modify_time: string;
+  modifyTime: string;
 }
 
-export interface BackupFilePathErrorInfo {
-  path: string;
-  error_type: BackupFileErrorType;
-  error_message: string | null;
+export class BackupFilePathErrorInfo {
+  public path: string;
+
+  public errorType: BackupFileErrorType;
+
+  public errorMessage: string | null;
+
+  constructor({ path, errorType, errorMessage }: BackupFilePathErrorInfoAPIResult) {
+    this.path = path;
+    this.errorType = BackupFileErrorType.valueOf(errorType);
+    this.errorMessage = errorMessage;
+  }
 }
 
-export interface BackupFilesResult {
+export class BackupFilesResult {
   totalFiles: number;
+
   totalFilesSize: number;
+
   errorFiles: number;
-  backupFilesSize: number;
+
+  backupFilesSize: number | null;
 
   files: BackupFilePathInfo[] | null;
+
   errors: BackupFilePathErrorInfo[] | null;
+
+  constructor({
+    totalFiles,
+    totalFilesSize,
+    errorFiles,
+    backupFilesSize,
+    files,
+    errors,
+  }: BackupFilesResultAPIResult) {
+    this.totalFiles = totalFiles;
+    this.totalFilesSize = totalFilesSize;
+    this.errorFiles = errorFiles;
+    this.backupFilesSize = backupFilesSize;
+    this.files = files;
+    this.errors = errors ? errors.map((error) => new BackupFilePathErrorInfo(error)) : null;
+  }
 }
 
-export interface BackupsCompareResult {
-  totalFiles: number;
-  totalFilesSize: number;
-  errorFiles: number;
-  backupFilesSize: number;
+export class BackupsCompareResult {
+  public totalFiles: number;
 
-  updateFiles: number;
-  updateFilesSize: number;
+  public totalFilesSize: number;
 
-  targetTotalFiles: number;
-  targetTotalFilesSize: number;
-  targetErrorFiles: number;
-  targetBackupFilesSize: number;
+  public errorFiles: number;
 
-  files: BackupFileDifference[] | null;
-  errors: BackupFilePathErrorInfo[] | null;
-  targetErrors: BackupFilePathErrorInfo[] | null;
+  public backupFilesSize: number;
+
+  public updateFiles: number;
+
+  public updateFilesSize: number;
+
+  public targetTotalFiles: number;
+
+  public targetTotalFilesSize: number;
+
+  public targetErrorFiles: number;
+
+  public targetBackupFilesSize: number | null;
+
+  public files: BackupFileDifference[] | null;
+
+  public errors: BackupFilePathErrorInfo[] | null;
+
+  public targetErrors: BackupFilePathErrorInfo[] | null;
+
+  constructor({
+    totalFiles,
+    totalFilesSize,
+    errorFiles,
+    backupFilesSize,
+    updateFiles,
+    updateFilesSize,
+    targetTotalFiles,
+    targetTotalFilesSize,
+    targetErrorFiles,
+    targetBackupFilesSize,
+    files,
+    errors,
+    targetErrors,
+  }: BackupsCompareAPIResult) {
+    this.totalFiles = totalFiles;
+    this.totalFilesSize = totalFilesSize;
+    this.errorFiles = errorFiles;
+    this.backupFilesSize = backupFilesSize;
+    this.updateFiles = updateFiles;
+    this.updateFilesSize = updateFilesSize;
+    this.targetTotalFiles = targetTotalFiles;
+    this.targetTotalFilesSize = targetTotalFilesSize;
+    this.targetErrorFiles = targetErrorFiles;
+    this.targetBackupFilesSize = targetBackupFilesSize;
+    this.files = files ? files.map((file) => new BackupFileDifference(file)) : null;
+    this.errors = errors ? errors.map((error) => new BackupFilePathErrorInfo(error)) : null;
+    this.targetErrors = targetErrors
+      ? targetErrors.map((error) => new BackupFilePathErrorInfo(error))
+      : null;
+  }
 }
 
-export interface BackupPreviewResult {
-  total_files: number;
-  total_files_size: number;
-  error_files: number;
-  update_files: number;
-  update_files_size: number;
-  backup_files_size: number;
+export class BackupPreviewResult {
+  public totalFiles: number;
 
-  snapshot_source: string;
+  public totalFilesSize: number;
 
-  files: BackupFilePathInfo[];
-  errors: BackupFilePathErrorInfo[];
+  public errorFiles: number;
+
+  public updateFiles: number;
+
+  public updateFilesSize: number;
+
+  public backupFilesSize: number | null;
+
+  public snapshotSource: string | null;
+
+  public files: BackupFileDifference[] | null;
+
+  public errors: BackupFilePathErrorInfo[] | null;
+
+  constructor({
+    totalFiles,
+    totalFilesSize,
+    errorFiles,
+    updateFiles,
+    updateFilesSize,
+    backupFilesSize,
+    snapshotSource,
+    files,
+    errors,
+  }: BackupsPreviewAPIResult) {
+    this.totalFiles = totalFiles;
+    this.totalFilesSize = totalFilesSize;
+    this.errorFiles = errorFiles;
+    this.updateFiles = updateFiles;
+    this.updateFilesSize = updateFilesSize;
+    this.backupFilesSize = backupFilesSize;
+    this.snapshotSource = snapshotSource;
+    this.files = files ? files.map((file) => new BackupFileDifference(file)) : null;
+    this.errors = errors ? errors.map((error) => new BackupFilePathErrorInfo(error)) : null;
+  }
 }
 
 export interface BackupFileHistoryEntry {
@@ -130,6 +238,62 @@ export class BackupTask extends FileTask {
     this.backupId = backupId;
   }
 }
+
+type BackupFileDifferenceAPIResult = {
+  path: string;
+  oldInfo: BackupFileInfo | null;
+  newInfo: BackupFileInfo | null;
+  status: number;
+};
+
+type BackupFilePathErrorInfoAPIResult = {
+  path: string;
+  errorType: number;
+  errorMessage: string | null;
+};
+
+type BackupFilesResultAPIResult = {
+  totalFiles: number;
+  totalFilesSize: number;
+  errorFiles: number;
+  backupFilesSize: number;
+
+  files: BackupFilePathInfo[] | null;
+  errors: BackupFilePathErrorInfoAPIResult[] | null;
+};
+
+type BackupsCompareAPIResult = {
+  totalFiles: number;
+  totalFilesSize: number;
+  errorFiles: number;
+  backupFilesSize: number;
+
+  updateFiles: number;
+  updateFilesSize: number;
+
+  targetTotalFiles: number;
+  targetTotalFilesSize: number;
+  targetErrorFiles: number;
+  targetBackupFilesSize: number | null;
+
+  files: BackupFileDifferenceAPIResult[] | null;
+  errors: BackupFilePathErrorInfoAPIResult[] | null;
+  targetErrors: BackupFilePathErrorInfoAPIResult[] | null;
+};
+
+type BackupsPreviewAPIResult = {
+  totalFiles: number;
+  totalFilesSize: number;
+  errorFiles: number;
+  updateFiles: number;
+  updateFilesSize: number;
+  backupFilesSize: number | null;
+
+  snapshotSource: string | null;
+
+  files: BackupFileDifferenceAPIResult[] | null;
+  errors: BackupFilePathErrorInfoAPIResult[] | null;
+};
 
 type BackupTaskAPIResult = FileTaskAPIResult & {
   comments: string | null;

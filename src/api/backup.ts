@@ -1,20 +1,17 @@
 import type { Dayjs } from 'dayjs';
-import type {
-  BackupId,
-  BackupResult,
-  BackupFilesResult,
-  BackupPreviewResult,
-  BackupsCompareResult,
-} from 'src/models/backup';
+import type { BackupId, BackupResult } from 'src/models/backup';
 
 import axios from 'axios';
 import dayjs from 'dayjs';
 
-import { toCamelCase } from 'src/utils/to-camelcase';
-
 import BackupType from 'src/abc/backup-type';
 import { APIError } from 'src/abc/api-error';
-import { BackupTask } from 'src/models/backup';
+import {
+  BackupTask,
+  BackupFilesResult,
+  BackupPreviewResult,
+  BackupsCompareResult,
+} from 'src/models/backup';
 
 import type Server from './server';
 
@@ -70,7 +67,7 @@ export default class Backup {
   static async getById(id: string): Promise<Backup> {
     try {
       const result = await axios.get(`/backup/${id}`);
-      const data = toCamelCase(result.data) as BackupResult;
+      const data = result.data as BackupResult;
       return Backup.deserializeFromResult(data);
     } catch (e) {
       throw APIError.fromError(e);
@@ -84,7 +81,7 @@ export default class Backup {
   static async getByServer(server: Server): Promise<Backup[]> {
     try {
       const result = await axios.get(`/server/${server.id}/backups`);
-      const data = toCamelCase(result.data) as BackupResult[];
+      const data = result.data as BackupResult[];
       return data.map((d) => Backup.deserializeFromResult(d));
     } catch (e) {
       throw APIError.fromError(e);
@@ -155,7 +152,7 @@ export default class Backup {
 
     try {
       const result = await axios.get(`/server/${server.id}/backup/preview?${params.toString()}`);
-      return toCamelCase(result.data) as BackupPreviewResult;
+      return new BackupPreviewResult(result.data);
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -199,7 +196,7 @@ export default class Backup {
 
     try {
       const result = await axios.get(`/backup/${this.id}/files?${params.toString()}`);
-      return toCamelCase(result.data) as BackupFilesResult;
+      return new BackupFilesResult(result.data);
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -238,7 +235,7 @@ export default class Backup {
 
     try {
       const result = await axios.get(`/backup/${this.id}/files/compare?${params.toString()}`);
-      return toCamelCase(result.data) as BackupsCompareResult;
+      return new BackupsCompareResult(result.data);
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -254,7 +251,7 @@ export default class Backup {
       const result = await axios.get(`/backup/${this.id}/export`, {
         responseType: 'blob',
       });
-      return result.data;
+      return result.data as Blob;
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -271,10 +268,7 @@ export default class Backup {
   async restore(server: Server): Promise<BackupTask> {
     try {
       const result = await axios.post(`/server/${server.id}/backup/${this.id}/restore`);
-
-      const data = toCamelCase(result.data);
-      data.backupType = BackupType.valueOf(data.backupType);
-      return data as BackupTask;
+      return new BackupTask(result.data);
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -301,17 +295,17 @@ export default class Backup {
       includeErrors?: boolean;
       onlyUpdates?: boolean;
     }
-  ) {
+  ): Promise<BackupsCompareResult> {
     const params = new URLSearchParams();
     if (includeFiles !== undefined) params.append('include_files', includeFiles.toString());
     if (includeErrors !== undefined) params.append('include_errors', includeErrors.toString());
     if (onlyUpdates !== undefined) params.append('only_updates', onlyUpdates.toString());
 
     try {
-      const result = await axios.post(
+      const result = await axios.get(
         `/server/${server.id}/backup/${this.id}/verify?${params.toString()}`
       );
-      return toCamelCase(result.data) as BackupsCompareResult;
+      return new BackupsCompareResult(result.data);
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -340,7 +334,7 @@ export default class Backup {
       includeErrors?: boolean;
       onlyUpdates?: boolean;
     }
-  ) {
+  ): Promise<BackupsCompareResult> {
     const params = new URLSearchParams();
     if (checkFiles !== undefined) params.append('check_files', checkFiles.toString());
     if (includeFiles !== undefined) params.append('include_files', includeFiles.toString());
@@ -351,7 +345,7 @@ export default class Backup {
       const result = await axios.get(
         `/server/${server.id}/backup/${this.id}/files/compare?${params.toString()}`
       );
-      return toCamelCase(result.data) as BackupsCompareResult;
+      return new BackupsCompareResult(result.data);
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -368,7 +362,7 @@ export default class Backup {
       const result = await axios.get(`/backup/${this.id}/file?path=${path}`, {
         responseType: 'blob',
       });
-      return result.data;
+      return result.data as Blob;
     } catch (e) {
       throw APIError.fromError(e);
     }
