@@ -86,8 +86,6 @@ export function ServerBackupCreate() {
   };
 
   useEffect(() => {
-    toast.loading('aa');
-
     if (!id) return;
     (async () => {
       try {
