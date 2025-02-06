@@ -7,8 +7,8 @@ import TableRow from '@mui/material/TableRow';
 import TableCell from '@mui/material/TableCell';
 import Typography from '@mui/material/Typography';
 
-import FileType from 'src/abc/file-type';
-import SnapshotStatus from 'src/abc/snapshot-status';
+import FileType from 'src/enums/file-type';
+import SnapshotStatus from 'src/enums/snapshot-status';
 
 // ----------------------------------------------------------------------
 
@@ -40,28 +40,53 @@ export default function ServerNewFileTableRow({ file }: Props) {
         cursor: 'default',
         overflow: 'hidden',
         whiteSpace: 'nowrap',
-        backgroundColor: (theme) =>
-          file.status === SnapshotStatus.UPDATE
-            ? theme.palette.warning.lighter
-            : file.status === SnapshotStatus.DELETE
-              ? theme.palette.error.lighter
-              : file.status === SnapshotStatus.CREATE
-                ? theme.palette.success.lighter
-                : 'transparent',
       }}
     >
       <TableCell sx={{ py: 0.5 }}>
         <Stack direction="row" alignItems="center" gap={1}>
-          <FileIcon name={fileType.name} />
-          <Typography
+          <Stack direction="row" alignItems="center" width="50%" gap={1}>
+            {file.oldInfo && (
+              <>
+                <FileIcon name={fileType.name} />
+                <Typography
+                  sx={{
+                    textOverflow: 'ellipsis',
+                    overflow: 'hidden',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {file.path}
+                </Typography>
+              </>
+            )}
+          </Stack>
+          <Stack
+            direction="row"
+            alignItems="center"
+            flexGrow={1}
+            gap={1}
             sx={{
-              textOverflow: 'ellipsis',
-              overflow: 'hidden',
-              whiteSpace: 'nowrap',
+              backgroundColor: (theme) =>
+                file.status === SnapshotStatus.UPDATE
+                  ? theme.palette.warning.lighter
+                  : file.status === SnapshotStatus.DELETE
+                    ? theme.palette.error.lighter
+                    : file.status === SnapshotStatus.CREATE
+                      ? theme.palette.success.lighter
+                      : 'transparent',
             }}
           >
-            {file.path}
-          </Typography>
+            <FileIcon name={fileType.name} />
+            <Typography
+              sx={{
+                textOverflow: 'ellipsis',
+                overflow: 'hidden',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {file.path}
+            </Typography>
+          </Stack>
         </Stack>
       </TableCell>
     </TableRow>
