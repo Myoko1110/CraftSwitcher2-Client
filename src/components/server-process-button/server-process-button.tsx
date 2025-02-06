@@ -10,8 +10,8 @@ import Tooltip from '@mui/material/Tooltip';
 import IconButton from '@mui/material/IconButton';
 import { Dialog, DialogTitle, DialogActions } from '@mui/material';
 
-import { APIError } from 'src/abc/api-error';
-import ServerState from 'src/abc/server-state';
+import { APIError } from 'src/enums/api-error';
+import ServerState from 'src/enums/server-state';
 
 import { Iconify } from 'src/components/iconify';
 

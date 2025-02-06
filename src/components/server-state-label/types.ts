@@ -1,4 +1,4 @@
-import type ServerState from 'src/abc/server-state';
+import type ServerState from 'src/enums/server-state';
 
 export type ServerStateLabelProps = {
   state: ServerState;

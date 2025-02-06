@@ -1,5 +1,5 @@
 // eslint-disable-next-line max-classes-per-file
-import FileTaskResult from 'src/abc/file-task-result';
+import FileTaskResult from 'src/enums/file-task-result';
 
 export type FileInfo = {
   name: string;

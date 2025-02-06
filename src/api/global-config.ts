@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-import { APIError } from 'src/abc/api-error';
+import { APIError } from 'src/enums/api-error';
 
 // ------------------------------------------------------------
 

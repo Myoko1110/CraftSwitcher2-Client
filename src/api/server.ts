@@ -3,11 +3,11 @@ import type { ServerResult, ServerStatusInfo, CreateServerParams } from 'src/mod
 
 import axios from 'axios';
 
-import ServerType from 'src/abc/server-type';
-import { APIError } from 'src/abc/api-error';
-import ServerState from 'src/abc/server-state';
-import { ServerConfig } from 'src/abc/server-config';
+import ServerType from 'src/enums/server-type';
+import { APIError } from 'src/enums/api-error';
+import ServerState from 'src/enums/server-state';
 import { FileOperationResult } from 'src/models/file';
+import { ServerConfig } from 'src/enums/server-config';
 
 import Backup from './backup';
 import { ServerFileManager } from './server-file-manager';

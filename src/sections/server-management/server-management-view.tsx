@@ -19,8 +19,8 @@ import { useTheme, type Breakpoint } from '@mui/material/styles';
 import { RouterLink } from 'src/routes/components';
 
 import Server from 'src/api/server';
-import { APIError } from 'src/abc/api-error';
-import ServerState from 'src/abc/server-state';
+import { APIError } from 'src/enums/api-error';
+import ServerState from 'src/enums/server-state';
 import { useWebsocket } from 'src/websocket/hooks';
 import { DashboardContent } from 'src/layouts/dashboard';
 

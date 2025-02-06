@@ -2,7 +2,7 @@ import type { JarDLVersionInfo, JarDLBuildInfoResult } from 'src/models/jardl';
 
 import axios from 'axios';
 
-import { APIError } from 'src/abc/api-error';
+import { APIError } from 'src/enums/api-error';
 import { JarDLBuildInfo } from 'src/models/jardl';
 
 // ------------------------------------------------------------

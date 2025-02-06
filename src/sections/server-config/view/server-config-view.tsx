@@ -18,9 +18,9 @@ import InputAdornment from '@mui/material/InputAdornment';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import { Select, Switch, InputLabel, FormControl } from '@mui/material';
 
-import { APIError } from 'src/abc/api-error';
-import ServerType from 'src/abc/server-type';
-import { LaunchOption } from 'src/abc/server-config';
+import { APIError } from 'src/enums/api-error';
+import ServerType from 'src/enums/server-type';
+import { LaunchOption } from 'src/enums/server-config';
 import { ServerGlobalConfig } from 'src/api/global-config';
 
 import { Iconify } from 'src/components/iconify';

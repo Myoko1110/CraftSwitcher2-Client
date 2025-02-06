@@ -4,7 +4,7 @@ import type { UserResult, UserOperationResult } from 'src/models/user';
 import axios from 'axios';
 import dayjs from 'dayjs';
 
-import { APIError } from 'src/abc/api-error';
+import { APIError } from 'src/enums/api-error';
 
 // ------------------------------------------------------------
 

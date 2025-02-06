@@ -1,5 +1,5 @@
 import type Server from 'src/api/server';
-import type ServerState from 'src/abc/server-state';
+import type ServerState from 'src/enums/server-state';
 import type { ServerProcessReadEvent } from 'src/websocket/models';
 
 import { toast } from 'sonner';
@@ -13,7 +13,7 @@ import { alpha } from '@mui/material';
 import Slide from '@mui/material/Slide';
 import Typography from '@mui/material/Typography';
 
-import { APIError } from 'src/abc/api-error';
+import { APIError } from 'src/enums/api-error';
 import { useWebsocket } from 'src/websocket/hooks';
 
 // ---------------------

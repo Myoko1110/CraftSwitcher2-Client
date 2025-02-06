@@ -10,7 +10,7 @@ import InputAdornment from '@mui/material/InputAdornment';
 import { Dialog, DialogTitle, DialogActions, DialogContent } from '@mui/material';
 
 import User from 'src/api/user';
-import { APIError } from 'src/abc/api-error';
+import { APIError } from 'src/enums/api-error';
 
 import { Iconify } from 'src/components/iconify';
 

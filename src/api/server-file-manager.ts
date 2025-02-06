@@ -7,9 +7,9 @@ import axios from 'axios';
 import dayjs from 'dayjs';
 import path from 'path-browserify';
 
-import FileType from 'src/abc/file-type';
+import FileType from 'src/enums/file-type';
 import { FileTask } from 'src/models/task';
-import { APIError } from 'src/abc/api-error';
+import { APIError } from 'src/enums/api-error';
 import { StorageInfo, FileOperationResult } from 'src/models/file';
 
 import type Server from './server';

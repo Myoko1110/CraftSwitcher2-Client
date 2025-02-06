@@ -17,7 +17,7 @@ import { useTheme, type Breakpoint } from '@mui/material/styles';
 
 import { useRouter } from 'src/routes/hooks';
 
-import FileType from 'src/abc/file-type';
+import FileType from 'src/enums/file-type';
 import { ServerFile } from 'src/api/server-file-manager';
 
 import { Iconify } from 'src/components/iconify';

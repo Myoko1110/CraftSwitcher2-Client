@@ -4,8 +4,8 @@ import type { BackupId, BackupResult } from 'src/models/backup';
 import axios from 'axios';
 import dayjs from 'dayjs';
 
-import BackupType from 'src/abc/backup-type';
-import { APIError } from 'src/abc/api-error';
+import BackupType from 'src/enums/backup-type';
+import { APIError } from 'src/enums/api-error';
 import {
   BackupTask,
   BackupFilesResult,

@@ -1,4 +1,4 @@
-import ServerState from 'src/abc/server-state';
+import ServerState from 'src/enums/server-state';
 
 import { Label } from '../label';
 

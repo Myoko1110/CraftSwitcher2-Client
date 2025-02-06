@@ -14,9 +14,9 @@ import { Dialog, DialogTitle, DialogActions, DialogContent } from '@mui/material
 
 import { fDateTime } from 'src/utils/format-time';
 
-import FileType from 'src/abc/file-type';
-import { APIError } from 'src/abc/api-error';
-import FileTaskResult from 'src/abc/file-task-result';
+import FileType from 'src/enums/file-type';
+import { APIError } from 'src/enums/api-error';
+import FileTaskResult from 'src/enums/file-task-result';
 import { ServerFileList } from 'src/api/server-file-manager';
 
 import { Iconify } from 'src/components/iconify';

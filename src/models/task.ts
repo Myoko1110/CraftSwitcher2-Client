@@ -1,5 +1,5 @@
-import FileEventType from 'src/abc/file-event-type';
-import FileTaskResult from 'src/abc/file-task-result';
+import FileEventType from 'src/enums/file-event-type';
+import FileTaskResult from 'src/enums/file-task-result';
 
 // ----------------------------------------------------------------------
 

@@ -20,9 +20,9 @@ import { Accordion, AccordionDetails, AccordionSummary } from '@mui/material';
 import { RouterLink } from 'src/routes/components';
 
 import Server from 'src/api/server';
-import ServerType from 'src/abc/server-type';
-import { APIError } from 'src/abc/api-error';
-import { LaunchOption } from 'src/abc/server-config';
+import ServerType from 'src/enums/server-type';
+import { APIError } from 'src/enums/api-error';
+import { LaunchOption } from 'src/enums/server-config';
 import { ServerGlobalConfig } from 'src/api/global-config';
 
 import { Iconify } from 'src/components/iconify';

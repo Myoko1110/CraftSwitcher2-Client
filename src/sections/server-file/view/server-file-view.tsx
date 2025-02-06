@@ -12,8 +12,8 @@ import TableBody from '@mui/material/TableBody';
 import TableContainer from '@mui/material/TableContainer';
 
 import { useWebsocket } from 'src/websocket/hooks';
-import FileTaskResult from 'src/abc/file-task-result';
-import { APIError, APIErrorCode } from 'src/abc/api-error';
+import FileTaskResult from 'src/enums/file-task-result';
+import { APIError, APIErrorCode } from 'src/enums/api-error';
 import { ServerFile, ServerFileList, ServerDirectory } from 'src/api/server-file-manager';
 
 import { Scrollbar } from 'src/components/scrollbar';

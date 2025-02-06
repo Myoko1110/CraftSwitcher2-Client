@@ -1,5 +1,5 @@
 import type Server from 'src/api/server';
-import type ServerState from 'src/abc/server-state';
+import type ServerState from 'src/enums/server-state';
 
 import React from 'react';
 import { useOutletContext } from 'react-router-dom';

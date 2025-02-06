@@ -1,7 +1,7 @@
 import type Server from 'src/api/server';
 import type { FabProps } from '@mui/material';
 
-import ServerState from 'src/abc/server-state';
+import ServerState from 'src/enums/server-state';
 
 // ----------------------------------------------------------------------
 

@@ -18,9 +18,9 @@ import { useRouter } from 'src/routes/hooks';
 import { fPercent } from 'src/utils/format-number';
 
 import Server from 'src/api/server';
-import { APIError } from 'src/abc/api-error';
+import { APIError } from 'src/enums/api-error';
 import { useWebsocket } from 'src/websocket/hooks';
-import FileTaskResult from 'src/abc/file-task-result';
+import FileTaskResult from 'src/enums/file-task-result';
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { Iconify } from 'src/components/iconify';

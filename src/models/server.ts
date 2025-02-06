@@ -1,5 +1,5 @@
-import type ServerType from 'src/abc/server-type';
-import type { LaunchOption } from 'src/abc/server-config';
+import type ServerType from 'src/enums/server-type';
+import type { LaunchOption } from 'src/enums/server-config';
 
 // ------------------------------------------------------------
 

@@ -1,9 +1,12 @@
 // eslint-disable-next-line max-classes-per-file
+import type { Dayjs } from 'dayjs';
 import type Backup from 'src/api/backup';
 
-import BackupType from 'src/abc/backup-type';
-import SnapshotStatus from 'src/abc/snapshot-status';
-import BackupFileErrorType from 'src/abc/backup-file-error-type';
+import dayjs from 'dayjs';
+
+import BackupType from 'src/enums/backup-type';
+import SnapshotStatus from 'src/enums/snapshot-status';
+import BackupFileErrorType from 'src/enums/backup-file-error-type';
 
 import { FileTask } from './task';
 
@@ -31,10 +34,18 @@ export interface BackupId {
   server: string;
 }
 
-export interface BackupFileInfo {
+export class BackupFileInfo {
   size: number;
-  modifyTime: string;
+
+  modifyAt: Dayjs;
+
   isDir: boolean;
+
+  constructor({ size, modifyTime, isDir }: BackupFileInfoAPIResult) {
+    this.size = size;
+    this.modifyAt = dayjs.utc(modifyTime);
+    this.isDir = isDir;
+  }
 }
 
 export class BackupFileDifference {
@@ -54,11 +65,21 @@ export class BackupFileDifference {
   }
 }
 
-export interface BackupFilePathInfo {
-  path: string;
-  isDir: boolean;
-  size: number;
-  modifyTime: string;
+export class BackupFilePathInfo {
+  public path: string;
+
+  public isDir: boolean;
+
+  public size: number;
+
+  public modifyAt: string;
+
+  constructor({ path, isDir, size, modifyTime }: BackupFilePathInfoAPIResult) {
+    this.path = path;
+    this.isDir = isDir;
+    this.size = size;
+    this.modifyAt = modifyTime;
+  }
 }
 
 export class BackupFilePathErrorInfo {
@@ -239,11 +260,24 @@ export class BackupTask extends FileTask {
   }
 }
 
+type BackupFileInfoAPIResult = {
+  size: number;
+  modifyTime: string;
+  isDir: boolean;
+};
+
 type BackupFileDifferenceAPIResult = {
   path: string;
   oldInfo: BackupFileInfo | null;
   newInfo: BackupFileInfo | null;
   status: number;
+};
+
+type BackupFilePathInfoAPIResult = {
+  path: string;
+  isDir: boolean;
+  size: number;
+  modifyTime: string;
 };
 
 type BackupFilePathErrorInfoAPIResult = {

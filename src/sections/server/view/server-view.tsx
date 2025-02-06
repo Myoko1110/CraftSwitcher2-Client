@@ -11,7 +11,7 @@ import Typography from '@mui/material/Typography';
 import TableContainer from '@mui/material/TableContainer';
 
 import Server from 'src/api/server';
-import { APIError } from 'src/abc/api-error';
+import { APIError } from 'src/enums/api-error';
 import { useWebsocket } from 'src/websocket/hooks';
 import { DashboardContent } from 'src/layouts/dashboard';
 

@@ -14,7 +14,7 @@ import IconButton from '@mui/material/IconButton';
 import Breadcrumbs from '@mui/material/Breadcrumbs';
 
 import Server from 'src/api/server';
-import { APIError } from 'src/abc/api-error';
+import { APIError } from 'src/enums/api-error';
 import { DashboardContent } from 'src/layouts/dashboard';
 import { ServerFileManager } from 'src/api/server-file-manager';
 
@@ -97,7 +97,7 @@ export function ServerFileEditView() {
 
         setContent(await data.text());
       } catch (e) {
-        console.log(e);
+        console.error(e);
         toast.error(`ファイルの読み込みに失敗しました: ${APIError.createToastMessage(e)}`);
       }
     })();

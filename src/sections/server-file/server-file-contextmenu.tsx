@@ -7,7 +7,7 @@ import Popover from '@mui/material/Popover';
 import MenuList from '@mui/material/MenuList';
 import MenuItem, { menuItemClasses } from '@mui/material/MenuItem';
 
-import FileType from 'src/abc/file-type';
+import FileType from 'src/enums/file-type';
 
 import { Iconify } from 'src/components/iconify';
 
