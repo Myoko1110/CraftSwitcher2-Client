@@ -1,3 +1,4 @@
+import type { FileTaskEvent } from 'src/websocket/models';
 import type { BackupsCompareResult } from 'src/models/backup';
 
 import { toast } from 'sonner';
@@ -10,15 +11,18 @@ import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 
+import { useRouter } from 'src/routes/hooks';
+
 import Server from 'src/api/server';
 import Backup from 'src/api/backup';
 import { APIError } from 'src/enums/api-error';
 import { useWebsocket } from 'src/websocket/hooks';
+import FileTaskResult from 'src/enums/file-task-result';
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { Iconify } from 'src/components/iconify';
 import { Scrollbar } from 'src/components/scrollbar';
-import { BackupDifference } from 'src/components/backup-difference/backup-difference';
+import { BackupDifference } from 'src/components/backup-difference';
 
 // ----------------------------------------------------------------------
 
@@ -28,9 +32,31 @@ export function ServerBackupRestore() {
   const [backup, setBackup] = useState<Backup | null>(null);
   const [preview, setPreview] = useState<BackupsCompareResult>();
 
+  const ws = useWebsocket();
+  const router = useRouter();
+
   const handleRestore = async () => {
     if (!backup || !server) return;
-    const result = await backup.restore(server);
+    const task = await backup.restore(server);
+
+    const promise = new Promise<void>((resolve, reject) => {
+      const onSuccess = (e: FileTaskEvent) => {
+        if (e.task.id === task.id) {
+          if (e.task.result === FileTaskResult.SUCCESS) resolve();
+          else reject();
+          ws.removeEventListener('FileTaskEnd', onSuccess);
+        }
+      };
+      ws.addEventListener('FileTaskEnd', onSuccess);
+    });
+
+    toast.promise(promise, {
+      loading: '復元中...',
+      success: 'バックアップが完了しました',
+      error: 'バックアップに失敗しました',
+    });
+
+    router.push(`/server/${id}/backup`);
   };
 
   useEffect(() => {
