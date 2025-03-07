@@ -113,7 +113,7 @@ export default class Backup {
     if (snapshot !== undefined) params.append('snapshot', snapshot.toString());
 
     try {
-      const result = await axios.post(`/server/${server.id}/backup?${params.toString()}`);
+      const result = await axios.post(`/server/${server.id}/backup?${params}`);
       return new BackupTask(result.data);
     } catch (e) {
       throw APIError.fromError(e);
@@ -143,7 +143,7 @@ export default class Backup {
       includeErrors?: boolean;
       onlyUpdates?: boolean;
     }
-  ) {
+  ): Promise<BackupPreviewResult> {
     const params = new URLSearchParams();
     if (checkFiles) params.append('check_files', checkFiles.toString());
     if (includeFiles) params.append('include_files', includeFiles.toString());
@@ -151,7 +151,7 @@ export default class Backup {
     if (onlyUpdates) params.append('only_updates', onlyUpdates.toString());
 
     try {
-      const result = await axios.get(`/server/${server.id}/backup/preview?${params.toString()}`);
+      const result = await axios.get(`/server/${server.id}/backup/preview?${params}`);
       return new BackupPreviewResult(result.data);
     } catch (e) {
       throw APIError.fromError(e);
@@ -195,7 +195,7 @@ export default class Backup {
     if (includeErrors !== undefined) params.append('include_errors', includeErrors.toString());
 
     try {
-      const result = await axios.get(`/backup/${this.id}/files?${params.toString()}`);
+      const result = await axios.get(`/backup/${this.id}/files?${params}`);
       return new BackupFilesResult(result.data);
     } catch (e) {
       throw APIError.fromError(e);
@@ -225,7 +225,7 @@ export default class Backup {
       includeErrors?: boolean;
       onlyUpdates?: boolean;
     }
-  ) {
+  ): Promise<BackupsCompareResult> {
     const params = new URLSearchParams();
     params.append('target_backup_id', target.id);
     if (checkFiles !== undefined) params.append('check_files', checkFiles.toString());
@@ -234,7 +234,7 @@ export default class Backup {
     if (onlyUpdates !== undefined) params.append('only_updates', onlyUpdates.toString());
 
     try {
-      const result = await axios.get(`/backup/${this.id}/files/compare?${params.toString()}`);
+      const result = await axios.get(`/backup/${this.id}/files/compare?${params}`);
       return new BackupsCompareResult(result.data);
     } catch (e) {
       throw APIError.fromError(e);
@@ -302,9 +302,7 @@ export default class Backup {
     if (onlyUpdates !== undefined) params.append('only_updates', onlyUpdates.toString());
 
     try {
-      const result = await axios.get(
-        `/server/${server.id}/backup/${this.id}/verify?${params.toString()}`
-      );
+      const result = await axios.get(`/server/${server.id}/backup/${this.id}/verify?${params}`);
       return new BackupsCompareResult(result.data);
     } catch (e) {
       throw APIError.fromError(e);
@@ -343,7 +341,7 @@ export default class Backup {
 
     try {
       const result = await axios.get(
-        `/server/${server.id}/backup/${this.id}/files/compare?${params.toString()}`
+        `/server/${server.id}/backup/${this.id}/files/compare?${params}`
       );
       return new BackupsCompareResult(result.data);
     } catch (e) {

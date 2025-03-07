@@ -236,7 +236,7 @@ export default class Server {
       });
       if (maxLines) params.set('max_lines', String(maxLines));
 
-      const result = await axios.get(`/server/${this.id}/logs/latest?${params.toString()}`);
+      const result = await axios.get(`/server/${this.id}/logs/latest?${params}`);
       return result.data;
     } catch (e) {
       throw APIError.fromError(e);
@@ -339,7 +339,7 @@ export default class Server {
       });
       if (javaPreset) params.append('java_preset', javaPreset);
 
-      const result = await axios.post(`/server/${this.id}/install?${params.toString()}`);
+      const result = await axios.post(`/server/${this.id}/install?${params}`);
       return new FileOperationResult(result.data);
     } catch (e) {
       throw APIError.fromError(e);

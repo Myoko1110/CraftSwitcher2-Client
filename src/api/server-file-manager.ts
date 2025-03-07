@@ -287,9 +287,7 @@ export class ServerFileList extends Array<ServerFileManager> {
       });
       this.forEach((f) => params.append('include_files', f.src));
 
-      const result = await axios.post(
-        `/server/${this[0].server.id}/file/archive/make?${params.toString()}`
-      );
+      const result = await axios.post(`/server/${this[0].server.id}/file/archive/make?${params}`);
 
       return result.data.task_id || false;
     } catch (e) {
@@ -348,7 +346,7 @@ export class ServerDirectory extends ServerFileManager {
     }
 
     try {
-      const result = await axios.post(`/server/${this.server.id}/file/mkdir?${params.toString()}`);
+      const result = await axios.post(`/server/${this.server.id}/file/mkdir?${params}`);
       return new FileTask(result.data);
     } catch (e) {
       throw APIError.fromError(e);
