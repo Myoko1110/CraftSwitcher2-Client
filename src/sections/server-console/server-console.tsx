@@ -39,6 +39,8 @@ export default function ServerConsole({ server, state }: { server: Server; state
 
   const [wsState, setWsState] = useState(true);
 
+  const [offlineBar, setOfflineBar] = useState(false);
+
   useEffect(() => {
     term.loadAddon(fitAddon);
     term.loadAddon(webglAddon);
@@ -101,33 +103,27 @@ export default function ServerConsole({ server, state }: { server: Server; state
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    if (!state.isRunning) {
+      setOfflineBar(true);
+
+      setInterval(() => {
+        setOfflineBar(false);
+      }, 2000);
+    } else {
+      setOfflineBar(false);
+    }
+  }, [state]);
+
   return (
     <Box sx={{ position: 'relative', flexGrow: 1, display: 'flex', height: '100%' }}>
       <div ref={ref} style={{ flex: 1 }} />
-      {!state.isRunning && (
-        <Box
-          sx={{
-            position: 'absolute',
-            width: '100%',
-            height: '100%',
-            top: 0,
-            left: 0,
-            backgroundColor: (theme) => alpha(theme.palette.common.black, 0.8),
-            color: 'white',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-        >
-          <Typography variant="h5">このサーバーはオフラインです</Typography>
-        </Box>
-      )}
       <Slide in={!wsState && state.isRunning} container={ref.current}>
         <Box
           sx={{
             position: 'absolute',
             width: '100%',
-            height: '30px',
+            height: '42px',
             top: 0,
             left: 0,
             backgroundColor: (theme) => alpha(theme.palette.warning.main, 0.5),
@@ -138,6 +134,24 @@ export default function ServerConsole({ server, state }: { server: Server; state
           }}
         >
           <Typography variant="h6">接続が切断されました。再接続中です。</Typography>
+        </Box>
+      </Slide>
+      <Slide in={offlineBar} container={ref.current}>
+        <Box
+          sx={{
+            position: 'absolute',
+            width: '100%',
+            height: '42px',
+            top: 0,
+            left: 0,
+            backgroundColor: (theme) => alpha(theme.palette.error.main, 0.5),
+            color: 'white',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <Typography variant="h6">このサーバーはオフラインです。</Typography>
         </Box>
       </Slide>
     </Box>
