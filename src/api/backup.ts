@@ -207,25 +207,23 @@ export default class Backup {
    *
    * バックアップ同士のファイルを比較します。含まれないファイルを新規ファイルとしてマークします。
    * @param target 比較対象
-   * @param checkFiles 常に実際のファイルをチェックします
-   * @param includeFiles バックアップ対象のファイル情報を返す
-   * @param includeErrors エラーファイルを返す
-   * @param onlyUpdates 異なるファイルのみ `files` に含める
+   * @param options オプション
+   * @param options.checkFiles 常に実際のファイルをチェックします
+   * @param options.includeFiles バックアップ対象のファイル情報を返す
+   * @param options.includeErrors エラーファイルを返す
+   * @param options.onlyUpdates 異なるファイルのみ `files` に含める
    */
   async compareWithBackup(
     target: Backup,
-    {
-      checkFiles,
-      includeFiles,
-      includeErrors,
-      onlyUpdates,
-    }: {
+    options?: {
       checkFiles?: boolean;
       includeFiles?: boolean;
       includeErrors?: boolean;
       onlyUpdates?: boolean;
     }
   ): Promise<BackupsCompareResult> {
+    const { checkFiles, includeFiles, includeErrors, onlyUpdates } = options || {};
+
     const params = new URLSearchParams();
     params.append('target_backup_id', target.id);
     if (checkFiles !== undefined) params.append('check_files', checkFiles.toString());

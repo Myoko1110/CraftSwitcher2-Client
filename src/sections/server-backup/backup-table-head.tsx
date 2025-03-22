@@ -32,7 +32,7 @@ export function BackupTableHead({
     { id: 'name', label: '名前' },
     { id: 'comment', label: 'コメント' },
     { id: 'size', label: 'サイズ' },
-    { id: '' },
+    { id: 'handle' },
     { id: '' },
   ];
 

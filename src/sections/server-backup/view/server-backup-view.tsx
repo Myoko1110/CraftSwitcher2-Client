@@ -1,7 +1,7 @@
 import type Server from 'src/api/server';
 import type Backup from 'src/api/backup';
 
-import React, { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 
 import Table from '@mui/material/Table';
@@ -19,10 +19,10 @@ export function ServerBackupView() {
   const { server } = useOutletContext<{ server: Server | null }>();
 
   const table = useTable();
-  const [backups, setBackups] = React.useState<Backup[]>([]);
+  const [backups, setBackups] = useState<Backup[]>([]);
 
-  const [isLoading, setIsLoading] = React.useState(true);
-  const [unableToLoad, setUnableToLoad] = React.useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [unableToLoad, setUnableToLoad] = useState(false);
 
   useEffect(() => {
     if (!server) return;
@@ -58,6 +58,8 @@ export function ServerBackupView() {
                 backup={b}
                 selected={table.selected.includes(b)}
                 onSelectRow={() => table.onSelectRow(b)}
+                all={backups}
+                server={server}
               />
             ))}
             {isLoading && <TableLoading unableToLoad={unableToLoad} />}

@@ -1,6 +1,7 @@
 import type Backup from 'src/api/backup';
+import type Server from "src/api/server";
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Tooltip from '@mui/material/Tooltip';
@@ -18,15 +19,22 @@ import { fDateTime } from 'src/utils/format-time';
 import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
 
+import { BackupCompareDialog } from "./backup-compare-dialog";
+
 // ----------------------------------------------------------------------
 
 type UserTableRowProps = {
   backup: Backup;
   selected: boolean;
   onSelectRow: () => void;
+  all: Backup[];
+  server: Server | null;
 };
 
-export function BackupTableRow({ backup, selected, onSelectRow }: UserTableRowProps) {
+export function BackupTableRow({ backup, selected, onSelectRow, all, server }: UserTableRowProps) {
+  const [open, setOpen] = useState(false);
+  const [filtered, setFiltered] = useState<Backup[]>([]);
+
   const handleDownload = async () => {
     const fileData = await backup.export();
 
@@ -36,6 +44,12 @@ export function BackupTableRow({ backup, selected, onSelectRow }: UserTableRowPr
     link.download = backup.id;
     link.click();
   };
+
+  useEffect(() => {
+    const copy = [...all];
+    setFiltered(copy)
+    delete copy[copy.indexOf(backup)]
+  }, [all, backup]);
 
   return (
     <TableRow hover tabIndex={-1} role="checkbox" selected={selected}>
@@ -62,7 +76,7 @@ export function BackupTableRow({ backup, selected, onSelectRow }: UserTableRowPr
           </IconButton>
         </Tooltip>
         <Tooltip title="比較">
-          <IconButton size="large">
+          <IconButton size="large" onClick={() => setOpen(true)}>
             <Iconify icon="fluent:arrow-swap-16-regular" />
           </IconButton>
         </Tooltip>
@@ -82,6 +96,13 @@ export function BackupTableRow({ backup, selected, onSelectRow }: UserTableRowPr
           <Iconify icon="eva:more-vertical-fill" />
         </IconButton>
       </TableCell>
+      <BackupCompareDialog
+        backup={backup}
+        all={filtered}
+        handleClose={() => setOpen(false)}
+        open={open}
+        server={server}
+      />
     </TableRow>
   );
 }
