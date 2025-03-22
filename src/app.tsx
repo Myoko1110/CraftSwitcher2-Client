@@ -2,10 +2,9 @@ import 'src/global.css';
 
 import axios from 'axios';
 import humps from 'humps';
+import {RouterProvider} from "react-router-dom";
 
-import { Router } from 'src/routes/sections';
-
-import { useScrollToTop } from 'src/hooks/use-scroll-to-top';
+import { router } from 'src/routes/sections';
 
 import { ThemeProvider } from 'src/theme/theme-provider';
 
@@ -14,7 +13,6 @@ import { SonnerToaster } from 'src/components/toaster/toaster';
 // ----------------------------------------------------------------------
 
 export default function App() {
-  useScrollToTop();
   axios.defaults.baseURL = import.meta.env.VITE_BACKEND_URL;
   axios.defaults.headers.post['content-type'] = 'application/x-www-form-urlencoded';
   axios.defaults.withCredentials = true;
@@ -30,7 +28,7 @@ export default function App() {
 
   return (
     <ThemeProvider>
-      <Router />
+      <RouterProvider router={router()}/>
       <SonnerToaster />
     </ThemeProvider>
   );

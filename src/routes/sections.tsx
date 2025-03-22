@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import { Outlet, useRoutes } from 'react-router-dom';
+import {createBrowserRouter, Outlet, useRoutes} from 'react-router-dom';
 
 import Box from '@mui/material/Box';
 import LinearProgress, { linearProgressClasses } from '@mui/material/LinearProgress';
@@ -22,6 +22,7 @@ export const ServerManagement = lazy(() => import('src/pages/server-management')
 export const ServerFileEditPage = lazy(() => import('src/pages/server-file-edit'));
 export const ServerBackupCreatePage = lazy(() => import('src/pages/server-backup-create'));
 export const ServerBackupRestorePage = lazy(() => import('src/pages/server-backup-restore'));
+export const ServerBackupComparePage = lazy(() => import('src/pages/server-backup-compare'));
 export const ServerCreatePage = lazy(() => import('src/pages/server-create'));
 export const UserPage = lazy(() => import('src/pages/user'));
 export const LoginPage = lazy(() => import('src/pages/login'));
@@ -42,8 +43,8 @@ const renderFallback = (
   </Box>
 );
 
-export function Router() {
-  return useRoutes([
+export function router() {
+  return createBrowserRouter([
     {
       element: (
         <DashboardLayout>
@@ -82,6 +83,10 @@ export function Router() {
               path: ':id/backup/restore/:backupId',
               element: <ServerBackupRestorePage />,
             },
+            {
+              path: ':id/backup/compare/:backupIds',
+              element: <ServerBackupComparePage />,
+            }
           ],
         },
         {
