@@ -3,7 +3,7 @@ import type { ServerFile } from 'src/api/server-file-manager';
 import { toast } from 'sonner';
 import { Editor } from '@monaco-editor/react';
 import { useState, useEffect, useCallback } from 'react';
-import { Link, useParams, useSearchParams } from 'react-router-dom';
+import { Link, useParams, useBlocker, useBeforeUnload, useSearchParams } from 'react-router-dom';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -22,7 +22,6 @@ import { Iconify } from 'src/components/iconify';
 
 // ----------------------------------------------------------------------
 
-// TODO: 未保存時のブラウザバック阻止
 export function ServerFileEditView() {
   const { id } = useParams<{ id: string }>();
   const [params] = useSearchParams();
@@ -32,6 +31,16 @@ export function ServerFileEditView() {
   const [content, setContent] = useState('');
   const [isChanged, setIsChanged] = useState(false);
   const [isReadonly, setIsReadonly] = useState(false);
+
+  // TODO: Safariの動作確認
+  useBlocker(() => {
+    if (isChanged) return !window.confirm("行った変更が保存されない可能性があります。");
+    return isChanged;
+  });
+
+  useBeforeUnload((e) => {
+    if (isChanged) e.preventDefault();
+  });
 
   const handleChange = (value: string | undefined) => {
     if (isReadonly)
@@ -64,6 +73,13 @@ export function ServerFileEditView() {
     },
     [handleSave]
   );
+  
+  useEffect(() => {
+    window.addEventListener('keydown', handleCtrlS);
+    return () => {
+      window.removeEventListener('keydown', handleCtrlS);
+    };
+  }, [handleCtrlS])
 
   useEffect(() => {
     (async () => {
@@ -102,35 +118,6 @@ export function ServerFileEditView() {
       }
     })();
   }, [id, params]);
-
-  useEffect(() => {
-    window.addEventListener('keydown', handleCtrlS);
-    return () => {
-      window.removeEventListener('keydown', handleCtrlS);
-    };
-  }, [handleCtrlS]);
-
-  const handlePopstate = () => {
-    const isDiscardedOK = window.confirm(
-      '保存されていないデータは削除されますが、よろしいですか？'
-    );
-    if (isDiscardedOK) {
-      // OKの場合、historyAPIで戻るを実行します。
-      window.history.back();
-    }
-    // キャンセルの場合、 ダミー履歴を挿入して「戻る」を1回分吸収できる状態にする
-    window.history.pushState(null, '', null);
-  };
-
-  useEffect(() => {
-    if (isChanged) {
-      window.history.pushState(null, '', null);
-      window.addEventListener('popstate', handlePopstate);
-    }
-    return () => {
-      window.removeEventListener('popstate', handlePopstate);
-    };
-  }, [isChanged]);
 
   return (
     <DashboardContent>
