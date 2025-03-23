@@ -17,7 +17,10 @@ export class ServerConfig {
     public shutdownTimeout: number | null,
     public readonly createdAt: Dayjs | null,
     public readonly lastLaunchAt: Dayjs | null,
-    public readonly lastBackupAt: Dayjs | null
+    public readonly lastBackupAt: Dayjs | null,
+    public readonly lastBackupId: string | null,
+    public readonly sourceId: string | null,
+    public readonly installer: Installer,
   ) {}
 
   static serialize(config: Partial<ServerConfig>) {
@@ -45,7 +48,15 @@ export class ServerConfig {
       data.shutdownTimeout,
       data.createdAt ? dayjs.utc(data.createdAt) : null,
       data.lastLaunchAt ? dayjs.utc(data.lastLaunchAt) : null,
-      data.lastBackupAt ? dayjs.utc(data.lastBackupAt) : null
+      data.lastBackupAt ? dayjs.utc(data.lastBackupAt) : null,
+      data.lastBackupId,
+      data.sourceId,
+      {
+        type: data['installer.type'] ? ServerType.valueOf(data['installer.type']) : null,
+        version: data['installer.version'],
+        build: data['installer.build'],
+        requireBuild: data['installer.requireBuild'],
+      }
     );
   }
 }
@@ -111,24 +122,36 @@ export class LaunchOption {
 }
 
 export type ServerConfigResult = {
-  name: string | null;
-  type: string;
-  'launchOption.javaPreset': string | null;
-  'launchOption.javaExecutable': string | null;
-  'launchOption.javaOptions': string | null;
-  'launchOption.jarFile': string;
-  'launchOption.serverOptions': string | null;
-  'launchOption.maxHeapMemory': number | null;
-  'launchOption.minHeapMemory': number | null;
-  'launchOption.enableFreeMemoryCheck': boolean | null;
-  'launchOption.enableReporterAgent': boolean | null;
-  'launchOption.enableScreen': boolean | null;
-  enableLaunchCommand: boolean | null;
-  launchCommand: string;
-  stopCommand: string | null;
-  shutdownTimeout: number | null;
-  createdAt: string | null;
-  lastLaunchAt: string | null;
-  lastBackupAt: string | null;
-  // TODO: 追加
+  name: string | null;  // 表示名
+  type: string;  // サーバーの種類
+  'launchOption.javaPreset': string | null;  // Javaプリセット名
+  'launchOption.javaExecutable': string | null;  // Javaコマンド、もしくはパス
+  'launchOption.javaOptions': string | null;  // Javaオプション
+  'launchOption.jarFile': string;  // Jarファイルパス
+  'launchOption.serverOptions': string | null;  // サーバーオプション
+  'launchOption.maxHeapMemory': number | null;  // メモリ割り当て量（単位: MB）
+  'launchOption.minHeapMemory': number | null;  // メモリ割り当て量（単位: MB）
+  'launchOption.enableFreeMemoryCheck': boolean | null;  // 起動時に空きメモリを確認する
+  'launchOption.enableReporterAgent': boolean | null;  // サーバーと連携するエージェントを使う
+  'launchOption.enableScreen': boolean | null;  // GNU Screen を使って起動する
+  enableLaunchCommand: boolean | null;  // 起動オプションを使わず、カスタムコマンドで起動する
+  launchCommand: string;  // 起動コマンド
+  stopCommand: string | null;  // 停止コマンド
+  shutdownTimeout: number | null;  // 停止処理の最大待ち時間（単位: 秒）
+  createdAt: string | null;  // 作成された日時
+  lastLaunchAt: string | null;  // 最後に起動した日時
+  lastBackupAt: string | null;  // 最後にバックアップした日時
+  lastBackupId: string | null;  // 最終バックアップのID
+  sourceId: string | null;  // サーバーデータID
+  'installer.type': string | null;  // インストールされたサーバーの種類
+  'installer.version': string | null;  // インストールされたサーバーバージョン
+  'installer.build': string | null;  // インストールされたサーバービルド
+  'installer.requireBuild': boolean | null;  // ビルドが必要なインストーラー
 };
+
+type Installer = {
+  type: ServerType | null,
+  version: string | null,
+  build: string | null,
+  requireBuild: boolean | null,
+}
