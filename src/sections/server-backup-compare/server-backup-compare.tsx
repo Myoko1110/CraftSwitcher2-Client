@@ -22,6 +22,8 @@ import { Iconify } from 'src/components/iconify';
 import { Scrollbar } from 'src/components/scrollbar';
 import { BackupDifference } from 'src/components/backup-difference';
 
+import {fDateTime} from "../../utils/format-time";
+
 // ----------------------------------------------------------------------
 
 export function ServerBackupCompare() {
@@ -29,7 +31,7 @@ export function ServerBackupCompare() {
   const [server, setServer] = useState<Server | null>(null);
   const [backup1, setBackup1] = useState<Backup | null>(null);
   const [backup2, setBackup2] = useState<Backup | null>(null);
-  const [preview, setPreview] = useState<BackupsCompareResult>();
+  const [compare, setCompare] = useState<BackupsCompareResult>();
 
   const ws = useWebsocket();
   const router = useRouter();
@@ -50,11 +52,11 @@ export function ServerBackupCompare() {
 
         const b1 = await Backup.getById(backupIdsArray[0]);
         setBackup1(b1);
-        const b2 = await Backup.getById(backupIdsArray[0]);
+        const b2 = await Backup.getById(backupIdsArray[1]);
         setBackup2(b2);
 
         const p = await b1.compareWithBackup(b2, {checkFiles: true});
-        setPreview(p);
+        setCompare(p);
       } catch (e) {
         toast.error(`サーバーの取得に失敗しました: ${APIError.createToastMessage(e)}`);
       }
@@ -90,12 +92,12 @@ export function ServerBackupCompare() {
               <Stack direction="row" gap={1} >
                 <Iconify icon="ic:outline-difference" />
                 <Typography>変更</Typography>
-                <Typography variant="subtitle1">{preview?.updateFiles}</Typography>
+                <Typography variant="subtitle1">{compare?.updateFiles}</Typography>
               </Stack>
             </Stack>
           <Card sx={{ p: 2, flexGrow: 1 }}>
             <Scrollbar sx={{ height: '100%', overflow: 'auto' }}>
-              <BackupDifference backupsCompareResult={preview} />
+              <BackupDifference backupsCompareResult={compare} source={fDateTime(backup1?.createdAt)!} target={fDateTime(backup2?.createdAt)!} />
             </Scrollbar>
           </Card>
           <Stack flexDirection="row" justifyContent="end" gap={1}>

@@ -46,9 +46,11 @@ const accordionStyle = {
 
 type Props = {
   backupsCompareResult?: BackupsCompareResult;
+  source?: string;
+  target?: string;
 };
 
-export function BackupDifference({ backupsCompareResult }: Props) {
+export function BackupDifference({ backupsCompareResult, source, target }: Props) {
   const [directoryTree, setDirectoryTree] = React.useState<DirectoryTree>([]);
 
   useEffect(() => {
@@ -100,6 +102,46 @@ export function BackupDifference({ backupsCompareResult }: Props) {
 
   return (
     <Stack sx={{ gap: 0.5, flexDirection: 'column', width: '100%' }}>
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 20px 1fr',
+          gap: 1,
+          alignItems: 'center',
+          position: 'sticky',
+          bgcolor: 'white',
+          top: 0,
+          left: 0,
+          zIndex: 1,
+        }}
+      >
+        <Box
+          sx={{
+            bgcolor: (theme) => theme.palette.grey[200],
+            py: 2,
+            px: 1,
+            borderRadius: 1,
+            color: (theme) => theme.palette.grey[600],
+            fontWeight: 600,
+          }}
+        >
+          {source}
+        </Box>
+        <Iconify sx={{ color: (theme) => theme.palette.grey[600] }} icon="eva:repeat-fill" />
+        <Box
+          sx={{
+            bgcolor: (theme) => theme.palette.grey[200],
+            py: 2,
+            px: 1,
+            borderRadius: 1,
+            color: (theme) => theme.palette.grey[600],
+            fontWeight: 600,
+          }}
+        >
+          {target}
+        </Box>
+      </Box>
+
       {directoryTree.map((node) => (
         <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 20px 1fr', gap: 1 }}>
           {createInfoAccordion(node, 'old', true)}

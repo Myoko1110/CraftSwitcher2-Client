@@ -103,7 +103,7 @@ export function ServerBackupRestore() {
           </Typography>
           <Card sx={{ p: 2, flexGrow: 1 }}>
             <Scrollbar sx={{ height: '100%', overflow: 'auto' }}>
-              <BackupDifference backupsCompareResult={preview} />
+              <BackupDifference backupsCompareResult={preview} source="バックアップ" target="サーバー" />
             </Scrollbar>
           </Card>
           <Stack flexDirection="row" justifyContent="end" gap={1}>
