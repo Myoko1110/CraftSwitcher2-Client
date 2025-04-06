@@ -58,7 +58,8 @@ export function ServerBackupView() {
                 backup={b}
                 selected={table.selected.includes(b)}
                 onSelectRow={() => table.onSelectRow(b)}
-                all={backups}
+                backups={backups}
+                setBackups={setBackups}
                 server={server}
               />
             ))}
