@@ -1,12 +1,18 @@
 import type Server from 'src/api/server';
 import type Backup from 'src/api/backup';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 
+import Box from "@mui/material/Box";
+import Card from "@mui/material/Card";
 import Table from '@mui/material/Table';
+import Stack from "@mui/material/Stack";
+import Button from "@mui/material/Button";
 import TableBody from '@mui/material/TableBody';
 import TableContainer from '@mui/material/TableContainer';
+
+import {RouterLink} from "src/routes/components";
 
 import { Scrollbar } from 'src/components/scrollbar';
 
@@ -40,33 +46,62 @@ export function ServerBackupView() {
   }, [server]);
 
   return (
-    <Scrollbar>
-      <TableContainer sx={{ overflow: 'unset' }}>
-        <Table sx={{ minWidth: 800 }}>
-          <BackupTableHead
-            order={table.order}
-            orderBy={table.orderBy}
-            rowCount={backups.length}
-            numSelected={table.selected.length}
-            onSort={table.onSort}
-            onSelectAllRows={(checked) => table.onSelectAllRows(checked, backups)}
-          />
-          <TableBody>
-            {backups.map((b) => (
-              <BackupTableRow
-                key={b.id}
-                backup={b}
-                selected={table.selected.includes(b)}
-                onSelectRow={() => table.onSelectRow(b)}
-                backups={backups}
-                setBackups={setBackups}
-                server={server}
+    <Box sx={{ height: '100%', display: "flex", flexDirection: "column" }}>
+      <Stack sx={{
+        flexGrow: 1,
+        height: '100%',
+        position: 'relative',
+      }}>
+        <Scrollbar style={{ height: 0 }}>
+          <TableContainer sx={{ overflow: 'unset' }}>
+            <Table sx={{ minWidth: 800 }} stickyHeader>
+              <BackupTableHead
+                order={table.order}
+                orderBy={table.orderBy}
+                rowCount={backups.length}
+                numSelected={table.selected.length}
+                onSort={table.onSort}
+                onSelectAllRows={(checked) => table.onSelectAllRows(checked, backups)}
               />
-            ))}
-            {isLoading && <TableLoading unableToLoad={unableToLoad} />}
-          </TableBody>
-        </Table>
-      </TableContainer>
-    </Scrollbar>
+              <TableBody>
+                {backups.map((b) => (
+                  <BackupTableRow
+                    key={b.id}
+                    backup={b}
+                    selected={table.selected.includes(b)}
+                    onSelectRow={() => table.onSelectRow(b)}
+                    backups={backups}
+                    setBackups={setBackups}
+                    server={server}
+                  />
+                ))}
+                {isLoading && <TableLoading unableToLoad={unableToLoad} />}
+              </TableBody>
+            </Table>
+          </TableContainer>
+
+        </Scrollbar>
+      </Stack>
+      <Card
+        sx={{
+          width: '100%',
+          borderRadius: 0,
+          display: 'flex',
+          justifyContent: "end",
+          p: 2,
+          gap: 1,
+        }}
+      >
+        <Button
+          color="inherit"
+          variant="contained"
+          component={RouterLink}
+          href="./create"
+        >
+          バックアップ開始
+        </Button>
+      </Card>
+    </Box>
+
   );
 }
