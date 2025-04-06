@@ -56,6 +56,9 @@ export default function ConfigField({
           </InputAdornment>
         ),
       }}
+      InputLabelProps={{
+        shrink: true,
+      }}
       sx={sx}
       {...other}
     />
