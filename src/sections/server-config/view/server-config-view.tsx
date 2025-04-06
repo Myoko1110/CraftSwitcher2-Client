@@ -230,7 +230,7 @@ export function ServerConfigView() {
   });
 
   return (
-    <Box sx={{ height: '100%', position: 'relative' }}>
+    <Box sx={{ height: '100%', display: "flex", flexDirection: "column" }}>
       <ThemeProvider theme={textFieldTheme}>
         <Stack
           sx={{
@@ -588,37 +588,35 @@ export function ServerConfigView() {
             </Scrollbar>
           )}
         </Stack>
-        <Card
-          sx={{
-            position: 'absolute',
-            bottom: 0,
-            width: '100%',
-            borderRadius: 0,
-            display: 'flex',
-            justifyContent: 'space-between',
-            p: 2,
-            gap: 1,
-          }}
-        >
-          <Button color="inherit" variant="outlined" onClick={handleReloadConfig}>
-            設定ファイルを再読み込み
-          </Button>
-          <Box>
-            <Button color="inherit" variant="contained" disabled={!changed} onClick={handleUpdate}>
-              更新
-            </Button>
-            <Button
-              color="inherit"
-              variant="outlined"
-              disabled={!changed}
-              onClick={handleLoadConfig}
-              sx={{ ml: 1 }}
-            >
-              変更を破棄
-            </Button>
-          </Box>
-        </Card>
       </ThemeProvider>
+      <Card
+        sx={{
+          width: '100%',
+          borderRadius: 0,
+          display: 'flex',
+          justifyContent: 'space-between',
+          p: 2,
+          gap: 1,
+        }}
+      >
+        <Button color="inherit" variant="outlined" onClick={handleReloadConfig}>
+          設定ファイルを再読み込み
+        </Button>
+        <Box>
+          <Button color="inherit" variant="contained" disabled={!changed} onClick={handleUpdate}>
+            更新
+          </Button>
+          <Button
+            color="inherit"
+            variant="outlined"
+            disabled={!changed}
+            onClick={handleLoadConfig}
+            sx={{ ml: 1 }}
+          >
+            変更を破棄
+          </Button>
+        </Box>
+      </Card>
     </Box>
   );
 }
