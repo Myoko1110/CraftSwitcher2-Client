@@ -11,6 +11,7 @@ import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
 import MenuItem from '@mui/material/MenuItem';
+import {useTheme} from "@mui/material/styles";
 import TextField from '@mui/material/TextField';
 import Grid from '@mui/material/Unstable_Grid2';
 import Typography from '@mui/material/Typography';
@@ -20,7 +21,6 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import { Select, Switch, InputLabel, createTheme, FormControl, ThemeProvider } from '@mui/material';
 
 import { varAlpha } from 'src/theme/styles';
-import { typography } from 'src/theme/core';
 import { APIError } from 'src/enums/api-error';
 import ServerType from 'src/enums/server-type';
 import { LaunchOption } from 'src/enums/server-config';
@@ -34,6 +34,8 @@ import ConfigField from '../config-field';
 // ----------------------------------------------------------------------
 
 export function ServerConfigView() {
+  const theme = useTheme();
+
   const { server } = useOutletContext<{ server: Server | null }>();
   const [globalSetting, setGlobalSetting] = useState<ServerGlobalConfig | null>(null);
   const [serverConfig, setServerConfig] = useState<ServerConfig | null>(null);
@@ -197,9 +199,12 @@ export function ServerConfigView() {
 
     handleLoadConfig();
   }, [server, handleLoadConfig]);
-
+  
   const textFieldTheme = createTheme({
+    palette: theme.palette,
+    typography: theme.typography,
     components: {
+      ...theme.components,
       MuiTextField: {
         styleOverrides: {
           root: {
@@ -212,8 +217,16 @@ export function ServerConfigView() {
           },
         },
       },
+      MuiSelect: {
+        styleOverrides: {
+          root: {
+            '.MuiOutlinedInput-notchedOutline': {
+              borderColor: varAlpha('var(--palette-grey-500Channel)', 0.6),
+            },
+          },
+        },
+      }
     },
-    typography,
   });
 
   return (
