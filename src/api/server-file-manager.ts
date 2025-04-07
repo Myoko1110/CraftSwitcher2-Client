@@ -368,12 +368,17 @@ export class ServerFile extends ServerFileManager {
     }
   }
 
-  async saveData(data: Blob): Promise<FileInfo> {
+  async saveData(data: Blob, override?: Boolean): Promise<FileInfo> {
     try {
       const formData = new FormData();
       formData.append('file', data);
 
-      const result = await axios.post(`/server/${this.server.id}/file?path=${this.src}`, formData);
+      const params = new URLSearchParams({path: this.src});
+      if (override) params.append('override', override.toString());
+
+      const result = await axios.post(`/server/${this.server.id}/file?${params}`, formData, {
+        headers: { 'content-type': 'multipart/form-data' }
+      });
       return result.data as FileInfo;
     } catch (e) {
       throw APIError.fromError(e);

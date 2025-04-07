@@ -257,6 +257,7 @@ export function ServerFileView() {
     setArchiveOpen(true);
   };
 
+  // TODO: パスワード付きのアーカイブファイル展開
   const handleExtract = useCallback(async () => {
     handleCloseMenu();
     const file = table.selected[0];
@@ -267,7 +268,9 @@ export function ServerFileView() {
 
     try {
       const res = await (file as ServerFile).archive.extract(file.fileName);
+
       if (res.result === FileTaskResult.PENDING) {
+
         const fileTaskEndEvent = (e: FileTaskEvent) => {
           console.log(e.task.src === file.src)
           if (e.task.src === file.src) {
