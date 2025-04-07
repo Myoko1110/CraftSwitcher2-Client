@@ -1,4 +1,4 @@
-import type { ServerFile, ServerFileManager } from 'src/api/server-file-manager';
+import type {ServerFile, ServerFileManager} from 'src/api/server-file-manager';
 
 import React from 'react';
 
@@ -11,6 +11,8 @@ import { useRouter } from 'src/routes/hooks';
 
 import { fDateTime } from 'src/utils/format-time';
 import { fNumber } from 'src/utils/format-number';
+
+import FileType from "src/enums/file-type";
 
 // ----------------------------------------------------------------------
 
@@ -46,8 +48,11 @@ export default function ServerFileTableRow({
   const handleDoubleClick = async () => {
     if (file.type.isEditable) {
       router.push(`edit?path=${file.src}`);
-    } else {
-      const fileData = await file.getData();
+    } else if (file.type === FileType.ARCHIVE) {
+      await file.archive.getFiles();
+
+    }else{
+      const fileData = await file.download();
 
       const url = window.URL.createObjectURL(fileData);
       const link = document.createElement('a');

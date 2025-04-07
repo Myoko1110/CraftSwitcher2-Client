@@ -97,7 +97,7 @@ export function ServerFileEditView() {
         const _file = fileInfo as ServerFile;
         setFile(_file);
 
-        let data = await _file.getData();
+        let data = await _file.download();
         if (_file.name.endsWith('.gz')) {
           setIsReadonly(true); /* なぜか onChange が呼ばれる */
           try {

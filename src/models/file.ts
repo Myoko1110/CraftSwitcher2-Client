@@ -1,4 +1,8 @@
 // eslint-disable-next-line max-classes-per-file
+import type { Dayjs } from "dayjs";
+
+import dayjs from "dayjs";
+
 import FileTaskResult from 'src/enums/file-task-result';
 
 export type FileInfo = {
@@ -55,3 +59,30 @@ type StorageInfoAPIResult = {
   used_size: number;
   free_size: number;
 };
+
+export class ArchiveFile {
+  filename: string;
+
+  isDir: boolean;
+
+  size: number;
+
+  compressedSize: number;
+
+  modifiedDatetime: Dayjs;
+
+  constructor({ filename, isDir, size, compressedSize, modifiedDatetime }: ArchiveFileAPIResult) {
+    this.filename = filename;
+    this.isDir = isDir;
+    this.size = size;
+    this.compressedSize = compressedSize;
+    this.modifiedDatetime = dayjs.utc(modifiedDatetime);
+  }
+}
+export type ArchiveFileAPIResult = {
+  filename: string;
+  isDir: boolean;
+  size: number;
+  compressedSize: number;
+  modifiedDatetime: string;
+}

@@ -77,7 +77,7 @@ export default function ServerFileContextMenu({
       >
         {selected.length > 0 ? (
           <Box>
-            {selected.length === 1 && selected[0].type.equal(FileType.ARCHIVE) && (
+            {selected.length === 1 && selected[0].type === FileType.ARCHIVE && (
               <MenuItem onClick={handleExtract}>
                 <Iconify icon="fluent:folder-arrow-right-16-regular" />
                 展開

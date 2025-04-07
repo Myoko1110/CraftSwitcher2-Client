@@ -151,14 +151,14 @@ export default function ServerFileToolbar({
                   <Iconify icon="fluent:archive-16-regular" />
                 </IconButton>
               </Tooltip>
-              {selected[0].type.equal(FileType.ARCHIVE) && (
+              {selected[0].type === FileType.ARCHIVE && (
                 <Tooltip title="展開">
                   <IconButton color="primary" onClick={handleExtract}>
                     <Iconify icon="fluent:folder-arrow-right-16-regular" />
                   </IconButton>
                 </Tooltip>
               )}
-              {selected[0].type.equal(FileType.DIRECTORY) && (
+              {selected[0].type === FileType.DIRECTORY && (
                 <Tooltip title="開く">
                   <IconButton color="primary" onClick={() => handleChangePath(selected[0].src)}>
                     <Iconify icon="fluent:folder-open-16-regular" />

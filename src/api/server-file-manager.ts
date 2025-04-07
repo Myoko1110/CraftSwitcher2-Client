@@ -1,7 +1,7 @@
 // eslint-disable-next-line max-classes-per-file
 import type { Dayjs } from 'dayjs';
 import type { FileWithPath } from 'react-dropzone';
-import type { FileInfo, FileDirectoryInfoResult } from 'src/models/file';
+import type { FileInfo, ArchiveFileAPIResult, FileDirectoryInfoResult } from 'src/models/file';
 
 import axios from 'axios';
 import dayjs from 'dayjs';
@@ -10,7 +10,7 @@ import path from 'path-browserify';
 import FileType from 'src/enums/file-type';
 import { FileTask } from 'src/models/task';
 import { APIError } from 'src/enums/api-error';
-import { StorageInfo, FileOperationResult } from 'src/models/file';
+import { StorageInfo, ArchiveFile , FileOperationResult } from 'src/models/file';
 
 import type Server from './server';
 
@@ -208,30 +208,6 @@ export class ServerFileManager {
     }
   }
 
-  /**
-   * アーカイブファイルを展開します
-   * @param outputDir 出力先のパス
-   * @param password パスワード
-   * @returns 圧縮に成功した場合はtrue、実行中の場合はタスクID、失敗した場合はfalse
-   */
-  async extract(outputDir: string, password?: string): Promise<FileOperationResult> {
-    if (this instanceof ServerFile && !this.type.equal(FileType.ARCHIVE)) {
-      throw new Error('not an archive file');
-    }
-
-    try {
-      const result = await axios.post(
-        `/server/${this.server.id}/file/archive/extract?path=${this.src}&output_dir=${outputDir}`,
-        {
-          password,
-        }
-      );
-      return new FileOperationResult(result.data);
-    } catch (e) {
-      throw APIError.fromError(e);
-    }
-  }
-
   isDirectory(): boolean {
     return this instanceof ServerDirectory;
   }
@@ -265,7 +241,16 @@ export class ServerFileManager {
   }
 }
 
+/* TypeScriptさん、なぜ継承したクラスのメソッドの.sliceがT[]を返すのですか */
 export class ServerFileList extends Array<ServerFileManager> {
+  override slice(start?: number, end?: number): ServerFileList {
+    return new ServerFileList(...super.slice(start, end));
+  }
+
+  override filter(predict: (value: ServerFileManager, index: number, array: ServerFileManager[]) => unknown, thisArg?: any) {
+    return new ServerFileList(...super.filter(predict, thisArg));
+  }
+
   /**
    * ファイルまたはフォルダーのアーカイブファイルを作成します
    * @param name アーカイブファイル名
@@ -372,7 +357,7 @@ export class ServerDirectory extends ServerFileManager {
 // --------------------------------------------
 
 export class ServerFile extends ServerFileManager {
-  async getData(): Promise<Blob> {
+  async download(): Promise<Blob> {
     try {
       const result = await axios.get(`/server/${this.server.id}/file?path=${this.src}`, {
         responseType: 'blob',
@@ -394,7 +379,104 @@ export class ServerFile extends ServerFileManager {
       throw APIError.fromError(e);
     }
   }
+
+  get archive() {
+    if (this.isDirectory() || this.type !== FileType.ARCHIVE) {
+      throw new Error('not an archive file');
+    }
+    return new ServerArchiveFile({name: this.name, path: this.path, type: this.type, size: this.size, modifyTime: this.modifyAt, createTime: this.createdAt}, this.server);
+  }
 }
+
+export class ServerArchiveFile extends ServerFile {
+  /**
+   * アーカイブファイルを展開します
+   * @param outputDir 出力先のパス
+   * @param password パスワード
+   * @returns 圧縮に成功した場合はtrue、実行中の場合はタスクID、失敗した場合はfalse
+   */
+  async extract(outputDir: string, password?: string): Promise<FileOperationResult> {
+    if (this.isDirectory() || this.type !== FileType.ARCHIVE) {
+      throw new Error('Not an archive file');
+    }
+
+    try {
+      const result = await axios.post(
+        `/server/${this.server.id}/file/archive/extract?path=${this.src}&output_dir=${outputDir}`,
+        {
+          password,
+        }
+      );
+      return new FileOperationResult(result.data);
+    } catch (e) {
+      throw APIError.fromError(e);
+    }
+  }
+
+  async getFiles(password?: string) {
+    const result = await axios.post(
+      `/server/${this.server.id}/file/archive/files?path=${this.src}`,
+      { password }
+    );
+
+    const files: ArchiveFile[] = result.data.map((f: ArchiveFileAPIResult) => new ArchiveFile(f))
+
+    const directoryTree = ServerArchiveFile.convertToDirectoryTree(files);
+    console.log(directoryTree)
+  }
+
+  static convertToDirectoryTree(files: ArchiveFile[]): FileNode[] {
+    const root: { [key: string]: any } = {};
+
+    files.forEach((file) => {
+      const parts = file.filename.split('/').filter(Boolean);
+      let current = root;
+
+      for (let i = 0; i < parts.length; i+=1) {
+        const part = parts[i];
+        const isLast = i === parts.length - 1;
+
+        if (!current[part]) {
+          current[part] = {
+            name: part,
+            size: 0,
+            compressedSize: 0,
+            modifiedAt: dayjs(file.modifiedDatetime),
+            ...(isLast && !file.isDir ? {} : {children: {}})
+          };
+        }
+
+        if (isLast) {
+          current[part].size = file.size;
+          current[part].compressedSize = file.compressedSize;
+          current[part].modifiedAt = dayjs(file.modifiedDatetime);
+        }
+
+        if (!isLast) {
+          current = current[part].children;
+        }
+      }
+    });
+
+    const convertToArray = (obj: { [key: string]: any }): FileNode[] => Object.values(obj).map((node: any) => ({
+        name: node.name,
+        size: node.size,
+        compressedSize: node.compressedSize,
+        modifiedAt: node.modifiedAt,
+        ...(node.children ? {children: convertToArray(node.children)} : {})
+      }));
+
+    return convertToArray(root);
+  }
+}
+
+type FileNode = {
+  name: string;
+  children?: FileNode[];
+  size: number;
+  compressedSize: number;
+  modifiedAt: Dayjs;
+};
 
 type FileManagerParams = {
   name: string;

@@ -181,10 +181,6 @@ export default class FileType {
     return FileType.ALL.find((type) => type.ext.includes(path.extname(filename)) || type.match(filename)) || FileType.UNKNOWN;
   }
 
-  equal(fileType: FileType): boolean {
-    return this.name === fileType.name;
-  }
-
   constructor(
     public name: string,
     public displayName: string,

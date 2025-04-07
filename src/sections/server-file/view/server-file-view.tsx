@@ -11,6 +11,7 @@ import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableContainer from '@mui/material/TableContainer';
 
+import FileType from "src/enums/file-type";
 import { useWebsocket } from 'src/websocket/hooks';
 import FileTaskResult from 'src/enums/file-task-result';
 import { APIError, APIErrorCode } from 'src/enums/api-error';
@@ -82,9 +83,12 @@ export function ServerFileView() {
     try {
       if (!server) return;
 
-      const info = await server.getDirectory(params.get('path')!);
+      const path = params.get('path')!
+      if (FileType.getByFilename(path) === FileType.ARCHIVE) {
+        /* empty */
+      }
 
-      console.log(info);
+      const info = await server.getDirectory(path);
 
       setDirectory(info);
       setFiles(await info.children());
@@ -124,7 +128,7 @@ export function ServerFileView() {
       if (table.selected.length === 1) {
         const start = Math.min(filteredFiles.indexOf(table.selected[0]), targetIndex);
         const end = Math.max(filteredFiles.indexOf(table.selected[0]), targetIndex);
-        table.setSelected(new ServerFileList(...filteredFiles.slice(start, end + 1)));
+        table.setSelected(filteredFiles.slice(start, end + 1));
         return;
       }
 
@@ -138,20 +142,17 @@ export function ServerFileView() {
 
       const start = Math.min(farthestIndex, targetIndex);
       const end = Math.max(farthestIndex, targetIndex);
-      table.setSelected(new ServerFileList(...filteredFiles.slice(start, end + 1)));
-
-      return;
-    }
-
-    if (e.ctrlKey) {
+      table.setSelected(filteredFiles.slice(start, end + 1));
+      
+    } else if (e.ctrlKey) {
       if (table.selected.includes(f)) {
-        table.setSelected(new ServerFileList(...table.selected.filter((value) => value !== f)));
-        return;
+        table.setSelected(table.selected.filter((value) => value !== f));
+      } else {
+        table.setSelected(new ServerFileList(...table.selected, f));
       }
-      table.setSelected(new ServerFileList(...table.selected, f));
+    } else {
+      table.setSelected(new ServerFileList(f));
     }
-
-    table.setSelected(new ServerFileList(f));
   };
 
   // メニュー系
@@ -240,7 +241,7 @@ export function ServerFileView() {
   const handleDownload = useCallback(async () => {
     handleCloseMenu();
     const file = table.selected[0] as ServerFile;
-    const fileData = await file.getData();
+    const fileData = await file.download();
 
     const url = window.URL.createObjectURL(fileData);
     const link = document.createElement('a');
@@ -258,29 +259,39 @@ export function ServerFileView() {
 
   const handleExtract = useCallback(async () => {
     handleCloseMenu();
-    const file = table.selected[0] as ServerFile;
+    const file = table.selected[0];
+    if (file.isDirectory() || file.type !== FileType.ARCHIVE) {
+      toast.error(`アーカイブファイルではありません`);
+      return;
+    }
+
     try {
-      const res = await file.extract(file.fileName);
+      const res = await (file as ServerFile).archive.extract(file.fileName);
       if (res.result === FileTaskResult.PENDING) {
         const fileTaskEndEvent = (e: FileTaskEvent) => {
+          console.log(e.task.src === file.src)
           if (e.task.src === file.src) {
             if (e.task.result !== FileTaskResult.SUCCESS) {
-              toast.error(`圧縮ファイル作成に失敗しました`);
+              toast.error(`圧縮ファイルの展開に失敗しました`);
+            } else {
+              toast.success('圧縮ファイルを展開しました');
+              reloadFiles();
             }
-            reloadFiles();
+            
             ws.removeEventListener('FileTaskEnd', fileTaskEndEvent);
           }
         };
         ws.addEventListener('FileTaskEnd', fileTaskEndEvent);
-        return;
+
+      } else if (res.result === FileTaskResult.FAILED) {
+        toast.error(`圧縮ファイルの展開に失敗しました`);
+      } else {
+        toast.success('圧縮ファイルを展開しました');
+        reloadFiles();
       }
-      if (res.result === FileTaskResult.FAILED) {
-        toast.error(`圧縮ファイル作成に失敗しました`);
-      }
-      reloadFiles();
-      toast.success('圧縮ファイルを作成しました');
+
     } catch (e) {
-      toast.error(`圧縮ファイル作成に失敗しました: ${APIError.createToastMessage(e)}`);
+      toast.error(`圧縮ファイルの展開に失敗しました: ${APIError.createToastMessage(e)}`);
     }
   }, [reloadFiles, table.selected, ws]);
 
