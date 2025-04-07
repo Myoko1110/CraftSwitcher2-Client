@@ -1,16 +1,27 @@
 import type { WebSocketClient } from 'src/websocket';
+import type { SelectChangeEvent } from '@mui/material';
 import type { FileTaskEvent } from 'src/websocket/models';
 import type { ServerDirectory, ServerFileManager } from 'src/api/server-file-manager';
 
 import { toast } from 'sonner';
+import path from 'path-browserify';
 import React, { type FormEvent } from 'react';
 
 import Grid from '@mui/material/Grid';
 import Button from '@mui/material/Button';
+import MenuItem from '@mui/material/MenuItem';
 import TextField from '@mui/material/TextField';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
-import { Dialog, DialogTitle, DialogActions, DialogContent } from '@mui/material';
+import {
+  Dialog,
+  Select,
+  InputLabel,
+  DialogTitle,
+  FormControl,
+  DialogActions,
+  DialogContent,
+} from '@mui/material';
 
 import { fDateTime } from 'src/utils/format-time';
 
@@ -70,6 +81,12 @@ export default function FileDialogs({
 }: Props) {
   const [renameError, setRenameError] = React.useState(false);
   const [mkdirError, setMkdirError] = React.useState(false);
+  const [compressError, setCompressError] = React.useState(false);
+
+  const [archiveFormat, setArchiveFormat] = React.useState('zip');
+  // const [useArchivePassword, setUseArchivePassword] = React.useState(false);
+  // const [archivePassword, setArchivePassword] = React.useState('');
+  // const [archivePasswordConfirm, setArchivePasswordConfirm] = React.useState('');
 
   const handleRenameClose = () => {
     setRenameOpen(false);
@@ -167,8 +184,9 @@ export default function FileDialogs({
 
   const handleCompress = async (e: FormEvent) => {
     e.preventDefault();
+    setCompressError(false);
     if (archiveFileName === '') {
-      setMkdirError(true);
+      setCompressError(true);
       return;
     }
 
@@ -194,9 +212,15 @@ export default function FileDialogs({
       toast.error(`圧縮ファイルの作成に失敗しました: ${APIError.createToastMessage(err)}`);
     }
   };
+  const handleChangeArchiveFormat = (e: SelectChangeEvent) => {
+    const format = e.target.value;
+    setArchiveFormat(format);
+    setArchiveFileName(`${path.parse(archiveFileName).name}.${format}`);
+  };
 
   const handleMkdir = async (e: FormEvent) => {
     e.preventDefault();
+    setMkdirError(false);
     if (mkdirValue === '') {
       setMkdirError(true);
       return;
@@ -288,7 +312,7 @@ export default function FileDialogs({
                   <Typography variant="body2" mt={2}>
                     {selected[0]?.type.displayName}
                   </Typography>
-                  {!selected[0]?.type.equal(FileType.DIRECTORY) && (
+                  {selected[0]?.type !== FileType.DIRECTORY && (
                     <Typography variant="body2">{selected[0]?.size} KB</Typography>
                   )}
 
@@ -323,14 +347,59 @@ export default function FileDialogs({
           <Iconify icon="eva:close-outline" />
         </IconButton>
         <form onSubmit={handleCompress}>
-          <DialogContent>
+          <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             <TextField
               autoFocus
               fullWidth
+              label="ファイル名"
               variant="outlined"
               value={archiveFileName}
               onChange={(e) => setArchiveFileName(e.target.value)}
+              helperText={compressError ? '必須項目です' : ''}
+              error={compressError}
             />
+            <FormControl fullWidth>
+              <InputLabel>アーカイブの形式</InputLabel>
+              <Select
+                value={archiveFormat}
+                label="アーカイブの形式"
+                onChange={handleChangeArchiveFormat}
+              >
+                <MenuItem value="zip">ZIP</MenuItem>
+                <MenuItem value="7zip">7zip</MenuItem>
+              </Select>
+            </FormControl>
+
+            {/* <FormControlLabel */}
+            {/*   control={ */}
+            {/*     <Checkbox */}
+            {/*       value={useArchivePassword} */}
+            {/*       onChange={(e) => setUseArchivePassword(e.target.checked)} */}
+            {/*     /> */}
+            {/*   } */}
+            {/*   label="暗号化する" */}
+            {/* /> */}
+
+            {/* {useArchivePassword && ( */}
+            {/*   <> */}
+            {/*     <TextField */}
+            {/*       autoFocus */}
+            {/*       fullWidth */}
+            {/*       label="パスワード" */}
+            {/*       variant="outlined" */}
+            {/*       value={archivePassword} */}
+            {/*       onChange={(e) => setArchivePassword(e.target.value)} */}
+            {/*     /> */}
+            {/*     <TextField */}
+            {/*       autoFocus */}
+            {/*       fullWidth */}
+            {/*       label="パスワード（確認）" */}
+            {/*       variant="outlined" */}
+            {/*       value={archivePasswordConfirm} */}
+            {/*       onChange={(e) => setArchivePasswordConfirm(e.target.value)} */}
+            {/*     /> */}
+            {/*   </> */}
+            {/* )} */}
           </DialogContent>
           <DialogActions>
             <Button color="inherit" variant="contained" type="submit">
@@ -364,7 +433,7 @@ export default function FileDialogs({
               variant="outlined"
               value={mkdirValue}
               onChange={(e) => setMkdirValue(e.target.value)}
-              helperText={mkdirError ? '入力してください' : ''}
+              helperText={mkdirError ? '必須項目です' : ''}
               error={mkdirError}
               placeholder="フォルダ名"
             />
