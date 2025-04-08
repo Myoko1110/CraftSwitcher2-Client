@@ -49,7 +49,8 @@
     "react-helmet-async": "^2.0.5",
     "react-router-dom": "^6.26.1",
     "simplebar-react": "^3.2.6",
-    "sonner": "^1.7.0"
+    "sonner": "^1.7.0",
+    "zod": "^3.24.2"
   },
   "devDependencies": {
     "@types/path-browserify": "^1.0.3",

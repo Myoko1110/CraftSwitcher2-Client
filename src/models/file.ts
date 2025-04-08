@@ -29,36 +29,23 @@ export class FileOperationResult {
 
   file: FileInfo | null;
 
-  constructor({ result, task_id, file }: FileOperationAPIResult) {
+  constructor({ result, taskId, file }: FileOperationAPIResult) {
     this.result = FileTaskResult.valueOf(result);
-    this.taskId = task_id;
+    this.taskId = taskId;
     this.file = file;
   }
 }
-type FileOperationAPIResult = {
+export type FileOperationAPIResult = {
   result: string;
-  task_id: number | null;
+  taskId: number | null;
   file: FileInfo;
 };
 
-export class StorageInfo {
+export interface StorageInfo {
   totalSize: number;
-
   usedSize: number;
-
   freeSize: number;
-
-  constructor({ total_size, used_size, free_size }: StorageInfoAPIResult) {
-    this.totalSize = total_size;
-    this.usedSize = used_size;
-    this.freeSize = free_size;
-  }
 }
-type StorageInfoAPIResult = {
-  total_size: number;
-  used_size: number;
-  free_size: number;
-};
 
 export class ArchiveFile {
   filename: string;

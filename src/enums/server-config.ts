@@ -1,7 +1,7 @@
 // eslint-disable-next-line max-classes-per-file
 import type { Dayjs } from 'dayjs';
-import type { AxiosResponse } from 'axios';
 
+import {z} from "zod";
 import dayjs from 'dayjs';
 
 import ServerType from './server-type';
@@ -27,7 +27,7 @@ export class ServerConfig {
     return {
       name: config.name,
       type: config.type?.name,
-      ...config.launchOption?.toConfig(),
+      ...config.launchOption?.serializeToConfig(),
       enableLaunchCommand: config.enableLaunchCommand,
       launchCommand: config.launchCommand,
       stopCommand: config.stopCommand,
@@ -35,9 +35,7 @@ export class ServerConfig {
     };
   }
 
-  static deserializeFromResult(result: AxiosResponse): ServerConfig {
-    const data = result.data as ServerConfigResult;
-
+  static deserializeFromResult(data: ServerConfigAPIResult): ServerConfig {
     return new ServerConfig(
       data.name,
       ServerType.valueOf(data.type),
@@ -75,7 +73,7 @@ export class LaunchOption {
     public enableScreen: boolean | null
   ) {}
 
-  toConfig() {
+  serializeToConfig() {
     return {
       'launchOption.java_preset': this.javaPreset,
       'launchOption.java_executable': this.javaExecutable,
@@ -90,7 +88,7 @@ export class LaunchOption {
     };
   }
 
-  toCreateSchema() {
+  serializeToServer() {
     return {
       java_preset: this.javaPreset,
       java_executable: this.javaExecutable,
@@ -105,7 +103,7 @@ export class LaunchOption {
     };
   }
 
-  static deserializeFromConfig(config: ServerConfigResult): LaunchOption {
+  static deserializeFromConfig(config: ServerConfigAPIResult): LaunchOption {
     return new LaunchOption(
       config['launchOption.javaPreset'],
       config['launchOption.javaExecutable'],
@@ -121,33 +119,48 @@ export class LaunchOption {
   }
 }
 
-export type ServerConfigResult = {
-  name: string | null;  // 表示名
-  type: string;  // サーバーの種類
-  'launchOption.javaPreset': string | null;  // Javaプリセット名
-  'launchOption.javaExecutable': string | null;  // Javaコマンド、もしくはパス
-  'launchOption.javaOptions': string | null;  // Javaオプション
-  'launchOption.jarFile': string;  // Jarファイルパス
-  'launchOption.serverOptions': string | null;  // サーバーオプション
-  'launchOption.maxHeapMemory': number | null;  // メモリ割り当て量（単位: MB）
-  'launchOption.minHeapMemory': number | null;  // メモリ割り当て量（単位: MB）
-  'launchOption.enableFreeMemoryCheck': boolean | null;  // 起動時に空きメモリを確認する
-  'launchOption.enableReporterAgent': boolean | null;  // サーバーと連携するエージェントを使う
-  'launchOption.enableScreen': boolean | null;  // GNU Screen を使って起動する
-  enableLaunchCommand: boolean | null;  // 起動オプションを使わず、カスタムコマンドで起動する
-  launchCommand: string;  // 起動コマンド
-  stopCommand: string | null;  // 停止コマンド
-  shutdownTimeout: number | null;  // 停止処理の最大待ち時間（単位: 秒）
-  createdAt: string | null;  // 作成された日時
-  lastLaunchAt: string | null;  // 最後に起動した日時
-  lastBackupAt: string | null;  // 最後にバックアップした日時
-  lastBackupId: string | null;  // 最終バックアップのID
-  sourceId: string | null;  // サーバーデータID
-  'installer.type': string | null;  // インストールされたサーバーの種類
-  'installer.version': string | null;  // インストールされたサーバーバージョン
-  'installer.build': string | null;  // インストールされたサーバービルド
-  'installer.requireBuild': boolean | null;  // ビルドが必要なインストーラー
-};
+const serverConfigSchemaRaw = z.object({
+  name: z.string().nullable(),
+  type: z.string(),
+  'launchOption.javaPreset': z.string().nullable(),
+  'launchOption.javaExecutable': z.string().nullable(),
+  'launchOption.javaOptions': z.string().nullable(),
+  'launchOption.jarFile': z.string(),
+  'launchOption.serverOptions': z.string().nullable(),
+  'launchOption.maxHeapMemory': z.number().nullable(),
+  'launchOption.minHeapMemory': z.number().nullable(),
+  'launchOption.enableFreeMemoryCheck': z.boolean().nullable(),
+  'launchOption.enableReporterAgent': z.boolean().nullable(),
+  'launchOption.enableScreen': z.boolean().nullable(),
+  enableLaunchCommand: z.boolean().nullable(),
+  launchCommand: z.string().nullable(),
+  stopCommand: z.string().nullable(),
+  shutdownTimeout: z.number().nullable(),
+  createdAt: z.string().nullable(),
+  lastLaunchAt: z.string().nullable(),
+  lastBackupAt: z.string().nullable(),
+  lastBackupId: z.string().nullable(),
+  sourceId: z.string().nullable(),
+  'installer.type': z.string().nullable(),
+  'installer.version': z.string().nullable(),
+  'installer.build': z.string().nullable(),
+  'installer.requireBuild': z.boolean().nullable(),
+});
+export type ServerConfigAPIResult = z.infer<typeof serverConfigSchemaRaw>;
+export const serverConfigSchema = serverConfigSchemaRaw.transform((data) => ServerConfig.deserializeFromResult(data));
+
+export const LaunchOptionSchema = z.object({
+  javaPreset: z.string().nullable(),
+  javaExecutable: z.string().nullable(),
+  javaOptions: z.string().nullable(),
+  jarFile: z.string(),
+  serverOptions: z.string().nullable(),
+  maxHeapMemory: z.number().nullable(),
+  minHeapMemory: z.number().nullable(),
+  enableFreeMemoryCheck: z.boolean().nullable(),
+  enableReporterAgent: z.boolean().nullable(),
+  enableScreen: z.boolean().nullable()
+});
 
 type Installer = {
   type: ServerType | null,

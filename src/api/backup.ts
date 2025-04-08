@@ -1,5 +1,12 @@
 import type { Dayjs } from 'dayjs';
-import type { BackupId, BackupResult } from 'src/models/backup';
+import type {
+  BackupId,
+  BackupResult,
+  BackupTaskAPIResult,
+  BackupPreviewAPIResult,
+  BackupsCompareAPIResult,
+  BackupFilesResultAPIResult
+} from 'src/models/backup';
 
 import axios from 'axios';
 import dayjs from 'dayjs';
@@ -53,8 +60,8 @@ export default class Backup {
    */
   static async getIDList(): Promise<BackupId[]> {
     try {
-      const result = await axios.get('/backups');
-      return result.data as BackupId[];
+      const result = await axios.get<BackupId[]>('/backups');
+      return result.data;
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -66,9 +73,8 @@ export default class Backup {
    */
   static async getById(id: string): Promise<Backup> {
     try {
-      const result = await axios.get(`/backup/${id}`);
-      const data = result.data as BackupResult;
-      return Backup.deserializeFromResult(data);
+      const result = await axios.get<BackupResult>(`/backup/${id}`);
+      return Backup.deserializeFromResult(result.data);
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -80,9 +86,8 @@ export default class Backup {
    */
   static async getByServer(server: Server): Promise<Backup[]> {
     try {
-      const result = await axios.get(`/server/${server.id}/backups`);
-      const data = result.data as BackupResult[];
-      return data.map((d) => Backup.deserializeFromResult(d));
+      const result = await axios.get<BackupResult[]>(`/server/${server.id}/backups`);
+      return result.data.map((d) => Backup.deserializeFromResult(d));
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -92,10 +97,10 @@ export default class Backup {
    * 実行中のバックアップタスクを取得
    * @param server サーバー
    */
-  static async getTask(server: Server): Promise<BackupTask> {
+  static async getTask(server: Server): Promise<BackupTask | null> {
     try {
-      const result = await axios.get(`/server/${server.id}/backup/`);
-      return new BackupTask(result.data);
+      const result = await axios.get<BackupTaskAPIResult | null>(`/server/${server.id}/backup/`);
+      return result.data ? new BackupTask(result.data) : null;
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -113,7 +118,7 @@ export default class Backup {
     if (snapshot !== undefined) params.append('snapshot', snapshot.toString());
 
     try {
-      const result = await axios.post(`/server/${server.id}/backup?${params}`);
+      const result = await axios.post<BackupTaskAPIResult>(`/server/${server.id}/backup?${params}`);
       return new BackupTask(result.data);
     } catch (e) {
       throw APIError.fromError(e);
@@ -151,7 +156,7 @@ export default class Backup {
     if (onlyUpdates) params.append('only_updates', onlyUpdates.toString());
 
     try {
-      const result = await axios.get(`/server/${server.id}/backup/preview?${params}`);
+      const result = await axios.get<BackupPreviewAPIResult>(`/server/${server.id}/backup/preview?${params}`);
       return new BackupPreviewResult(result.data);
     } catch (e) {
       throw APIError.fromError(e);
@@ -165,7 +170,7 @@ export default class Backup {
    */
   async remove(): Promise<boolean> {
     try {
-      const result = await axios.delete(`/backup/${this.id}`);
+      const result = await axios.delete<boolean>(`/backup/${this.id}`);
       return result.data;
     } catch (e) {
       throw APIError.fromError(e);
@@ -195,7 +200,7 @@ export default class Backup {
     if (includeErrors !== undefined) params.append('include_errors', includeErrors.toString());
 
     try {
-      const result = await axios.get(`/backup/${this.id}/files?${params}`);
+      const result = await axios.get<BackupFilesResultAPIResult>(`/backup/${this.id}/files?${params}`);
       return new BackupFilesResult(result.data);
     } catch (e) {
       throw APIError.fromError(e);
@@ -232,7 +237,7 @@ export default class Backup {
     if (onlyUpdates !== undefined) params.append('only_updates', onlyUpdates.toString());
 
     try {
-      const result = await axios.get(`/backup/${this.id}/files/compare?${params}`);
+      const result = await axios.get<BackupsCompareAPIResult>(`/backup/${this.id}/files/compare?${params}`);
       return new BackupsCompareResult(result.data);
     } catch (e) {
       throw APIError.fromError(e);
@@ -246,10 +251,10 @@ export default class Backup {
    */
   async export(): Promise<Blob> {
     try {
-      const result = await axios.get(`/backup/${this.id}/export`, {
+      const result = await axios.get<Blob>(`/backup/${this.id}/export`, {
         responseType: 'blob',
       });
-      return result.data as Blob;
+      return result.data;
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -265,7 +270,7 @@ export default class Backup {
    */
   async restore(server: Server): Promise<BackupTask> {
     try {
-      const result = await axios.post(`/server/${server.id}/backup/${this.id}/restore`);
+      const result = await axios.post<BackupTaskAPIResult>(`/server/${server.id}/backup/${this.id}/restore`);
       return new BackupTask(result.data);
     } catch (e) {
       throw APIError.fromError(e);
@@ -300,7 +305,7 @@ export default class Backup {
     if (onlyUpdates !== undefined) params.append('only_updates', onlyUpdates.toString());
 
     try {
-      const result = await axios.get(`/server/${server.id}/backup/${this.id}/verify?${params}`);
+      const result = await axios.get<BackupsCompareAPIResult>(`/server/${server.id}/backup/${this.id}/verify?${params}`);
       return new BackupsCompareResult(result.data);
     } catch (e) {
       throw APIError.fromError(e);
@@ -338,7 +343,7 @@ export default class Backup {
     if (onlyUpdates !== undefined) params.append('only_updates', onlyUpdates.toString());
 
     try {
-      const result = await axios.get(
+      const result = await axios.get<BackupsCompareAPIResult>(
         `/server/${server.id}/backup/${this.id}/files/compare?${params}`
       );
       return new BackupsCompareResult(result.data);
@@ -355,10 +360,10 @@ export default class Backup {
    */
   async getFile(path: string): Promise<Blob> {
     try {
-      const result = await axios.get(`/backup/${this.id}/file?path=${path}`, {
+      const result = await axios.get<Blob>(`/backup/${this.id}/file?path=${path}`, {
         responseType: 'blob',
       });
-      return result.data as Blob;
+      return result.data;
     } catch (e) {
       throw APIError.fromError(e);
     }

@@ -1,4 +1,6 @@
 // eslint-disable-next-line max-classes-per-file
+import {ZodError} from "zod";
+
 export class APIErrorCode {
   // other
   public static readonly OUT_OF_MEMORY = new APIErrorCode(100, 'メモリが不足しています。');
@@ -130,6 +132,9 @@ export class APIErrorCode {
   // java
   public static readonly UNKNOWN_JAVA_PRESET = new APIErrorCode(900, '不明なJavaプリセットです。');
 
+  // frontend
+  public static readonly INVALID_RESULT = new APIErrorCode(1000, 'サーバーからのデータ読み込みに失敗しました。');
+
   private static readonly values = [
     APIErrorCode.OUT_OF_MEMORY,
     APIErrorCode.OPERATION_CANCELLED,
@@ -202,6 +207,11 @@ export class APIError extends Error {
   }
 
   static fromError(e: any) {
+    if (e instanceof ZodError) {
+      console.log(e);
+      return new APIError(APIErrorCode.INVALID_RESULT);
+    }
+
     if (e.response?.data.error_code) {
       return new APIError(e.response.data.error_code);
     }

@@ -1,13 +1,15 @@
+import type { FileInfo, FileOperationAPIResult } from 'src/models/file';
 import type { BackupTask, BackupPreviewResult } from 'src/models/backup';
-import type { ServerResult, ServerStatusInfo, CreateServerParams } from 'src/models/server';
+import type { LaunchOption, ServerConfigAPIResult } from 'src/enums/server-config';
 
+import { z } from "zod";
 import axios from 'axios';
 
 import ServerType from 'src/enums/server-type';
 import { APIError } from 'src/enums/api-error';
 import ServerState from 'src/enums/server-state';
-import { FileOperationResult } from 'src/models/file';
-import { ServerConfig } from 'src/enums/server-config';
+import { FileOperationResult} from 'src/models/file';
+import { ServerConfig, LaunchOptionSchema , serverConfigSchema } from 'src/enums/server-config';
 
 import Backup from './backup';
 import { ServerFileManager } from './server-file-manager';
@@ -36,7 +38,7 @@ export default class Server {
   static async all(): Promise<Server[]> {
     try {
       const result = await axios.get('/servers');
-      return result.data.map((value: ServerResult) => this.serializeFromResult(value));
+      return z.array(serverSchema).parse(result.data);
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -49,7 +51,7 @@ export default class Server {
   static async get(id: string): Promise<Server> {
     try {
       const result = await axios.get(`/server/${id}`);
-      return this.serializeFromResult(result.data as ServerResult);
+      return serverSchema.parse(result.data);
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -58,13 +60,13 @@ export default class Server {
   static async getWithStatus(id: string): Promise<Server> {
     try {
       const result = await axios.get(`/server/${id}?include_status=true`);
-      return this.serializeFromResult(result.data as ServerResult);
+      return serverSchema.parse(result.data);
     } catch (e) {
       throw APIError.fromError(e);
     }
   }
 
-  private static serializeFromResult(value: ServerResult) {
+  public static deserializeFromResult(value: ServerAPIResult): Server {
     return new Server(
       value.id,
       value.name,
@@ -96,14 +98,17 @@ export default class Server {
   ): Promise<Server | false> {
     const id = window.crypto.randomUUID();
 
+    const params = new URLSearchParams();
+    if (eula !== undefined) params.set('eula', eula.toString());
+
     try {
       const result = await axios.post(
-        `/server/${id}${eula !== undefined ? `?eula=${eula}` : ''}`,
+        `/server/${id}?${params}`,
         {
           name,
           directory,
           type: type.name,
-          launchOption: launchOption.toCreateSchema(),
+          launchOption: launchOption.serializeToServer(),
           enableLaunchCommand,
           launchCommand,
           stopCommand,
@@ -115,7 +120,9 @@ export default class Server {
           },
         }
       );
-      return result.data.result ? (await Server.get(id))! : false;
+      serverCreateSchema.parse(result.data);
+
+      return await Server.get(id);
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -132,8 +139,8 @@ export default class Server {
    */
   async start(): Promise<boolean> {
     try {
-      const result = await axios.post(`/server/${this.id}/start`);
-      return result.data.result;
+      const result = await axios.post<ServerOperationAPIResult>(`/server/${this.id}/start`);
+      return serverOperationSchema.parse(result.data).result;
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -144,8 +151,8 @@ export default class Server {
    */
   async stop(): Promise<boolean> {
     try {
-      const result = await axios.post(`/server/${this.id}/stop`);
-      return result.data.result;
+      const result = await axios.post<ServerOperationAPIResult>(`/server/${this.id}/stop`);
+      return serverOperationSchema.parse(result.data).result;
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -156,8 +163,8 @@ export default class Server {
    */
   async restart(): Promise<boolean> {
     try {
-      const result = await axios.post(`/server/${this.id}/restart`);
-      return result.data.result;
+      const result = await axios.post<ServerOperationAPIResult>(`/server/${this.id}/restart`);
+      return serverOperationSchema.parse(result.data).result;
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -168,8 +175,8 @@ export default class Server {
    */
   async kill(): Promise<boolean> {
     try {
-      const result = await axios.post(`/server/${this.id}/kill`);
-      return result.data.result;
+      const result = await axios.post<ServerOperationAPIResult>(`/server/${this.id}/kill`);
+      return serverOperationSchema.parse(result.data).result;
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -182,8 +189,8 @@ export default class Server {
    */
   async sendLine(line: string): Promise<boolean> {
     try {
-      const result = await axios.post(`/server/${this.id}/send_line?line=${line}`);
-      return result.data.result;
+      const result = await axios.post<ServerOperationAPIResult>(`/server/${this.id}/send_line?line=${line}`);
+      return serverOperationSchema.parse(result.data).result;
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -194,10 +201,10 @@ export default class Server {
    *
    * 幅x高のカーソル数を返します。
    */
-  async getTermSize(): Promise<[number, number]> {
+  async getTermSize(): Promise<TermSize> {
     try {
       const result = await axios.get(`/server/${this.id}/term/size`);
-      return result.data as [number, number];
+      return termSizeSchema.parse(result.data);
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -210,10 +217,10 @@ export default class Server {
    * @param cols 幅
    * @param rows 高
    */
-  async setTermSize(cols: number, rows: number): Promise<[number, number]> {
+  async setTermSize(cols: number, rows: number): Promise<TermSize> {
     try {
       const result = await axios.post(`/server/${this.id}/term/size?cols=${cols}&rows=${rows}`);
-      return result.data as [number, number];
+      return termSizeSchema.parse(result.data);
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -227,17 +234,16 @@ export default class Server {
    * @param maxLines 取得する最大行数( `null` でキャッシュされている全ての行を出力)
    */
   async getLogsLatest(
-    includeBuffer: boolean = false,
-    maxLines: number | null = null
-  ): Promise<string[]> {
+    includeBuffer?: boolean,
+    maxLines?: number,
+  ): Promise<Logs> {
     try {
-      const params = new URLSearchParams({
-        include_buffer: includeBuffer ? 'true' : 'false',
-      });
-      if (maxLines) params.set('max_lines', String(maxLines));
+      const params = new URLSearchParams();
+      if (includeBuffer) params.set('include_buffer', includeBuffer.toString());
+      if (maxLines) params.set('max_lines', maxLines.toString());
 
       const result = await axios.get(`/server/${this.id}/logs/latest?${params}`);
-      return result.data;
+      return logsSchema.parse(result.data);
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -248,11 +254,15 @@ export default class Server {
    *
    * @param directory インポートするディレクトリ
    * @param eula Minecraft EULA に同意されていれば true にできます
+   * @returns ディレクトリ
    */
-  async import(directory: string, eula?: boolean): Promise<boolean> {
+  async import(directory: string, eula?: boolean): Promise<string> {
+    const params = new URLSearchParams();
+    if (eula !== undefined) params.set('eula', eula.toString());
+
     try {
       const result = await axios.post(
-        `/server/${this.id}/import${eula !== undefined ? `?eula=${eula}` : ''}`,
+        `/server/${this.id}/import?${params}`,
         { directory },
         {
           headers: {
@@ -260,7 +270,7 @@ export default class Server {
           },
         }
       );
-      return result.data.result;
+      return serverImportSchema.parse(result.data).directory;
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -274,7 +284,7 @@ export default class Server {
       const result = await axios.delete(
         `/server/${this.id}${deleteConfigFile !== undefined ? `?delete_config_file=${deleteConfigFile}` : ''}`
       );
-      return result.data.result;
+      return serverOperationSchema.parse(result.data).result;
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -286,7 +296,7 @@ export default class Server {
   async getConfig(): Promise<ServerConfig> {
     try {
       const result = await axios.get(`/server/${this.id}/config`);
-      return ServerConfig.deserializeFromResult(result);
+      return serverConfigSchema.parse(result.data);
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -298,12 +308,12 @@ export default class Server {
    */
   async updateConfig(config: Partial<ServerConfig>): Promise<ServerConfig> {
     try {
-      const result = await axios.put(`/server/${this.id}/config`, ServerConfig.serialize(config), {
+      const result = await axios.put<ServerConfigAPIResult>(`/server/${this.id}/config`, ServerConfig.serialize(config), {
         headers: {
           'content-type': 'application/json',
         },
       });
-      return ServerConfig.deserializeFromResult(result);
+      return serverConfigSchema.parse(result.data);
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -314,8 +324,8 @@ export default class Server {
    */
   async reloadConfig(): Promise<ServerConfig> {
     try {
-      const result = await axios.post(`/server/${this.id}/config/reload`);
-      return ServerConfig.deserializeFromResult(result);
+      const result = await axios.post<ServerConfigAPIResult>(`/server/${this.id}/config/reload`);
+      return serverConfigSchema.parse(result.data);
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -339,7 +349,7 @@ export default class Server {
       });
       if (javaPreset) params.append('java_preset', javaPreset);
 
-      const result = await axios.post(`/server/${this.id}/install?${params}`);
+      const result = await axios.post<FileOperationAPIResult>(`/server/${this.id}/install?${params}`);
       return new FileOperationResult(result.data);
     } catch (e) {
       throw APIError.fromError(e);
@@ -352,7 +362,7 @@ export default class Server {
   async removeBuild(): Promise<boolean> {
     try {
       const result = await axios.delete(`/server/${this.id}/build`);
-      return result.data.result;
+      return serverOperationSchema.parse(result.data).result;
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -363,8 +373,8 @@ export default class Server {
    */
   async getEula(): Promise<boolean> {
     try {
-      const result = await axios.get(`/server/${this.id}/eula`);
-      return result.data.eula === 'true';
+      const result = await axios.get<boolean>(`/server/${this.id}/eula`);
+      return z.boolean().parse(result.data);
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -374,10 +384,10 @@ export default class Server {
    * EULA の値を設定
    * @param accept Minecraft EULA に同意されていれば `true` にできます
    */
-  async setEula(accept: boolean): Promise<boolean> {
+  async setEula(accept: boolean): Promise<FileInfo> {
     try {
-      const result = await axios.post(`/server/${this.id}/eula?accept=${accept}`);
-      return result.status === 200;
+      const result = await axios.post<FileInfo>(`/server/${this.id}/eula?accept=${accept}`);
+      return result.data;
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -391,7 +401,7 @@ export default class Server {
     return Backup.getByServer(this);
   }
 
-  async getBackupTask(): Promise<BackupTask> {
+  async getBackupTask(): Promise<BackupTask | null> {
     return Backup.getTask(this);
   }
 
@@ -408,3 +418,80 @@ export default class Server {
     return Backup.preview(this, params);
   }
 }
+
+// ----------------------------------------------------------------------
+
+const serverStatusInfoSchema = z.object({
+  id: z.string(),
+  process: z.object({
+    cpuUsage: z.number(),
+    memUsed: z.number(),
+    memVirtualUsed: z.number(),
+  }).nullable(),
+  jvm: z.object({
+    cpuUsage: z.number().nullable(),
+    memUsed: z.number().nullable(),
+    memTotal: z.number().nullable(),
+  }).nullable(),
+  game: z.object({
+    ticks: z.number().nullable(),
+    maxPlayers: z.number().nullable(),
+    onlinePlayers: z.number().nullable(),
+    players: z.array(z.object({
+      uuid: z.string(),
+      name: z.string(),
+    })).nullable(),
+  }).nullable(),
+});
+export type ServerStatusInfo = z.infer<typeof serverStatusInfoSchema>;
+
+const serverSchemaRaw = z.object({
+  id: z.string(),
+  name: z.string().nullable(),
+  type: z.string(),
+  state: z.string(),
+  directory: z.string().nullable(),
+  isLoaded: z.boolean(),
+  buildStatus: z.string().nullable(),
+  status: serverStatusInfoSchema.nullable(),
+});
+type ServerAPIResult = z.infer<typeof serverSchemaRaw>;
+const serverSchema = serverSchemaRaw.transform((s) => Server.deserializeFromResult(s));
+
+const serverOperationSchema = z.object({
+  result: z.boolean(),
+  serverId: z.string(),
+});
+type ServerOperationAPIResult = z.infer<typeof serverOperationSchema>;
+
+const termSizeSchema = z.tuple([z.number(), z.number()]);
+type TermSize = z.infer<typeof termSizeSchema>;
+
+const logsSchema = z.array(z.string());
+type Logs = z.infer<typeof logsSchema>;
+
+const serverImportSchema = z.object({
+  directory: z.string(),
+});
+
+const serverCreateSchema = z.object({
+  name: z.string().nullable(),
+  directory: z.string(),
+  type: z.string(),
+  launchOption: LaunchOptionSchema,
+  enableLaunchCommand: z.boolean().optional(),
+  launchCommand: z.string(),
+  stopCommand: z.string().nullable(),
+  shutdownTimeout: z.number().nullable(),
+});
+
+export type CreateServerParams = {
+  name: string | null;
+  directory: string;
+  type: ServerType;
+  launchOption: LaunchOption;
+  enableLaunchCommand?: boolean;
+  launchCommand?: string;
+  stopCommand?: string | null;
+  shutdownTimeout?: number | null;
+};

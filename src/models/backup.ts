@@ -215,7 +215,7 @@ export class BackupPreviewResult {
     snapshotSource,
     files,
     errors,
-  }: BackupsPreviewAPIResult) {
+  }: BackupPreviewAPIResult) {
     this.totalFiles = totalFiles;
     this.totalFilesSize = totalFilesSize;
     this.errorFiles = errorFiles;
@@ -260,33 +260,33 @@ export class BackupTask extends FileTask {
   }
 }
 
-type BackupFileInfoAPIResult = {
+export type BackupFileInfoAPIResult = {
   size: number;
   modifyTime: string;
   isDir: boolean;
 };
 
-type BackupFileDifferenceAPIResult = {
+export type BackupFileDifferenceAPIResult = {
   path: string;
   oldInfo: BackupFileInfo | null;
   newInfo: BackupFileInfo | null;
   status: number;
 };
 
-type BackupFilePathInfoAPIResult = {
+export type BackupFilePathInfoAPIResult = {
   path: string;
   isDir: boolean;
   size: number;
   modifyTime: string;
 };
 
-type BackupFilePathErrorInfoAPIResult = {
+export type BackupFilePathErrorInfoAPIResult = {
   path: string;
   errorType: number;
   errorMessage: string | null;
 };
 
-type BackupFilesResultAPIResult = {
+export type BackupFilesResultAPIResult = {
   totalFiles: number;
   totalFilesSize: number;
   errorFiles: number;
@@ -296,7 +296,7 @@ type BackupFilesResultAPIResult = {
   errors: BackupFilePathErrorInfoAPIResult[] | null;
 };
 
-type BackupsCompareAPIResult = {
+export type BackupsCompareAPIResult = {
   totalFiles: number;
   totalFilesSize: number;
   errorFiles: number;
@@ -315,7 +315,7 @@ type BackupsCompareAPIResult = {
   targetErrors: BackupFilePathErrorInfoAPIResult[] | null;
 };
 
-type BackupsPreviewAPIResult = {
+export type BackupPreviewAPIResult = {
   totalFiles: number;
   totalFilesSize: number;
   errorFiles: number;
@@ -329,7 +329,7 @@ type BackupsPreviewAPIResult = {
   errors: BackupFilePathErrorInfoAPIResult[] | null;
 };
 
-type BackupTaskAPIResult = FileTaskAPIResult & {
+export type BackupTaskAPIResult = FileTaskAPIResult & {
   comments: string | null;
   backupType: string;
   backupId: string;

@@ -1,6 +1,8 @@
-import type { ServerStatusInfo } from 'src/models/server';
+import type { Dayjs } from 'dayjs';
+import type {ServerStatusInfo} from "src/api/server";
 import type { SystemCpuInfo, SystemMemoryInfo } from 'src/models/system';
-import dayjs, { Dayjs } from 'dayjs';
+
+import dayjs from 'dayjs';
 
 // --------------------------------------------------
 

@@ -1,16 +1,17 @@
 // eslint-disable-next-line max-classes-per-file
 import type { Dayjs } from 'dayjs';
 import type { FileWithPath } from 'react-dropzone';
-import type { FileInfo, ArchiveFileAPIResult, FileDirectoryInfoResult } from 'src/models/file';
+import type { FileTaskAPIResult} from 'src/models/task';
+import type {FileInfo, StorageInfo, ArchiveFileAPIResult, FileOperationAPIResult, FileDirectoryInfoResult} from 'src/models/file';
 
 import axios from 'axios';
 import dayjs from 'dayjs';
 import path from 'path-browserify';
 
+import {FileTask} from 'src/models/task';
 import FileType from 'src/enums/file-type';
-import { FileTask } from 'src/models/task';
 import { APIError } from 'src/enums/api-error';
-import { StorageInfo, ArchiveFile , FileOperationResult } from 'src/models/file';
+import { ArchiveFile , FileOperationResult } from 'src/models/file';
 
 import type Server from './server';
 
@@ -86,8 +87,8 @@ export class ServerFileManager {
    * @returns タスクのリスト
    */
   static async getTasks(): Promise<FileTask[]> {
-    const result = await axios.get('/file/tasks');
-    return result.data.map((t: any) => new FileTask(t));
+    const result = await axios.get<FileTaskAPIResult[]>('/file/tasks');
+    return result.data.map((t) => new FileTask(t));
   }
 
   /**
@@ -98,8 +99,8 @@ export class ServerFileManager {
    */
   static async get(server: Server, _path: string): Promise<ServerDirectory> {
     try {
-      const result = await axios.get(`/server/${server.id}/files?path=${_path}`);
-      const directory: FileDirectoryInfoResult = result.data;
+      const result = await axios.get<FileDirectoryInfoResult>(`/server/${server.id}/files?path=${_path}`);
+      const directory = result.data;
 
       return new ServerDirectory(
         {
@@ -131,7 +132,7 @@ export class ServerFileManager {
       while (true) {
         try {
           // eslint-disable-next-line no-await-in-loop
-          const result = await axios.put(
+          const result = await axios.put<FileOperationAPIResult>(
             `/server/${this.server.id}/file/copy?path=${this.src}&dst_path=${dstPath}`
           );
 
@@ -150,7 +151,7 @@ export class ServerFileManager {
     const dstPath = path.join(to, this.name);
 
     try {
-      const result = await axios.put(
+      const result = await axios.put<FileOperationAPIResult>(
         `/server/${this.server.id}/file/copy?path=${this.src}&dst_path=${dstPath}`
       );
       return new FileOperationResult(result.data);
@@ -168,7 +169,7 @@ export class ServerFileManager {
     const dstPath = path.join(to, this.name);
 
     try {
-      const result = await axios.put(
+      const result = await axios.put<FileOperationAPIResult>(
         `/server/${this.server.id}/file/move?path=${this.src}&dst_path=${dstPath}`
       );
       return new FileOperationResult(result.data);
@@ -186,7 +187,7 @@ export class ServerFileManager {
     const newPath = path.join(this.path, newName);
 
     try {
-      const result = await axios.put(
+      const result = await axios.put<FileOperationAPIResult>(
         `/server/${this.server.id}/file/move?path=${this.src}&dst_path=${newPath}`
       );
       return new FileOperationResult(result.data);
@@ -201,7 +202,7 @@ export class ServerFileManager {
    */
   async remove(): Promise<FileOperationResult> {
     try {
-      const result = await axios.delete(`/server/${this.server.id}/file?path=${this.src}`);
+      const result = await axios.delete<FileOperationAPIResult>(`/server/${this.server.id}/file?path=${this.src}`);
       return new FileOperationResult(result.data);
     } catch (e) {
       throw APIError.fromError(e);
@@ -224,7 +225,7 @@ export class ServerFileManager {
    */
   static async getInfo(server: Server, _path: string): Promise<ServerFileManager> {
     try {
-      const result = await axios.get(`/server/${server.id}/file/info?path=${_path}`);
+      const result = await axios.get<FileInfo>(`/server/${server.id}/file/info?path=${_path}`);
       return this.deserialize(result.data, server);
     } catch (e) {
       throw APIError.fromError(e);
@@ -233,8 +234,8 @@ export class ServerFileManager {
 
   static async getStorageInfo(server?: Server): Promise<StorageInfo> {
     try {
-      const result = await axios.get(`/storage/info${server ? `?server_id=${server.id}` : ''}`);
-      return new StorageInfo(result.data);
+      const result = await axios.get<StorageInfo>(`/storage/info${server ? `?server_id=${server.id}` : ''}`);
+      return result.data;
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -373,7 +374,7 @@ export class ServerFile extends ServerFileManager {
       const formData = new FormData();
       formData.append('file', data);
 
-      const params = new URLSearchParams({path: this.src});
+      const params = new URLSearchParams({ path: this.src });
       if (override) params.append('override', override.toString());
 
       const result = await axios.post(`/server/${this.server.id}/file?${params}`, formData, {

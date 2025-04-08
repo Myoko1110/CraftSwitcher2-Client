@@ -24,7 +24,7 @@ export class JarDLBuildInfo {
 
   isLoadedInfo: true;
 
-  constructor(data: JarDLBuildInfoResult) {
+  constructor(data: JarDLBuildInfoAPIResult) {
     this.build = data.build;
     this.downloadUrl = data.downloadUrl;
     this.javaMajorVersion = data.javaMajorVersion;
@@ -36,7 +36,7 @@ export class JarDLBuildInfo {
   }
 }
 
-export type JarDLBuildInfoResult = {
+export type JarDLBuildInfoAPIResult = {
   build: string;
   downloadUrl: string | null;
   javaMajorVersion: number | null;

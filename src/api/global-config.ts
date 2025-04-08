@@ -25,7 +25,7 @@ export class ServerGlobalConfig {
 
   public shutdownTimeout: number;
 
-  constructor(data: ServerGlobalConfigResult) {
+  constructor(data: ServerGlobalConfigAPIResult) {
     this.javaPreset = data['launchOption.javaPreset'];
     this.javaExecutable = data['launchOption.javaExecutable'];
     this.javaOptions = data['launchOption.javaOptions'];
@@ -40,7 +40,7 @@ export class ServerGlobalConfig {
 
   static async get(): Promise<ServerGlobalConfig> {
     try {
-      const result = await axios.get('/config/server_global');
+      const result = await axios.get<ServerGlobalConfigAPIResult>('/config/server_global');
       return new ServerGlobalConfig(result.data);
     } catch (e) {
       throw APIError.fromError(e);
@@ -67,7 +67,7 @@ export class ServerGlobalConfig {
   }
 }
 
-type ServerGlobalConfigResult = {
+type ServerGlobalConfigAPIResult = {
   'launchOption.javaPreset': string;
   'launchOption.javaExecutable': string;
   'launchOption.javaOptions': string;
