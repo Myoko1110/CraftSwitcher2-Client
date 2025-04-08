@@ -1,5 +1,6 @@
+import type {BackupFileDifference} from "src/api/backup";
+
 import type {DirectoryNode, DirectoryTree} from "./types";
-import type {BackupFileDifference} from "../../models/backup";
 
 export function buildDirectoryTree(items: BackupFileDifference[]): DirectoryTree {
   const root: DirectoryTree = [];

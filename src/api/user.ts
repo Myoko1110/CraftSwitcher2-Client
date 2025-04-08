@@ -1,6 +1,6 @@
 import type { Dayjs } from 'dayjs';
 
-import {z} from "zod";
+import { z } from "zod";
 import axios from 'axios';
 import dayjs from 'dayjs';
 
@@ -86,11 +86,11 @@ export default class User {
 // --------------------------------------------------------------
 
 const userSchema = z.object({
-  id: z.number(),
+  id: z.number().int(),
   name: z.string(),
   lastLogin: z.string().nullable(),
   lastAddress: z.string().nullable(),
-  permission: z.number(),
+  permission: z.number().int(),
 }).transform((u) =>
   new User(
     u.id,
@@ -103,7 +103,7 @@ const userSchema = z.object({
 
 const userOperationResultSchema = z.object({
   result: z.boolean(),
-  userId: z.number(),
+  userId: z.number().int(),
 }).transform((u) => ({
   result: u.result,
   userId: u.userId,

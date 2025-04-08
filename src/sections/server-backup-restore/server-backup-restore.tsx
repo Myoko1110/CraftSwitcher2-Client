@@ -1,5 +1,5 @@
 import type { FileTaskEvent } from 'src/websocket/models';
-import type { BackupsCompareResult } from 'src/models/backup';
+import type { BackupsCompareResult } from 'src/api/backup';
 
 import { toast } from 'sonner';
 import React, { useState, useEffect } from 'react';

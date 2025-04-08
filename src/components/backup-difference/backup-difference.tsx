@@ -1,5 +1,5 @@
 import type { Theme } from '@mui/material/styles';
-import type { BackupsCompareResult } from 'src/models/backup';
+import type { BackupsCompareResult } from 'src/api/backup';
 
 import React, { useEffect } from 'react';
 

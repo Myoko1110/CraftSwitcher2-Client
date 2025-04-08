@@ -1,4 +1,4 @@
-import type { BackupFileInfo } from 'src/models/backup';
+import type { BackupFileInfo } from "src/api/backup";
 import type SnapshotStatus from 'src/enums/snapshot-status';
 
 export interface DirectoryNode {

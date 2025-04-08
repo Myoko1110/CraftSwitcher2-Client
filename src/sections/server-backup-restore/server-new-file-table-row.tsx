@@ -1,4 +1,4 @@
-import type { BackupFileDifference } from 'src/models/backup';
+import type { BackupFileDifference } from 'src/api/backup';
 
 import React from 'react';
 

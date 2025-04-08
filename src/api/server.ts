@@ -1,5 +1,5 @@
+import type { BackupTask } from 'src/models/backup';
 import type { FileInfo, FileOperationAPIResult } from 'src/models/file';
-import type { BackupTask, BackupPreviewResult } from 'src/models/backup';
 import type { LaunchOption, ServerConfigAPIResult } from 'src/enums/server-config';
 
 import { z } from "zod";
@@ -9,7 +9,7 @@ import ServerType from 'src/enums/server-type';
 import { APIError } from 'src/enums/api-error';
 import ServerState from 'src/enums/server-state';
 import { FileOperationResult} from 'src/models/file';
-import { ServerConfig, LaunchOptionSchema , serverConfigSchema } from 'src/enums/server-config';
+import { ServerConfig,  serverConfigSchema } from 'src/enums/server-config';
 
 import Backup from './backup';
 import { ServerFileManager } from './server-file-manager';
@@ -120,7 +120,7 @@ export default class Server {
           },
         }
       );
-      serverCreateSchema.parse(result.data);
+      serverOperationSchema.parse(result.data);
 
       return await Server.get(id);
     } catch (e) {
@@ -408,15 +408,6 @@ export default class Server {
   async createBackup(comments?: string, snapshot?: boolean): Promise<BackupTask> {
     return Backup.create(this, comments, snapshot);
   }
-
-  async previewBackup(params: {
-    checkFiles?: boolean;
-    includeFiles?: boolean;
-    includeErrors?: boolean;
-    onlyUpdates?: boolean;
-  }): Promise<BackupPreviewResult> {
-    return Backup.preview(this, params);
-  }
 }
 
 // ----------------------------------------------------------------------
@@ -425,18 +416,18 @@ const serverStatusInfoSchema = z.object({
   id: z.string(),
   process: z.object({
     cpuUsage: z.number(),
-    memUsed: z.number(),
-    memVirtualUsed: z.number(),
+    memUsed: z.number().int(),
+    memVirtualUsed: z.number().int(),
   }).nullable(),
   jvm: z.object({
     cpuUsage: z.number().nullable(),
-    memUsed: z.number().nullable(),
-    memTotal: z.number().nullable(),
+    memUsed: z.number().int().nullable(),
+    memTotal: z.number().int().nullable(),
   }).nullable(),
   game: z.object({
     ticks: z.number().nullable(),
-    maxPlayers: z.number().nullable(),
-    onlinePlayers: z.number().nullable(),
+    maxPlayers: z.number().int().nullable(),
+    onlinePlayers: z.number().int().nullable(),
     players: z.array(z.object({
       uuid: z.string(),
       name: z.string(),
@@ -464,7 +455,7 @@ const serverOperationSchema = z.object({
 });
 type ServerOperationAPIResult = z.infer<typeof serverOperationSchema>;
 
-const termSizeSchema = z.tuple([z.number(), z.number()]);
+const termSizeSchema = z.tuple([z.number().int(), z.number().int()]);
 type TermSize = z.infer<typeof termSizeSchema>;
 
 const logsSchema = z.array(z.string());
@@ -472,17 +463,6 @@ type Logs = z.infer<typeof logsSchema>;
 
 const serverImportSchema = z.object({
   directory: z.string(),
-});
-
-const serverCreateSchema = z.object({
-  name: z.string().nullable(),
-  directory: z.string(),
-  type: z.string(),
-  launchOption: LaunchOptionSchema,
-  enableLaunchCommand: z.boolean().optional(),
-  launchCommand: z.string(),
-  stopCommand: z.string().nullable(),
-  shutdownTimeout: z.number().nullable(),
 });
 
 export type CreateServerParams = {
