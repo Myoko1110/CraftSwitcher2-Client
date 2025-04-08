@@ -367,7 +367,18 @@ export default class Backup {
     try {
       return await Backup.getById(this.previousBackupId);
     } catch (e) {
-      return null;
+      throw APIError.fromError(e);
+    }
+  }
+
+  async getFileHistory(path: string): Promise<BackupFileHistoryEntry> {
+    const params = new URLSearchParams({ path });
+
+    try {
+      const result = await axios.get(`/server/${this.server.id}/backup/file/history?${params}`);
+      return backupFileHistoryEntrySchema.parse(result.data);
+    } catch (e) {
+      throw APIError.fromError(e);
     }
   }
 
