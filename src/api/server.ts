@@ -1,5 +1,4 @@
-import type { BackupTask } from 'src/models/backup';
-import type { FileInfo, FileOperationAPIResult } from 'src/models/file';
+import type { BackupTask } from 'src/api/backup';
 import type { LaunchOption, ServerConfigAPIResult } from 'src/enums/server-config';
 
 import { z } from "zod";
@@ -8,13 +7,12 @@ import axios from 'axios';
 import ServerType from 'src/enums/server-type';
 import { APIError } from 'src/enums/api-error';
 import ServerState from 'src/enums/server-state';
-import { FileOperationResult} from 'src/models/file';
 import { ServerConfig,  serverConfigSchema } from 'src/enums/server-config';
 
 import Backup from './backup';
-import { ServerFileManager } from './server-file-manager';
+import { FileInfoSchema, ServerFileManager, FileOperationResultSchema } from './server-file-manager';
 
-import type { ServerDirectory } from './server-file-manager';
+import type { FileInfo , ServerDirectory, FileOperationResult } from './server-file-manager';
 
 // ----------------------------------------------------------------------
 
@@ -38,7 +36,7 @@ export default class Server {
   static async all(): Promise<Server[]> {
     try {
       const result = await axios.get('/servers');
-      return z.array(serverSchema).parse(result.data);
+      return z.array(ServerSchema).parse(result.data).map((s) => Server.deserializeFromResult(s));
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -51,7 +49,7 @@ export default class Server {
   static async get(id: string): Promise<Server> {
     try {
       const result = await axios.get(`/server/${id}`);
-      return serverSchema.parse(result.data);
+      return Server.deserializeFromResult(ServerSchema.parse(result.data));
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -60,13 +58,13 @@ export default class Server {
   static async getWithStatus(id: string): Promise<Server> {
     try {
       const result = await axios.get(`/server/${id}?include_status=true`);
-      return serverSchema.parse(result.data);
+      return Server.deserializeFromResult(ServerSchema.parse(result.data));
     } catch (e) {
       throw APIError.fromError(e);
     }
   }
 
-  public static deserializeFromResult(value: ServerAPIResult): Server {
+  private static deserializeFromResult(value: ServerAPIResult): Server {
     return new Server(
       value.id,
       value.name,
@@ -120,7 +118,7 @@ export default class Server {
           },
         }
       );
-      serverOperationSchema.parse(result.data);
+      ServerOperationSchema.parse(result.data);
 
       return await Server.get(id);
     } catch (e) {
@@ -139,8 +137,8 @@ export default class Server {
    */
   async start(): Promise<boolean> {
     try {
-      const result = await axios.post<ServerOperationAPIResult>(`/server/${this.id}/start`);
-      return serverOperationSchema.parse(result.data).result;
+      const result = await axios.post<ServerOperation>(`/server/${this.id}/start`);
+      return ServerOperationSchema.parse(result.data).result;
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -151,8 +149,8 @@ export default class Server {
    */
   async stop(): Promise<boolean> {
     try {
-      const result = await axios.post<ServerOperationAPIResult>(`/server/${this.id}/stop`);
-      return serverOperationSchema.parse(result.data).result;
+      const result = await axios.post<ServerOperation>(`/server/${this.id}/stop`);
+      return ServerOperationSchema.parse(result.data).result;
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -163,8 +161,8 @@ export default class Server {
    */
   async restart(): Promise<boolean> {
     try {
-      const result = await axios.post<ServerOperationAPIResult>(`/server/${this.id}/restart`);
-      return serverOperationSchema.parse(result.data).result;
+      const result = await axios.post<ServerOperation>(`/server/${this.id}/restart`);
+      return ServerOperationSchema.parse(result.data).result;
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -175,8 +173,8 @@ export default class Server {
    */
   async kill(): Promise<boolean> {
     try {
-      const result = await axios.post<ServerOperationAPIResult>(`/server/${this.id}/kill`);
-      return serverOperationSchema.parse(result.data).result;
+      const result = await axios.post<ServerOperation>(`/server/${this.id}/kill`);
+      return ServerOperationSchema.parse(result.data).result;
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -189,8 +187,8 @@ export default class Server {
    */
   async sendLine(line: string): Promise<boolean> {
     try {
-      const result = await axios.post<ServerOperationAPIResult>(`/server/${this.id}/send_line?line=${line}`);
-      return serverOperationSchema.parse(result.data).result;
+      const result = await axios.post<ServerOperation>(`/server/${this.id}/send_line?line=${line}`);
+      return ServerOperationSchema.parse(result.data).result;
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -204,7 +202,7 @@ export default class Server {
   async getTermSize(): Promise<TermSize> {
     try {
       const result = await axios.get(`/server/${this.id}/term/size`);
-      return termSizeSchema.parse(result.data);
+      return TermSizeSchema.parse(result.data);
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -220,7 +218,7 @@ export default class Server {
   async setTermSize(cols: number, rows: number): Promise<TermSize> {
     try {
       const result = await axios.post(`/server/${this.id}/term/size?cols=${cols}&rows=${rows}`);
-      return termSizeSchema.parse(result.data);
+      return TermSizeSchema.parse(result.data);
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -243,7 +241,7 @@ export default class Server {
       if (maxLines) params.set('max_lines', maxLines.toString());
 
       const result = await axios.get(`/server/${this.id}/logs/latest?${params}`);
-      return logsSchema.parse(result.data);
+      return LogsSchema.parse(result.data);
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -270,7 +268,7 @@ export default class Server {
           },
         }
       );
-      return serverImportSchema.parse(result.data).directory;
+      return ServerImportSchema.parse(result.data).directory;
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -284,7 +282,7 @@ export default class Server {
       const result = await axios.delete(
         `/server/${this.id}${deleteConfigFile !== undefined ? `?delete_config_file=${deleteConfigFile}` : ''}`
       );
-      return serverOperationSchema.parse(result.data).result;
+      return ServerOperationSchema.parse(result.data).result;
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -349,8 +347,8 @@ export default class Server {
       });
       if (javaPreset) params.append('java_preset', javaPreset);
 
-      const result = await axios.post<FileOperationAPIResult>(`/server/${this.id}/install?${params}`);
-      return new FileOperationResult(result.data);
+      const result = await axios.post(`/server/${this.id}/install?${params}`);
+      return FileOperationResultSchema.parse(result.data);
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -362,7 +360,7 @@ export default class Server {
   async removeBuild(): Promise<boolean> {
     try {
       const result = await axios.delete(`/server/${this.id}/build`);
-      return serverOperationSchema.parse(result.data).result;
+      return ServerOperationSchema.parse(result.data).result;
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -386,8 +384,8 @@ export default class Server {
    */
   async setEula(accept: boolean): Promise<FileInfo> {
     try {
-      const result = await axios.post<FileInfo>(`/server/${this.id}/eula?accept=${accept}`);
-      return result.data;
+      const result = await axios.post(`/server/${this.id}/eula?accept=${accept}`);
+      return FileInfoSchema.parse(result.data);
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -412,7 +410,7 @@ export default class Server {
 
 // ----------------------------------------------------------------------
 
-const serverStatusInfoSchema = z.object({
+const ServerStatusInfoSchema = z.object({
   id: z.string(),
   process: z.object({
     cpuUsage: z.number(),
@@ -434,9 +432,10 @@ const serverStatusInfoSchema = z.object({
     })).nullable(),
   }).nullable(),
 });
-export type ServerStatusInfo = z.infer<typeof serverStatusInfoSchema>;
+export type ServerStatusInfo = z.infer<typeof ServerStatusInfoSchema>;
 
-const serverSchemaRaw = z.object({
+
+const ServerSchema = z.object({
   id: z.string(),
   name: z.string().nullable(),
   type: z.string(),
@@ -444,26 +443,30 @@ const serverSchemaRaw = z.object({
   directory: z.string().nullable(),
   isLoaded: z.boolean(),
   buildStatus: z.string().nullable(),
-  status: serverStatusInfoSchema.nullable(),
+  status: ServerStatusInfoSchema.nullable(),
 });
-type ServerAPIResult = z.infer<typeof serverSchemaRaw>;
-const serverSchema = serverSchemaRaw.transform((s) => Server.deserializeFromResult(s));
+export type ServerAPIResult = z.infer<typeof ServerSchema>;
 
-const serverOperationSchema = z.object({
+
+const ServerOperationSchema = z.object({
   result: z.boolean(),
   serverId: z.string(),
 });
-type ServerOperationAPIResult = z.infer<typeof serverOperationSchema>;
+export type ServerOperation = z.infer<typeof ServerOperationSchema>;
 
-const termSizeSchema = z.tuple([z.number().int(), z.number().int()]);
-type TermSize = z.infer<typeof termSizeSchema>;
 
-const logsSchema = z.array(z.string());
-type Logs = z.infer<typeof logsSchema>;
+const TermSizeSchema = z.tuple([z.number().int(), z.number().int()]);
+export type TermSize = z.infer<typeof TermSizeSchema>;
 
-const serverImportSchema = z.object({
+
+const LogsSchema = z.array(z.string());
+export type Logs = z.infer<typeof LogsSchema>;
+
+
+const ServerImportSchema = z.object({
   directory: z.string(),
 });
+
 
 export type CreateServerParams = {
   name: string | null;

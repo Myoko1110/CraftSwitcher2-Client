@@ -1,5 +1,5 @@
 // eslint-disable-next-line max-classes-per-file
-import type { JarDLBuildInfo, JarDLVersionInfo } from 'src/models/jardl';
+import type { JarDLBuildInfo, JarDLVersionInfo } from 'src/api/jardl';
 
 import ServerInstaller from 'src/api/jardl';
 

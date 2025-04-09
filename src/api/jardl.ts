@@ -1,9 +1,9 @@
-import type { JarDLVersionInfo, JarDLBuildInfoAPIResult } from 'src/models/jardl';
 
+import { z } from "zod";
 import axios from 'axios';
+import dayjs from "dayjs";
 
 import { APIError } from 'src/enums/api-error';
-import { JarDLBuildInfo } from 'src/models/jardl';
 
 // ------------------------------------------------------------
 
@@ -26,8 +26,8 @@ export default class ServerInstaller {
    */
   static async getVersions(type: string): Promise<JarDLVersionInfo[]> {
     try {
-      const result = await axios.get<JarDLVersionInfo[]>(`/jardl/${type}/versions`);
-      return result.data;
+      const result = await axios.get(`/jardl/${type}/versions`);
+      return z.array(jarDLVersionInfoSchema).parse(result.data);
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -38,8 +38,8 @@ export default class ServerInstaller {
    */
   static async getBuilds(type: string, version: string): Promise<JarDLBuildInfo[]> {
     try {
-      const result = await axios.get<JarDLBuildInfoAPIResult[]>(`/jardl/${type}/version/${version}/builds`);
-      return result.data.map((b: JarDLBuildInfoAPIResult) => new JarDLBuildInfo(b));
+      const result = await axios.get(`/jardl/${type}/version/${version}/builds`);
+      return z.array(JarDLBuildInfoSchema).parse(result.data);
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -52,10 +52,40 @@ export default class ServerInstaller {
    */
   static async getBuild(type: string, version: string, build: string): Promise<JarDLBuildInfo> {
     try {
-      const result = await axios.get<JarDLBuildInfoAPIResult>(`/jardl/${type}/version/${version}/build/${build}`);
-      return new JarDLBuildInfo(result.data);
+      const result = await axios.get(`/jardl/${type}/version/${version}/build/${build}`);
+      return JarDLBuildInfoSchema.parse(result.data);
     } catch (e) {
       throw APIError.fromError(e);
     }
   }
 }
+
+// --------------------------------------------------------------
+
+const jarDLVersionInfoSchema = z.object({
+  version: z.string(),
+  buildCount: z.number().int().nullable(),
+});
+export type JarDLVersionInfo = z.infer<typeof jarDLVersionInfoSchema>;
+
+
+const JarDLBuildInfoSchema = z.object({
+  build: z.string(),
+  downloadUrl: z.string().nullable(),
+  javaMajorVersion: z.number().int().nullable(),
+  requireJdk: z.boolean().nullable(),
+  updatedDatetime: z.string().nullable(),
+  recommended: z.boolean(),
+  isRequiredBuild: z.boolean(),
+  isLoadedInfo: z.boolean(),
+}).transform((data) => ({
+  build: data.build,
+  downloadUrl: data.downloadUrl,
+  javaMajorVersion: data.javaMajorVersion,
+  requireJdk: data.requireJdk,
+  updatedAt: data.updatedDatetime ? dayjs.utc(data.updatedDatetime) : null,
+  recommended: data.recommended,
+  isRequiredBuild: data.isRequiredBuild,
+  isLoadedInfo: data.isLoadedInfo,
+}));
+export type JarDLBuildInfo = z.infer<typeof JarDLBuildInfoSchema>;

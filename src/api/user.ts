@@ -6,7 +6,7 @@ import dayjs from 'dayjs';
 
 import { APIError } from 'src/enums/api-error';
 
-import { resultSchema } from "./index";
+import { ResultSchema } from "./index";
 
 // ------------------------------------------------------------
 
@@ -22,10 +22,10 @@ export default class User {
   /**
    * セッションの生成と設定
    */
-  static async login(username: string, password: string): Promise<z.infer<typeof resultSchema>> {
+  static async login(username: string, password: string): Promise<z.infer<typeof ResultSchema>> {
     try {
       const result = await axios.post('/login', { username, password });
-      return resultSchema.parse(result.data);
+      return ResultSchema.parse(result.data);
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -34,10 +34,10 @@ export default class User {
   /**
    * セッションが有効かどうかを返す
    */
-  static async isValidSession(): Promise<z.infer<typeof resultSchema>> {
+  static async isValidSession(): Promise<z.infer<typeof ResultSchema>> {
     try {
       const result = await axios.get('/login');
-      return resultSchema.parse(result.data);
+      return ResultSchema.parse(result.data);
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -46,10 +46,10 @@ export default class User {
   /**
    * 登録されたユーザーの一覧
    */
-  static async all(): Promise<z.infer<typeof userSchema>[]> {
+  static async all(): Promise<z.infer<typeof UserSchema>[]> {
     try {
       const result = await axios.get('/users');
-      return z.array(userSchema).parse(result.data);
+      return z.array(UserSchema).parse(result.data);
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -61,10 +61,10 @@ export default class User {
   static async add(
     username: string,
     password: string
-  ): Promise<z.infer<typeof userOperationResultSchema>> {
+  ): Promise<z.infer<typeof UserOperationResultSchema>> {
     try {
       const result = await axios.post('/user/add', { username, password });
-      return userOperationResultSchema.parse(result.data);
+      return UserOperationResultSchema.parse(result.data);
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -73,10 +73,10 @@ export default class User {
   /**
    * ユーザーを削除
    */
-  async remove(): Promise<z.infer<typeof userOperationResultSchema>> {
+  async remove(): Promise<z.infer<typeof UserOperationResultSchema>> {
     try {
       const result = await axios.delete(`/user/remove?user_id=${this.id}`);
-      return userOperationResultSchema.parse(result.data);
+      return UserOperationResultSchema.parse(result.data);
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -85,7 +85,7 @@ export default class User {
 
 // --------------------------------------------------------------
 
-const userSchema = z.object({
+const UserSchema = z.object({
   id: z.number().int(),
   name: z.string(),
   lastLogin: z.string().nullable(),
@@ -101,7 +101,7 @@ const userSchema = z.object({
   )
 );
 
-const userOperationResultSchema = z.object({
+const UserOperationResultSchema = z.object({
   result: z.boolean(),
   userId: z.number().int(),
 }).transform((u) => ({

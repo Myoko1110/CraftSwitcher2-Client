@@ -1,17 +1,17 @@
 // eslint-disable-next-line max-classes-per-file
 import type { Dayjs } from 'dayjs';
 import type { FileWithPath } from 'react-dropzone';
-import type { FileTaskAPIResult} from 'src/models/task';
-import type {FileInfo, StorageInfo, ArchiveFileAPIResult, FileOperationAPIResult, FileDirectoryInfoResult} from 'src/models/file';
 
+import {z} from "zod";
 import axios from 'axios';
 import dayjs from 'dayjs';
 import path from 'path-browserify';
 
-import {FileTask} from 'src/models/task';
 import FileType from 'src/enums/file-type';
 import { APIError } from 'src/enums/api-error';
-import { ArchiveFile , FileOperationResult } from 'src/models/file';
+import FileTaskResult from "src/enums/file-task-result";
+
+import FileEventType from "../enums/file-event-type";
 
 import type Server from './server';
 
@@ -87,8 +87,8 @@ export class ServerFileManager {
    * @returns タスクのリスト
    */
   static async getTasks(): Promise<FileTask[]> {
-    const result = await axios.get<FileTaskAPIResult[]>('/file/tasks');
-    return result.data.map((t) => new FileTask(t));
+    const result = await axios.get('/file/tasks');
+    return z.array(FileTaskSchema).parse(result.data);
   }
 
   /**
@@ -99,8 +99,8 @@ export class ServerFileManager {
    */
   static async get(server: Server, _path: string): Promise<ServerDirectory> {
     try {
-      const result = await axios.get<FileDirectoryInfoResult>(`/server/${server.id}/files?path=${_path}`);
-      const directory = result.data;
+      const result = await axios.get(`/server/${server.id}/files?path=${_path}`);
+      const directory = FileDirectoryInfoSchema.parse(result.data);
 
       return new ServerDirectory(
         {
@@ -132,11 +132,11 @@ export class ServerFileManager {
       while (true) {
         try {
           // eslint-disable-next-line no-await-in-loop
-          const result = await axios.put<FileOperationAPIResult>(
+          const result = await axios.put(
             `/server/${this.server.id}/file/copy?path=${this.src}&dst_path=${dstPath}`
           );
 
-          return new FileOperationResult(result.data);
+          return FileOperationResultSchema.parse(result.data);
         } catch (e) {
           if (e.response.data?.error_code === 301) {
             count += 1;
@@ -151,10 +151,10 @@ export class ServerFileManager {
     const dstPath = path.join(to, this.name);
 
     try {
-      const result = await axios.put<FileOperationAPIResult>(
+      const result = await axios.put(
         `/server/${this.server.id}/file/copy?path=${this.src}&dst_path=${dstPath}`
       );
-      return new FileOperationResult(result.data);
+      return FileOperationResultSchema.parse(result.data);
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -169,10 +169,10 @@ export class ServerFileManager {
     const dstPath = path.join(to, this.name);
 
     try {
-      const result = await axios.put<FileOperationAPIResult>(
+      const result = await axios.put(
         `/server/${this.server.id}/file/move?path=${this.src}&dst_path=${dstPath}`
       );
-      return new FileOperationResult(result.data);
+      return FileOperationResultSchema.parse(result.data);
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -187,10 +187,10 @@ export class ServerFileManager {
     const newPath = path.join(this.path, newName);
 
     try {
-      const result = await axios.put<FileOperationAPIResult>(
+      const result = await axios.put(
         `/server/${this.server.id}/file/move?path=${this.src}&dst_path=${newPath}`
       );
-      return new FileOperationResult(result.data);
+      return FileOperationResultSchema.parse(result.data);
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -202,8 +202,8 @@ export class ServerFileManager {
    */
   async remove(): Promise<FileOperationResult> {
     try {
-      const result = await axios.delete<FileOperationAPIResult>(`/server/${this.server.id}/file?path=${this.src}`);
-      return new FileOperationResult(result.data);
+      const result = await axios.delete(`/server/${this.server.id}/file?path=${this.src}`);
+      return FileOperationResultSchema.parse(result.data);
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -225,8 +225,8 @@ export class ServerFileManager {
    */
   static async getInfo(server: Server, _path: string): Promise<ServerFileManager> {
     try {
-      const result = await axios.get<FileInfo>(`/server/${server.id}/file/info?path=${_path}`);
-      return this.deserialize(result.data, server);
+      const result = await axios.get(`/server/${server.id}/file/info?path=${_path}`);
+      return this.deserialize(FileInfoSchema.parse(result.data), server);
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -234,8 +234,8 @@ export class ServerFileManager {
 
   static async getStorageInfo(server?: Server): Promise<StorageInfo> {
     try {
-      const result = await axios.get<StorageInfo>(`/storage/info${server ? `?server_id=${server.id}` : ''}`);
-      return result.data;
+      const result = await axios.get(`/storage/info${server ? `?server_id=${server.id}` : ''}`);
+      return StorageInfoSchema.parse(result.data);
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -333,7 +333,7 @@ export class ServerDirectory extends ServerFileManager {
 
     try {
       const result = await axios.post(`/server/${this.server.id}/file/mkdir?${params}`);
-      return new FileTask(result.data);
+      return FileTaskSchema.parse(result.data);
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -348,7 +348,7 @@ export class ServerDirectory extends ServerFileManager {
 
     try {
       const result = await axios.post(`/server/${this.server.id}/file?path=${filePath}`, formData);
-      return new FileTask(result.data);
+      return FileTaskSchema.parse(result.data);
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -380,7 +380,7 @@ export class ServerFile extends ServerFileManager {
       const result = await axios.post(`/server/${this.server.id}/file?${params}`, formData, {
         headers: { 'content-type': 'multipart/form-data' }
       });
-      return result.data as FileInfo;
+      return FileInfoSchema.parse(result.data);
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -413,7 +413,7 @@ export class ServerArchiveFile extends ServerFile {
           password,
         }
       );
-      return new FileOperationResult(result.data);
+      return FileOperationResultSchema.parse(result.data);
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -425,7 +425,7 @@ export class ServerArchiveFile extends ServerFile {
       { password }
     );
 
-    const files: ArchiveFile[] = result.data.map((f: ArchiveFileAPIResult) => new ArchiveFile(f))
+    const files: ArchiveFile[] = z.array(ArchiveFileSchema).parse(result.data);
 
     const directoryTree = ServerArchiveFile.convertToDirectoryTree(files);
     console.log(directoryTree)
@@ -447,7 +447,7 @@ export class ServerArchiveFile extends ServerFile {
             name: part,
             size: 0,
             compressedSize: 0,
-            modifiedAt: dayjs(file.modifiedDatetime),
+            modifiedAt: dayjs(file.modifiedAt),
             ...(isLast && !file.isDir ? {} : {children: {}})
           };
         }
@@ -455,7 +455,7 @@ export class ServerArchiveFile extends ServerFile {
         if (isLast) {
           current[part].size = file.size;
           current[part].compressedSize = file.compressedSize;
-          current[part].modifiedAt = dayjs(file.modifiedDatetime);
+          current[part].modifiedAt = dayjs(file.modifiedAt);
         }
 
         if (!isLast) {
@@ -503,3 +503,81 @@ type DirectoryParams = {
   isServerDir?: boolean;
   registeredServerId?: string | null;
 };
+
+// ------------------------------------
+
+export const FileTaskSchema = z.object({
+  id: z.number().int(),
+  type: z.string(),
+  progress: z.number().int().nullable(),
+  result: z.string(),
+  src: z.string().nullable(),
+  dst: z.string().nullable(),
+  server: z.string().nullable(),
+}).transform((data) => ({
+  id: data.id,
+  type: FileEventType.valueOf(data.type),
+  progress: data.progress,
+  result: FileTaskResult.valueOf(data.result),
+  src: data.src,
+  dst: data.dst,
+  server: data.server,
+}));
+export type FileTask = z.infer<typeof FileTaskSchema>;
+
+
+export const FileInfoSchema = z.object({
+  name: z.string(),
+  path: z.string(),
+  isDir: z.boolean(),
+  size: z.number(),
+  modifyTime: z.number(),
+  createTime: z.number(),
+  isServerDir: z.boolean(),
+  registeredServerId: z.string().nullable(),
+});
+export type FileInfo = z.infer<typeof FileInfoSchema>;
+
+
+const FileDirectoryInfoSchema = z.object({
+  name: z.string(),
+  path: z.string(),
+  children: z.array(FileInfoSchema),
+});
+export type FileDirectoryInfo = z.infer<typeof FileDirectoryInfoSchema>;
+
+
+export const FileOperationResultSchema = z.object({
+  result: z.string(),
+  taskId: z.number().nullable(),
+  file: FileInfoSchema.nullable(),
+}).transform((data) => ({
+  result: FileTaskResult.valueOf(data.result),
+  taskId: data.taskId,
+  file: data.file,
+}));
+export type FileOperationResult = z.infer<typeof FileOperationResultSchema>;
+
+
+const StorageInfoSchema = z.object({
+  totalSize: z.number(),
+  usedSize: z.number(),
+  freeSize: z.number(),
+});
+export type StorageInfo = z.infer<typeof StorageInfoSchema>;
+
+
+const ArchiveFileSchema = z.object({
+  filename: z.string(),
+  isDir: z.boolean(),
+  size: z.number(),
+  compressedSize: z.number(),
+  modifiedDatetime: z.string(),
+}).transform((data) => ({
+  filename: data.filename,
+  isDir: data.isDir,
+  size: data.size,
+  compressedSize: data.compressedSize,
+  modifiedAt: dayjs.utc(data.modifiedDatetime),
+}));
+export type ArchiveFile = z.infer<typeof ArchiveFileSchema>;

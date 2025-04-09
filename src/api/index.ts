@@ -5,6 +5,6 @@ export * from './server-file-manager';
 
 // ----------------------------------------------------------------
 
-export const resultSchema = z.object({
+export const ResultSchema = z.object({
   result: z.boolean(),
 }).transform((data) => data.result);

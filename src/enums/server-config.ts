@@ -149,7 +149,7 @@ const serverConfigSchemaRaw = z.object({
 export type ServerConfigAPIResult = z.infer<typeof serverConfigSchemaRaw>;
 export const serverConfigSchema = serverConfigSchemaRaw.transform((data) => ServerConfig.deserializeFromResult(data));
 
-export const LaunchOptionSchema = z.object({
+export const launchOptionSchema = z.object({
   javaPreset: z.string().nullable(),
   javaExecutable: z.string().nullable(),
   javaOptions: z.string().nullable(),

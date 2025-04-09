@@ -1,5 +1,4 @@
 import type { Dayjs } from 'dayjs';
-import type { BackupTaskAPIResult } from 'src/models/backup';
 
 import { z } from "zod";
 import axios from 'axios';
@@ -7,8 +6,9 @@ import dayjs from 'dayjs';
 
 import BackupType from 'src/enums/backup-type';
 import { APIError } from 'src/enums/api-error';
-import { BackupTask } from 'src/models/backup';
+import FileEventType from "src/enums/file-event-type";
 import SnapshotStatus from "src/enums/snapshot-status";
+import FileTaskResult from "src/enums/file-task-result";
 import BackupFileErrorType from "src/enums/backup-file-error-type";
 
 import type Server from './server';
@@ -52,7 +52,7 @@ export default class Backup {
   static async getIDList(): Promise<BackupId[]> {
     try {
       const result = await axios.get('/backups');
-      return z.array(backupIdSchema).parse(result.data);
+      return z.array(BackupIdSchema).parse(result.data);
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -65,7 +65,7 @@ export default class Backup {
   static async getById(id: string): Promise<Backup> {
     try {
       const result = await axios.get(`/backup/${id}`);
-      return backupSchema.parse(result.data);
+      return Backup.deserializeFromResult(BackupSchema.parse(result.data));
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -78,7 +78,7 @@ export default class Backup {
   static async getByServer(server: Server): Promise<Backup[]> {
     try {
       const result = await axios.get(`/server/${server.id}/backups`);
-      return z.array(backupSchema).parse(result.data);
+      return z.array(BackupSchema).parse(result.data).map((b) => Backup.deserializeFromResult(b));
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -90,8 +90,8 @@ export default class Backup {
    */
   static async getTask(server: Server): Promise<BackupTask | null> {
     try {
-      const result = await axios.get<BackupTaskAPIResult | null>(`/server/${server.id}/backup/`);
-      return result.data ? new BackupTask(result.data) : null;
+      const result = await axios.get(`/server/${server.id}/backup/`);
+      return result.data ? BackupTaskSchema.parse(result.data) : null;
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -109,8 +109,8 @@ export default class Backup {
     if (snapshot !== undefined) params.append('snapshot', snapshot.toString());
 
     try {
-      const result = await axios.post<BackupTaskAPIResult>(`/server/${server.id}/backup?${params}`);
-      return new BackupTask(result.data);
+      const result = await axios.post(`/server/${server.id}/backup?${params}`);
+      return BackupTaskSchema.parse(result.data);
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -148,7 +148,7 @@ export default class Backup {
 
     try {
       const result = await axios.get(`/server/${server.id}/backup/preview?${params}`);
-      return backupPreviewSchema.parse(result.data);
+      return BackupPreviewSchema.parse(result.data);
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -192,7 +192,7 @@ export default class Backup {
 
     try {
       const result = await axios.get(`/backup/${this.id}/files?${params}`);
-      return backupFilesResultSchema.parse(result.data);
+      return BackupFilesResultSchema.parse(result.data);
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -229,7 +229,7 @@ export default class Backup {
 
     try {
       const result = await axios.get(`/backup/${this.id}/files/compare?${params}`);
-      return backupsCompareResultSchema.parse(result.data);
+      return BackupsCompareResultSchema.parse(result.data);
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -261,8 +261,8 @@ export default class Backup {
    */
   async restore(server: Server): Promise<BackupTask> {
     try {
-      const result = await axios.post<BackupTaskAPIResult>(`/server/${server.id}/backup/${this.id}/restore`);
-      return new BackupTask(result.data);
+      const result = await axios.post(`/server/${server.id}/backup/${this.id}/restore`);
+      return BackupTaskSchema.parse(result.data);
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -297,7 +297,7 @@ export default class Backup {
 
     try {
       const result = await axios.get(`/server/${server.id}/backup/${this.id}/verify?${params}`);
-      return backupsCompareResultSchema.parse(result.data);
+      return BackupsCompareResultSchema.parse(result.data);
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -337,7 +337,7 @@ export default class Backup {
       const result = await axios.get(
         `/server/${server.id}/backup/${this.id}/files/compare?${params}`
       );
-      return backupsCompareResultSchema.parse(result.data);
+      return BackupsCompareResultSchema.parse(result.data);
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -371,12 +371,12 @@ export default class Backup {
     }
   }
 
-  async getFileHistory(path: string): Promise<BackupFileHistoryEntry> {
+  static async getFileHistory(server: Server, path: string): Promise<BackupFileHistoryEntry> {
     const params = new URLSearchParams({ path });
 
     try {
-      const result = await axios.get(`/server/${this.server.id}/backup/file/history?${params}`);
-      return backupFileHistoryEntrySchema.parse(result.data);
+      const result = await axios.get(`/server/${server.id}/backup/file/history?${params}`);
+      return BackupFileHistoryEntrySchema.parse(result.data);
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -389,7 +389,33 @@ export default class Backup {
 
 // ----------------------------------------------------------------------
 
-const backupSchemaRaw = z.object({
+const BackupTaskSchema = z.object({
+  id: z.number().int(),
+  type: z.string(),
+  progress: z.number().int().nullable(),
+  result: z.string(),
+  src: z.string().nullable(),
+  dst: z.string().nullable(),
+  server: z.string().nullable(),
+  comments: z.string().nullable(),
+  backupType: z.string(),
+  backupId: z.string(),
+}).transform((data) => ({
+  id: data.id,
+  type: FileEventType.valueOf(data.type),
+  progress: data.progress,
+  result: FileTaskResult.valueOf(data.result),
+  src: data.src,
+  dst: data.dst,
+  server: data.server,
+  comments: data.comments,
+  backupType: BackupType.valueOf(data.backupType),
+  backupId: data.backupId,
+}));
+export type BackupTask = z.infer<typeof BackupTaskSchema>;
+
+
+const BackupSchema = z.object({
   id: z.string().uuid(),
   type: z.string(),
   source: z.string().uuid(),
@@ -402,90 +428,77 @@ const backupSchemaRaw = z.object({
   errorFiles: z.number().int(),
   finalSize: z.number().int().nullable(),
 });
-export type BackupAPIResult = z.infer<typeof backupSchemaRaw>;
-const backupSchema = backupSchemaRaw.transform((data) => Backup.deserializeFromResult(data));
+export type BackupAPIResult = z.infer<typeof BackupSchema>;
 
-const backupIdSchema = z.object({
+
+const BackupIdSchema = z.object({
   id: z.string(),
   source: z.string(),
   server: z.string(),
 });
-export type BackupId = z.infer<typeof backupIdSchema>;
+export type BackupId = z.infer<typeof BackupIdSchema>;
 
-export interface BackupFileInfo {
-  size: number;
-  modifyAt: Dayjs;
-  isDir: boolean;
-}
-const backupFileInfoSchema = z.object({
+
+const BackupFileInfoSchema = z.object({
   size: z.number().int(),
   modifyTime: z.string(),
   isDir: z.boolean(),
-}).transform((data): BackupFileInfo => ({
+}).transform((data) => ({
   size: data.size,
   modifyAt: dayjs.utc(data.modifyTime),
   isDir: data.isDir,
 }));
+export type BackupFileInfo = z.infer<typeof BackupFileInfoSchema>;
 
-export interface BackupFileDifference {
-  path: string;
-  oldInfo: BackupFileInfo | null;
-  newInfo: BackupFileInfo | null;
-  status: SnapshotStatus;
-}
-const backupFileDifferenceSchema = z.object({
+
+const BackupFileDifferenceSchema = z.object({
   path: z.string(),
-  oldInfo: backupFileInfoSchema,
-  newInfo: backupFileInfoSchema,
+  oldInfo: BackupFileInfoSchema,
+  newInfo: BackupFileInfoSchema,
   status: z.number().int(),
-}).transform((data): BackupFileDifference => ({
+}).transform((data) => ({
   path: data.path,
   oldInfo: data.oldInfo,
   newInfo: data.newInfo,
   status: SnapshotStatus.valueOf(data.status),
 }));
+export type BackupFileDifference = z.infer<typeof BackupFileDifferenceSchema>;
 
-export interface BackupFilePathInfo {
-  path: string;
-  isDir: boolean;
-  size: number;
-  modifyAt: Dayjs;
-}
-const backupFilePathInfoSchema = z.object({
+
+const BackupFilePathInfoSchema = z.object({
   path: z.string(),
   isDir: z.boolean(),
   size: z.number().int(),
   modifyTime: z.string()
-}).transform((data): BackupFilePathInfo => ({
+}).transform((data) => ({
   path: data.path,
   isDir: data.isDir,
   size: data.size,
   modifyAt: dayjs.utc(data.modifyTime),
 }))
+export type BackupFilePathInfo = z.infer<typeof BackupFilePathInfoSchema>;
 
-export interface BackupFilePathErrorInfo {
-  path: string;
-  errorType: BackupFileErrorType;
-  errorMessage: string | null;
-}
-const backupFilePathErrorInfoSchema = z.object({
+
+const BackupFilePathErrorInfoSchema = z.object({
   path: z.string(),
   errorType: z.number().int(),
   errorMessage: z.string().nullable(),
-}).transform((data): BackupFilePathErrorInfo => ({
+}).transform((data) => ({
   path: data.path,
   errorType: BackupFileErrorType.valueOf(data.errorType),
   errorMessage: data.errorMessage,
 }));
+export type BackupFilePathErrorInfo = z.infer<typeof BackupFilePathErrorInfoSchema>;
 
-const backupFilesResultSchema = z.object({
+
+const BackupFilesResultSchema = z.object({
   totalFiles: z.number().int(),
   totalFilesSize: z.number().int(),
   errorFiles: z.number().int(),
   backupFilesSize: z.number().int(),
 
-  files: z.array(backupFilePathInfoSchema).nullable(),
-  errors: z.array(backupFilePathErrorInfoSchema).nullable(),
+  files: z.array(BackupFilePathInfoSchema).nullable(),
+  errors: z.array(BackupFilePathErrorInfoSchema).nullable(),
 }).transform((data) => ({
   totalFiles: data.totalFiles,
   totalFilesSize: data.totalFilesSize,
@@ -494,9 +507,10 @@ const backupFilesResultSchema = z.object({
   files: data.files,
   errors: data.errors,
 }));
-export type BackupFilesResult = z.infer<typeof backupFilesResultSchema>;
+export type BackupFilesResult = z.infer<typeof BackupFilesResultSchema>;
 
-const backupsCompareResultSchema = z.object({
+
+const BackupsCompareResultSchema = z.object({
   totalFiles: z.number().int(),
   totalFilesSize: z.number().int(),
   errorFiles: z.number().int(),
@@ -510,13 +524,14 @@ const backupsCompareResultSchema = z.object({
   targetErrorFiles: z.number().int(),
   targetBackupFilesSize: z.number().int().nullable(),
 
-  files: z.array(backupFileDifferenceSchema).nullable(),
-  errors: z.array(backupFilePathErrorInfoSchema).nullable(),
-  targetErrors: z.array(backupFilePathErrorInfoSchema).nullable(),
+  files: z.array(BackupFileDifferenceSchema).nullable(),
+  errors: z.array(BackupFilePathErrorInfoSchema).nullable(),
+  targetErrors: z.array(BackupFilePathErrorInfoSchema).nullable(),
 });
-export type BackupsCompareResult = z.infer<typeof backupsCompareResultSchema>;
+export type BackupsCompareResult = z.infer<typeof BackupsCompareResultSchema>;
 
-const backupPreviewSchema = z.object({
+
+const BackupPreviewSchema = z.object({
   totalFiles: z.number().int(),
   totalFilesSize: z.number().int(),
   errorFiles: z.number().int(),
@@ -526,22 +541,19 @@ const backupPreviewSchema = z.object({
 
   snapshotSource: z.string().nullable(),
 
-  files: z.array(backupFileDifferenceSchema).nullable(),
-  errors: z.array(backupFilePathErrorInfoSchema).nullable(),
+  files: z.array(BackupFileDifferenceSchema).nullable(),
+  errors: z.array(BackupFilePathErrorInfoSchema).nullable(),
 });
-export type BackupPreview = z.infer<typeof backupPreviewSchema>;
+export type BackupPreview = z.infer<typeof BackupPreviewSchema>;
 
-export interface BackupFileHistoryEntry {
-  backup: Backup;
-  info: BackupFileInfo | null;
-  status: SnapshotStatus | null;
-}
-const backupFileHistoryEntrySchema = z.object({
-  backup: backupSchema,
-  info: backupFileInfoSchema.nullable(),
+
+const BackupFileHistoryEntrySchema = z.object({
+  backup: BackupSchema,
+  info: BackupFileInfoSchema.nullable(),
   status: z.number().int().nullable(),
-}).transform((data): BackupFileHistoryEntry => ({
+}).transform((data) => ({
   backup: data.backup,
   info: data.info,
   status: data.status ? SnapshotStatus.valueOf(data.status) : null,
 }));
+export type BackupFileHistoryEntry = z.infer<typeof BackupFileHistoryEntrySchema>
