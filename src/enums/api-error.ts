@@ -222,7 +222,7 @@ export class APIError extends Error {
     if (e instanceof APIError) {
       return e.code.description;
     }
-    if (e.code === 'ERR_NETWORK') return 'サーバに接続できませんでした';
+    if (e.code === 'ERR_NETWORK') return 'サーバーに接続できませんでした';
     return '不明なエラーが発生しました';
   }
 }

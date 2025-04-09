@@ -49,7 +49,7 @@ export function ServerManagementView() {
       try {
         const s = await Server.get(id!);
         if (!s) {
-          toast.error('サーバの取得に失敗しました');
+          toast.error('サーバーの取得に失敗しました');
           return;
         }
 
@@ -57,7 +57,7 @@ export function ServerManagementView() {
         setState(s.state);
       } catch (e) {
         console.log(e);
-        toast.error(`サーバの取得に失敗しました: ${APIError.createToastMessage(e)}`);
+        toast.error(`サーバーの取得に失敗しました: ${APIError.createToastMessage(e)}`);
       }
     })();
 

@@ -18,7 +18,6 @@ import { useTheme, type Breakpoint } from '@mui/material/styles';
 import { useRouter } from 'src/routes/hooks';
 
 import FileType from 'src/enums/file-type';
-import { ServerFile } from 'src/api/server-file-manager';
 
 import { Iconify } from 'src/components/iconify';
 
@@ -172,7 +171,7 @@ export default function ServerFileToolbar({
                   </IconButton>
                 </Tooltip>
               )}
-              {selected[0] instanceof ServerFile && (
+              {selected[0].isFile() && (
                 <Tooltip title="ダウンロード">
                   <IconButton color="primary" onClick={handleDownload}>
                     <Iconify icon="fluent:arrow-download-16-regular" />

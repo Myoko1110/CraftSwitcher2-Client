@@ -108,22 +108,21 @@ export default function FileDialogs({
     setRenameOpen(false);
     try {
       const res = await selected[0].rename(renameValue);
-      if (!res) {
+      if (res.result === FileTaskResult.FAILED) {
         toast.error(`ファイル名の変更に失敗しました`);
-      }
-
-      if (res.result === FileTaskResult.PENDING) {
+      } if (res.result === FileTaskResult.PENDING) {
         const fileTaskEndEvent = (fileTaskEvent: FileTaskEvent) => {
           if (fileTaskEvent.task.id === res.taskId) {
+            toast.success('ファイル名を変更しました');
             reloadFiles();
             ws?.removeEventListener('FileTaskEnd', fileTaskEndEvent);
           }
         };
         ws?.addEventListener('FileTaskEnd', fileTaskEndEvent);
-        return;
+      } else {
+        toast.success('ファイル名を変更しました');
+        reloadFiles();
       }
-      reloadFiles();
-      toast.success('ファイル名を変更しました');
     } catch (err) {
       toast.error(`ファイル名の変更に失敗しました: ${APIError.createToastMessage(err)}`);
     }
@@ -151,9 +150,10 @@ export default function FileDialogs({
             };
             ws?.addEventListener('FileTaskEnd', fileTaskEndEvent);
             return;
-          }
-          if (res.result === FileTaskResult.FAILED) {
+          } if (res.result === FileTaskResult.FAILED) {
             error += 1;
+          } else {
+            done += 1;
           }
           done += 1;
         } catch (err) {
@@ -201,7 +201,7 @@ export default function FileDialogs({
       setArchiveOpen(false);
 
       const fileTaskEndEvent = (fileTaskEvent: FileTaskEvent) => {
-        if (fileTaskEvent.task.id === res) {
+        if (fileTaskEvent.task.id === res.taskId) {
           reloadFiles();
           toast.success('圧縮ファイルを作成しました');
           ws?.removeEventListener('FileTaskEnd', fileTaskEndEvent);

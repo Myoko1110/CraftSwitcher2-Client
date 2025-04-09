@@ -84,7 +84,6 @@ export class ServerFileManager {
 
   /**
    * 実行されているタスクのリストを取得します
-   * @returns タスクのリスト
    */
   static async getTasks(): Promise<FileTask[]> {
     const result = await axios.get('/file/tasks');
@@ -95,7 +94,6 @@ export class ServerFileManager {
    * 指定されたパスのファイルを取得します
    * @param server サーバー
    * @param _path ファイルのパス
-   * @returns ファイルまたはフォルダーのリスト
    */
   static async get(server: Server, _path: string): Promise<ServerDirectory> {
     try {
@@ -120,7 +118,6 @@ export class ServerFileManager {
   /**
    * フォルダーまたはファイルをコピーします
    * @param to コピー先のパス
-   * @returns タスク
    */
   async copy(to: string): Promise<FileOperationResult> {
     if (to === this.path) {
@@ -163,7 +160,6 @@ export class ServerFileManager {
   /**
    * フォルダーまたはファイルを移動します
    * @param to 移動先のパス
-   * @returns タスク
    */
   async move(to: string): Promise<FileOperationResult> {
     const dstPath = path.join(to, this.name);
@@ -181,7 +177,6 @@ export class ServerFileManager {
   /**
    * フォルダーまたはファイルの名前を変更します
    * @param newName 新しい名前
-   * @returns タスク
    */
   async rename(newName: string): Promise<FileOperationResult> {
     const newPath = path.join(this.path, newName);
@@ -198,7 +193,6 @@ export class ServerFileManager {
 
   /**
    * フォルダーまたはファイルを削除します
-   * @returns タスク
    */
   async remove(): Promise<FileOperationResult> {
     try {
@@ -221,7 +215,6 @@ export class ServerFileManager {
    * フォルダーまたはファイルの情報を取得します
    * @param server サーバー
    * @param _path ファイルのパス
-   * @returns ファイルまたはフォルダーの情報
    */
   static async getInfo(server: Server, _path: string): Promise<ServerFileManager> {
     try {
@@ -257,13 +250,12 @@ export class ServerFileList extends Array<ServerFileManager> {
    * @param name アーカイブファイル名
    * @param location 保存先のパス
    * @param filesRoot 格納するファイルのルートパス
-   * @returns 作成に成功した場合はタスクID、失敗した場合はfalse
    */
   async createArchiveFile(
     name: string,
     location: string,
     filesRoot: string
-  ): Promise<number | false> {
+  ): Promise<FileOperationResult> {
     try {
       const _path: string = path.join(location, name);
 
@@ -275,7 +267,7 @@ export class ServerFileList extends Array<ServerFileManager> {
 
       const result = await axios.post(`/server/${this[0].server.id}/file/archive/make?${params}`);
 
-      return result.data.task_id || false;
+      return FileOperationResultSchema.parse(result.data)
     } catch (e) {
       throw APIError.fromError(e);
     }
@@ -318,10 +310,9 @@ export class ServerDirectory extends ServerFileManager {
   }
 
   /**
-   * フォルダを作成します
-   * @param name 作成するフォルダ名
+   * ディレクトリを作成します
+   * @param name 作成するディレクトリ名
    * @param parents 親ディレクトリも作成
-   * @returns タスク
    */
   async mkdir(name: string, parents?: boolean): Promise<FileTask> {
     const params = new URLSearchParams({
@@ -339,6 +330,10 @@ export class ServerDirectory extends ServerFileManager {
     }
   }
 
+  /**
+   * ファイルをアップロードします
+   * @param file アップロードするファイル
+   */
   async uploadFile(file: File | FileWithPath): Promise<FileTask> {
     const formData = new FormData();
     formData.append('file', file);
@@ -419,19 +414,21 @@ export class ServerArchiveFile extends ServerFile {
     }
   }
 
-  async getFiles(password?: string) {
-    const result = await axios.post(
-      `/server/${this.server.id}/file/archive/files?path=${this.src}`,
-      { password }
-    );
+  async getFiles(password?: string): Promise<ArchiveFileNode[]> {
+    try {
+      const result = await axios.post(
+        `/server/${this.server.id}/file/archive/files?path=${this.src}`,
+        { password }
+      );
 
-    const files: ArchiveFile[] = z.array(ArchiveFileSchema).parse(result.data);
-
-    const directoryTree = ServerArchiveFile.convertToDirectoryTree(files);
-    console.log(directoryTree)
+      const files: ArchiveFile[] = z.array(ArchiveFileSchema).parse(result.data);
+      return ServerArchiveFile.convertToDirectoryTree(files);
+    } catch (e) {
+      throw APIError.fromError(e);
+    }
   }
 
-  static convertToDirectoryTree(files: ArchiveFile[]): FileNode[] {
+  private static convertToDirectoryTree(files: ArchiveFile[]): ArchiveFileNode[] {
     const root: { [key: string]: any } = {};
 
     files.forEach((file) => {
@@ -464,7 +461,7 @@ export class ServerArchiveFile extends ServerFile {
       }
     });
 
-    const convertToArray = (obj: { [key: string]: any }): FileNode[] => Object.values(obj).map((node: any) => ({
+    const convertToArray = (obj: { [key: string]: any }): ArchiveFileNode[] => Object.values(obj).map((node: any) => ({
         name: node.name,
         size: node.size,
         compressedSize: node.compressedSize,
@@ -476,9 +473,10 @@ export class ServerArchiveFile extends ServerFile {
   }
 }
 
-type FileNode = {
+
+type ArchiveFileNode = {
   name: string;
-  children?: FileNode[];
+  children?: ArchiveFileNode[];
   size: number;
   compressedSize: number;
   modifiedAt: Dayjs;

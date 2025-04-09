@@ -12,7 +12,7 @@ type Props = {
   label: string;
   value: string;
   setValue: React.Dispatch<React.SetStateAction<string>>;
-  global: string | undefined;
+  global: string | undefined | null;
   useGlobal: boolean;
   setUseGlobal: (value: boolean) => void;
   setChanged: (value: boolean) => void;

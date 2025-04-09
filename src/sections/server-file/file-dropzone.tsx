@@ -10,6 +10,8 @@ import Box from '@mui/material/Box';
 import { Fade, alpha } from '@mui/material';
 import Typography from '@mui/material/Typography';
 
+import FileTaskResult from "src/enums/file-task-result";
+
 import { Iconify } from 'src/components/iconify';
 
 // ----------------------------------------------------------------------
@@ -62,8 +64,9 @@ export default function FileDropZone({ isActive, setIsActive, directory, reloadF
         acceptedFiles.map(async (file) => {
           try {
             const res = await directory.uploadFile(file);
-            if (!res) error += 1;
+            if (res.result === FileTaskResult.FAILED) error += 1;
           } catch (err) {
+            console.log(err)
             error += 1;
           }
         })

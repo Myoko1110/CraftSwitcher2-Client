@@ -152,7 +152,7 @@ export function ServerConfigView() {
       setServerConfig(_serverConfig);
     } catch (e) {
       console.log(e);
-      toast.error(`サーバ設定の取得に失敗しました: ${APIError.createToastMessage(e)}`);
+      toast.error(`サーバー設定の取得に失敗しました: ${APIError.createToastMessage(e)}`);
     }
 
     setTypes(await ServerType.availableTypes());
@@ -302,7 +302,7 @@ export function ServerConfigView() {
                         label="Java プリセット名"
                         value={javaPreset}
                         setValue={setJavaPreset}
-                        global={globalSetting?.javaPreset}
+                        global={globalSetting?.launchOption.javaPreset}
                         useGlobal={useGlobalJavaPreset}
                         setUseGlobal={setUseGlobalJavaPreset}
                         setChanged={setChanged}
@@ -312,7 +312,7 @@ export function ServerConfigView() {
                         label="Java Executable"
                         value={javaExecutable}
                         setValue={setJavaExecutable}
-                        global={globalSetting?.javaExecutable}
+                        global={globalSetting?.launchOption.javaExecutable}
                         useGlobal={useGlobalJavaExecutable}
                         setUseGlobal={setUseGlobalJavaExecutable}
                         setChanged={setChanged}
@@ -324,7 +324,7 @@ export function ServerConfigView() {
                       label="Java オプション"
                       value={javaOptions}
                       setValue={setJavaOptions}
-                      global={globalSetting?.javaOptions}
+                      global={globalSetting?.launchOption.javaOptions}
                       useGlobal={useGlobalJavaOptions}
                       setUseGlobal={setUseGlobalJavaOptions}
                       setChanged={setChanged}
@@ -346,7 +346,7 @@ export function ServerConfigView() {
                       label="サーバーオプション"
                       value={serverOptions}
                       setValue={setServerOptions}
-                      global={globalSetting?.serverOptions}
+                      global={globalSetting?.launchOption.serverOptions}
                       useGlobal={useGlobalServerOptions}
                       setUseGlobal={setUseGlobalServerOptions}
                       setChanged={setChanged}
@@ -357,7 +357,7 @@ export function ServerConfigView() {
                       label="最大メモリ割り当て量"
                       type="number"
                       inputProps={{ max: 1 }}
-                      value={useGlobalMaxHeapMemory ? globalSetting?.maxHeapMemory : maxHeapMemory}
+                      value={useGlobalMaxHeapMemory ? globalSetting?.launchOption.maxHeapMemory : maxHeapMemory}
                       disabled={useGlobalMaxHeapMemory}
                       onChange={(e) => {
                         setMaxHeapMemory(Number(e.target.value));
@@ -394,7 +394,7 @@ export function ServerConfigView() {
                       label="最小メモリ割り当て量"
                       type="number"
                       inputProps={{ min: 1 }}
-                      value={useGlobalMinHeapMemory ? globalSetting?.minHeapMemory : minHeapMemory}
+                      value={useGlobalMinHeapMemory ? globalSetting?.launchOption.minHeapMemory : minHeapMemory}
                       disabled={useGlobalMinHeapMemory}
                       onChange={(e) => {
                         setMinHeapMemory(Number(e.target.value));
@@ -430,7 +430,7 @@ export function ServerConfigView() {
                     <FormControlLabel
                       checked={
                         useGlobalEnableFreeMemoryCheck
-                          ? globalSetting?.enableFreeMemoryCheck
+                          ? globalSetting?.launchOption.enableFreeMemoryCheck
                           : enableFreeMemoryCheck
                       }
                       control={
@@ -463,7 +463,7 @@ export function ServerConfigView() {
                     <FormControlLabel
                       checked={
                         useGlobalEnableReporterAgent
-                          ? globalSetting?.enableReporterAgent
+                          ? globalSetting?.launchOption.enableReporterAgent
                           : enableReporterAgent
                       }
                       control={
@@ -492,7 +492,7 @@ export function ServerConfigView() {
                   </Grid>
                   <Grid xs={12}>
                     <FormControlLabel
-                      checked={useGlobalEnableScreen ? globalSetting?.enableScreen : enableScreen}
+                      checked={useGlobalEnableScreen ? globalSetting?.launchOption.enableScreen : enableScreen}
                       control={
                         <Switch
                           onChange={(e) => {

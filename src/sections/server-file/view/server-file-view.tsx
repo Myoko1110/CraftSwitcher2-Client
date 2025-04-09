@@ -203,7 +203,7 @@ export function ServerFileView() {
           const res = copyFiles.length
             ? await file.copy(directory?.src!)
             : await file.move(directory?.src!);
-          if (res) {
+          if (res.result === FileTaskResult.PENDING) {
             const fileTaskEndEvent = (e: FileTaskEvent) => {
               if (e.task.src === file.src) {
                 if (e.task.result !== FileTaskResult.SUCCESS) error += 1;
@@ -213,11 +213,15 @@ export function ServerFileView() {
             };
             ws.addEventListener('FileTaskEnd', fileTaskEndEvent);
             return;
+          } if (res.result === FileTaskResult.FAILED) {
+            error += 1;
+          } else {
+            done += 1;
           }
           if (!res) error += 1;
           done += 1;
         } catch (e) {
-          console.error(e);
+          error += 1;
         }
       })
     );
@@ -542,8 +546,8 @@ export function getComparator(
 }
 
 function nameComparator(a: ServerFile | ServerDirectory, b: ServerFile | ServerDirectory) {
-  const aIsFile = a instanceof ServerFile;
-  const bIsFile = b instanceof ServerFile;
+  const aIsFile = a.isFile();
+  const bIsFile = b.isFile();
 
   if (aIsFile === bIsFile) {
     if (b.name < a.name) return -1;
@@ -561,8 +565,8 @@ function sizeComparator(a: ServerFile | ServerDirectory, b: ServerFile | ServerD
 }
 
 function timeComparator(a: ServerFile | ServerDirectory, b: ServerFile | ServerDirectory) {
-  const aIsFile = a instanceof ServerFile;
-  const bIsFile = b instanceof ServerFile;
+  const aIsFile = a.isFile();
+  const bIsFile = b.isFile();
 
   if (aIsFile === bIsFile) {
     if (b.modifyAt! < a.modifyAt!) return -1;
