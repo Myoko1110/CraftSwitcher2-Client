@@ -76,7 +76,7 @@ const JarDLBuildInfoSchema = z.object({
   requireJdk: z.boolean().nullable(),
   updatedDatetime: z.string().nullable(),
   recommended: z.boolean(),
-  isRequiredBuild: z.boolean(),
+  isRequireBuild: z.boolean(),
   isLoadedInfo: z.boolean(),
 }).transform((data) => ({
   build: data.build,
@@ -85,7 +85,7 @@ const JarDLBuildInfoSchema = z.object({
   requireJdk: data.requireJdk,
   updatedAt: data.updatedDatetime ? dayjs.utc(data.updatedDatetime) : null,
   recommended: data.recommended,
-  isRequiredBuild: data.isRequiredBuild,
+  isRequireBuild: data.isRequireBuild,
   isLoadedInfo: data.isLoadedInfo,
 }));
 export type JarDLBuildInfo = z.infer<typeof JarDLBuildInfoSchema>;

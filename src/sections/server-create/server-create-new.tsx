@@ -98,13 +98,13 @@ export default function ServerCreateNew({ setPage }: { setPage: (page: number) =
 
     try {
       const res = await ServerGlobalConfig.get();
-      setJavaExecutable(res.javaExecutable);
-      setJavaOptions(res.javaOptions);
-      setServerOptions(res.serverOptions);
-      setMaxHeapMemory(res.maxHeapMemory);
-      setMinHeapMemory(res.minHeapMemory);
-      setEnableFreeMemoryCheck(res.enableFreeMemoryCheck);
-      setEnableReporterAgent(res.enableReporterAgent);
+      setJavaExecutable(res.launchOption.javaExecutable || "");
+      setJavaOptions(res.launchOption.javaOptions);
+      setServerOptions(res.launchOption.serverOptions);
+      setMaxHeapMemory(res.launchOption.maxHeapMemory);
+      setMinHeapMemory(res.launchOption.minHeapMemory);
+      setEnableFreeMemoryCheck(res.launchOption.enableFreeMemoryCheck);
+      setEnableReporterAgent(res.launchOption.enableReporterAgent);
     } catch (e) {
       toast.error(APIError.createToastMessage(e));
       return;
