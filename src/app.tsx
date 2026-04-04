@@ -18,7 +18,9 @@ export default function App() {
   axios.defaults.withCredentials = true;
 
   axios.interceptors.request.use((req) => {
-    req.data = humps.decamelizeKeys(req.data);
+    if (!(req.data instanceof FormData)) {
+      req.data = humps.decamelizeKeys(req.data); 
+    }
     return req;
   });
   axios.interceptors.response.use((res) => {
