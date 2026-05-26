@@ -57,8 +57,8 @@ export default function ServerConsole({ server, state }: { server: Server; state
         const lines = await server.getLogsLatest(true);
         while (lines.length > 1) {
           term.writeln(lines.shift()!);
-          term.write(lines.shift()!);
         }
+        term.write(lines.shift()!);
       } catch (e) {
         toast.error(APIError.createToastMessage(e));
       }
